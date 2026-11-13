@@ -1,0 +1,1 @@
+Application metadata database migrations. Set DATABASE_URL before running Alembic.
