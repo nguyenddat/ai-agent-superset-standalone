@@ -4,7 +4,7 @@
 
 ## Chuẩn bị
 
-Từ gốc repository, sao chép `.env.example` thành `.env`. Đổi `POSTGRES_PASSWORD` và tạo `CONNECTION_ENCRYPTION_KEY` bằng lệnh ghi trong file mẫu. Không commit `.env`; khóa Fernet phải được giữ ổn định để đọc lại URI nguồn đã mã hóa. `POSTGRES_USER` và `POSTGRES_DB` có giá trị mặc định trong Compose.
+Từ gốc repository, sao chép `.env.example` thành `.env`. Đổi `POSTGRES_PASSWORD` và tạo `CONNECTION_ENCRYPTION_KEY` bằng lệnh ghi trong file mẫu. Không commit `.env`; khóa Fernet phải được giữ ổn định để đọc lại URI nguồn đã mã hóa. `POSTGRES_USER` và `POSTGRES_DB` có giá trị mặc định trong Compose. Đặt `OPENROUTER_API_KEY` nếu dùng tính năng tự động điền từ điển dữ liệu; để trống thì API đó trả 503.
 
 ```powershell
 Copy-Item .env.example .env

@@ -5,6 +5,7 @@ from fastapi.responses import JSONResponse
 
 from backend.common.base_exceptions import AppError
 from backend.core.setting import config
+from backend.modules.data_dictionary.routes.router_data_dictionary import router as data_dictionary_router
 from backend.modules.database_connection.routes.router_database_connection import router as database_connection_router
 from backend.modules.database_connection.routes.router_database_metadata import router as database_metadata_router
 
@@ -14,11 +15,12 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=config.frontend_origins,
     allow_credentials=False,
-    allow_methods=["GET", "POST", "PATCH", "DELETE"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Content-Type"],
 )
 app.include_router(database_connection_router)
 app.include_router(database_metadata_router)
+app.include_router(data_dictionary_router)
 
 
 @app.exception_handler(AppError)

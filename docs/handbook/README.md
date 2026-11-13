@@ -16,5 +16,6 @@ Handbook ghi lại cấu trúc và quy ước đang dùng trong repository stand
 | Module | Tài liệu | Trạng thái |
 | --- | --- | --- |
 | `database_connection` | [Tổng quan module](modules/database_connection/README.md) | Model, migration, repository, service và API FastAPI đã có. |
+| `data_dictionary` | [Tổng quan module](modules/data_dictionary/README.md) | Model, migration, service và API đọc, lưu, tự động điền (AI, streaming) từ điển mức bảng và mức cột đã có; quan hệ và giao diện dự kiến. |
 
 Khi thêm module mới, tạo `modules/<ten_module>/README.md`, tài liệu dữ liệu và một file riêng cho từng luồng API. Cập nhật mục lục này cùng thay đổi code.

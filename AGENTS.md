@@ -18,8 +18,9 @@ Khi thay đổi hành vi, cấu trúc dữ liệu hoặc quy ước, cập nhậ
 
 - `backend/common/`: base model, repository, exception và formatter dùng chung.
 - `backend/core/`: cấu hình, engine và session của metadata database, hạ tầng bảo mật.
-- `backend/modules/`: các nghiệp vụ; hiện có `database_connection`.
-- `backend/migrations/`: Alembic; script của module nằm trong `versions/init_<ten_module>_module/`. Module `database_connection` hiện dùng tên thư mục `init_database_module`.
+- `backend/modules/`: các nghiệp vụ; hiện có `database_connection` và `data_dictionary`.
+- `backend/agent_package/`: chat model, prompt, tool dùng chung cho các tính năng AI.
+- `backend/migrations/`: Alembic; script của module nằm trong `versions/init_<ten_module>_module/`. Module `database_connection` hiện dùng tên thư mục `init_database_module`; `data_dictionary` dùng `init_data_dictionary_module`.
 - `frontend/`: ứng dụng Next.js App Router độc lập, khởi tạo bằng `create-next-app`; hướng dẫn tại [handbook frontend](docs/handbook/frontend/README.md).
 - `docs/handbook/`: quy ước và luồng xử lý kỹ thuật.
 - `docs/reports/`: báo cáo, tách khỏi handbook.
