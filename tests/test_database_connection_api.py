@@ -110,6 +110,41 @@ class DatabaseConnectionApiTests(unittest.TestCase):
         self.assertEqual(updated_tables[0]["description"], "Updated description")
         self.assertEqual(updated_columns[0]["data_type"], "BIGINT")
 
+        self.snapshot = [
+            SourceSchema("public", (
+                SourceTable("customers", "TABLE", None, (
+                    SourceColumn("id", "INTEGER", 1, False, True, None, None),
+                    SourceColumn("email", "TEXT", 2, True, False, None, None),
+                )),
+            )),
+            SourceSchema("staging", (
+                SourceTable("raw_orders", "VIEW", None, (
+                    SourceColumn("payload", "TEXT", 1, True, False, None, None),
+                )),
+            )),
+        ]
+        self.assertEqual(self.client.post(f"{BASE}/database-connections/{connection_id}/sync").status_code, 200)
+        self.assertEqual(self.client.get(f"{BASE}/tables/{tables[0]['id']}/columns").status_code, 404)
+        public_tables = self.client.get(f"{BASE}/schemas/{schemas[0]['id']}/tables").json()
+        self.assertEqual([t["name"] for t in public_tables], ["customers"])
+        customer_columns = self.client.get(f"{BASE}/tables/{public_tables[0]['id']}/columns").json()
+        self.assertEqual([c["name"] for c in customer_columns], ["id", "email"])
+
+        self.snapshot = [SourceSchema("public", (
+            SourceTable("customers", "TABLE", None, (
+                SourceColumn("id", "INTEGER", 1, False, True, None, None),
+            )),
+        ))]
+        self.assertEqual(self.client.post(f"{BASE}/database-connections/{connection_id}/sync").status_code, 200)
+        remaining_schemas = self.client.get(f"{BASE}/database-connections/{connection_id}/schemas").json()
+        self.assertEqual([s["name"] for s in remaining_schemas], ["public"])
+        remaining_columns = self.client.get(f"{BASE}/tables/{public_tables[0]['id']}/columns").json()
+        self.assertEqual([c["name"] for c in remaining_columns], ["id"])
+        self.snapshot = []
+        self.assertEqual(self.client.post(f"{BASE}/database-connections/{connection_id}/sync").status_code, 200)
+        self.assertEqual(self.client.get(f"{BASE}/database-connections/{connection_id}/schemas").json(), [])
+        self.assertEqual(self.client.get(f"{BASE}/schemas/{schemas[0]['id']}/tables").status_code, 404)
+
         self.assertEqual(self.client.delete(f"{BASE}/database-connections/{connection_id}").status_code, 204)
         self.assertEqual(self.client.get(f"{BASE}/database-connections/{connection_id}").status_code, 404)
         self.assertEqual(self.client.get(f"{BASE}/schemas/{schemas[0]['id']}/tables").status_code, 404)

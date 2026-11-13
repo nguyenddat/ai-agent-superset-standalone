@@ -1,6 +1,7 @@
+from collections.abc import Collection
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from backend.common.base_repository import BaseRepository
@@ -20,3 +21,7 @@ class DatabaseColumnRepository(BaseRepository[DatabaseColumn]):
     def read_by_table_and_name(self, table_id: UUID, name: str) -> DatabaseColumn | None:
         statement = select(self.model).where(self.model.table_id == table_id, self.model.name == name)
         return self.session.scalar(statement)
+
+    def delete_missing(self, table_id: UUID, names: Collection[str]) -> None:
+        statement = delete(self.model).where(self.model.table_id == table_id, self.model.name.not_in(names))
+        self.session.execute(statement, execution_options={"synchronize_session": False})

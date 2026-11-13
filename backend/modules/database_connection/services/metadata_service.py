@@ -185,5 +185,8 @@ class MetadataService:
                     else:
                         self.columns.update(column, column_values, flush=False)
                     column_count += 1
+                self.columns.delete_missing(table.id, [c.name for c in source_table.columns])
+            self.tables.delete_missing(schema.id, [t.name for t in source_schema.tables])
+        self.schemas.delete_missing(connection_id, [s.name for s in snapshot])
         self.session.flush()
         return SyncResult("completed", synced_at, len(snapshot), table_count, column_count)
