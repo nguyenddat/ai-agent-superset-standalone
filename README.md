@@ -2,11 +2,41 @@
 
 Quy ước dự án nằm trong [AGENTS.md](AGENTS.md) và [docs/handbook](docs/handbook/README.md). Báo cáo theo từng đợt được lưu trong [docs/reports](docs/reports/README.md).
 
+## Chạy bằng Docker Compose
+
+Sao chép `.env.example` thành `.env`, đổi `POSTGRES_PASSWORD` và tạo `CONNECTION_ENCRYPTION_KEY` theo lệnh ghi trong file. Sau đó chạy:
+
+```powershell
+docker compose up --build -d
+docker compose ps
+```
+
+Web ở `http://localhost:3000`, API ở `http://localhost:8000/api/v1`, OpenAPI ở `http://localhost:8000/docs`. Backend tự chạy `alembic upgrade head` sau khi PostgreSQL khỏe. Dữ liệu PostgreSQL nằm trong volume `postgres_data`. Xem [hướng dẫn Docker](docs/handbook/docker.md) để biết các lệnh vận hành và giới hạn hiện tại.
+
 ## Project layout
 
 - `backend/`: Python backend package and business modules.
 - `backend/migrations/`: Alembic revisions for the backend metadata database.
 - `frontend/`: standalone web application workspace.
+
+Frontend dùng Next.js App Router và được khởi tạo bằng `create-next-app`. Chạy riêng:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Trang chính mở tại `http://localhost:3000` và chưa có luồng đăng nhập. Xem [hướng dẫn frontend](frontend/README.md).
+
+Backend API dùng FastAPI. Sau khi cấu hình `DATABASE_URL`, `CONNECTION_ENCRYPTION_KEY` và chạy migration, khởi động từ gốc repository:
+
+```powershell
+uv run alembic upgrade head
+uv run uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+API ở `http://127.0.0.1:8000/api/v1`; OpenAPI ở `/docs`. CORS cho phép `http://localhost:3000`. Hiện API chưa có xác thực, nên chỉ dùng trong môi trường phát triển tin cậy.
 
 Run `uv` and Alembic commands from the repository root. The root
 `pyproject.toml` packages `backend/`, so `uv add <package>` installs

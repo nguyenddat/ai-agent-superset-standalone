@@ -13,3 +13,7 @@ wheels/
 .env
 .env.*
 !.env.example
+
+# Airflow runtime logs
+/simulation/airflow/logs/*
+!/simulation/airflow/logs/.gitkeep
