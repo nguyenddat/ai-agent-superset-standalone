@@ -36,7 +36,7 @@ uv run alembic upgrade head
 uv run uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-API ở `http://127.0.0.1:8000/api/v1`; OpenAPI ở `/docs`. CORS cho phép `http://localhost:3000`. Hiện API chưa có xác thực, nên chỉ dùng trong môi trường phát triển tin cậy.
+API ở `http://127.0.0.1:8000/api/v1`; OpenAPI ở `/docs`. CORS cho phép các origin trong `FRONTEND_ORIGIN` (mặc định `http://localhost:3000` và `http://127.0.0.1:3000`). Hiện API chưa có xác thực, nên chỉ dùng trong môi trường phát triển tin cậy.
 
 Run `uv` and Alembic commands from the repository root. The root
 `pyproject.toml` packages `backend/`, so `uv add <package>` installs

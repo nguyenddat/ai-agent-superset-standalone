@@ -22,6 +22,6 @@ Module khác dùng service hoặc repository của module sở hữu dữ liệu
 
 ## Trạng thái hiện tại
 
-`database_connection` là module nghiệp vụ đầu tiên. Đã có bốn model, các migration trong `init_database_module`, bốn repository, service và FastAPI route cho đăng ký kết nối, CRUD và metadata. `backend/__init__.py` hiện chỉ là entrypoint mẫu. `frontend/` đã có giao diện Next.js, chưa nối API. API chưa có xác thực/phân quyền.
+`database_connection` là module nghiệp vụ đầu tiên. Đã có bốn model, các migration trong `init_database_module`, bốn repository, service và FastAPI route cho đăng ký kết nối, CRUD và metadata. `backend/__init__.py` hiện chỉ là entrypoint mẫu. `frontend/` là giao diện Next.js đã gọi API của module để quản lý kết nối và xem metadata. API chưa có xác thực/phân quyền.
 
 Các model database hiện có kế thừa `BaseModel` trong `common`, dùng ID UUID v7 và timestamps. Revision mới chuyển ID số nguyên đã tạo bởi các migration đầu sang UUID v7 cùng các khóa ngoại liên quan.

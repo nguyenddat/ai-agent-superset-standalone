@@ -24,7 +24,7 @@ Route sở hữu session của request qua `get_database()`. Service và reposit
 | Quá nhiều yêu cầu | 429 |
 | Dịch vụ phụ thuộc không sẵn sàng | 503 |
 
-FastAPI cung cấp route và schema JSON. CORS cho phép `http://localhost:3000`; CORS không thay thế xác thực. Backend hiện chưa kiểm tra danh tính và quyền của người gọi, nên chỉ chạy trên môi trường phát triển tin cậy cho đến khi bổ sung chính sách truy cập.
+FastAPI cung cấp route và schema JSON. CORS cho phép các origin trong `FRONTEND_ORIGIN`, phân tách bằng dấu phẩy; mặc định là `http://localhost:3000,http://127.0.0.1:3000`. CORS không thay thế xác thực. Backend hiện chưa kiểm tra danh tính và quyền của người gọi, nên chỉ chạy trên môi trường phát triển tin cậy cho đến khi bổ sung chính sách truy cập.
 
 ## Định dạng response
 
