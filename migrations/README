@@ -1,1 +1,3 @@
 Application metadata database migrations. Set DATABASE_URL before running Alembic.
+Table creation scripts are grouped in versions/init_<module>_module/ folders.
+Register each new folder in alembic.ini version_locations.

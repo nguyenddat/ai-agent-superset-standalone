@@ -20,9 +20,20 @@ To add a table, define a SQLAlchemy model inheriting from
 `database/models/__init__.py`, then generate and review a migration:
 
 ```powershell
-uv run alembic revision --autogenerate -m "add connection table"
+uv run alembic revision --autogenerate --version-path migrations/versions/init_database_module -m "add connection field"
 uv run alembic upgrade head
 ```
 
-The first revision is an empty baseline. This setup does not migrate the
-Superset metadata database.
+Revisions are grouped under `migrations/versions/init_<module>_module/`.
+When adding a module, create its folder and add that path to `version_locations`
+in `alembic.ini`; pass its folder with `--version-path` when generating a
+revision. The baseline revision remains at the root of `versions/`.
+
+The database module migrations create `database_connections`, then
+`database_schemas`, `database_tables`, and `database_columns`. The latter three
+are snapshots of metadata discovered in registered source databases; these
+migrations do not create tables in those source databases. `uri_ciphertext`
+must contain an encrypted connection URI; the encryption and connection API
+will be added with the backend service. `DATABASE_URL` always points to the
+application metadata database, not to a registered source database. This
+setup does not migrate the Superset metadata database.
