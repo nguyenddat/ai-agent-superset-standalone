@@ -12,14 +12,15 @@ from sqlalchemy.orm import Session
 from sqlalchemy.pool import NullPool
 
 from backend.core.setting import config
-from backend.modules.database_connection.utils.exceptions import (
+
+from ..models import DatabaseConnection
+from ..repositories import DatabaseConnectionRepository
+from ..utils.exceptions import (
     ConnectionAlreadyExistsError,
     ConnectionNotFoundError,
     InvalidConnectionError,
     SourceDatabaseUnavailableError,
 )
-from backend.modules.database_connection.models import DatabaseConnection
-from backend.modules.database_connection.repositories import DatabaseConnectionRepository
 
 
 @dataclass(frozen=True)

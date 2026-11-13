@@ -2,7 +2,8 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.common.base_repository import BaseRepository
-from backend.modules.database_connection.models import DatabaseConnection
+
+from ..models import DatabaseConnection
 
 
 class DatabaseConnectionRepository(BaseRepository[DatabaseConnection]):

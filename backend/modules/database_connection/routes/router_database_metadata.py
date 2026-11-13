@@ -3,15 +3,14 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends
 
-from backend.modules.database_connection.dependencies import get_metadata_service
-from backend.modules.database_connection.schemas.schema_database_metadata import (
+from ..dependencies import get_metadata_service
+from ..schemas.schema_database_metadata import (
     ColumnOut,
     SchemaOut,
     SyncOut,
     TableOut,
 )
-from backend.modules.database_connection.services import MetadataService
-
+from ..services import MetadataService
 
 router = APIRouter(prefix="/api/v1", tags=["database-metadata"])
 MetadataServiceDep = Annotated[MetadataService, Depends(get_metadata_service)]

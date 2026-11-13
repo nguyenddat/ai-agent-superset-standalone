@@ -12,18 +12,19 @@ from sqlalchemy.pool import NullPool
 
 from backend.common.base_model import utc_now
 from backend.core.setting import config
-from backend.modules.database_connection.utils.exceptions import (
-    ConnectionNotFoundError,
-    InactiveConnectionError,
-    MetadataNotFoundError,
-    SourceDatabaseUnavailableError,
-)
-from backend.modules.database_connection.models import DatabaseColumn, DatabaseSchema, DatabaseTable
-from backend.modules.database_connection.repositories import (
+
+from ..models import DatabaseColumn, DatabaseSchema, DatabaseTable
+from ..repositories import (
     DatabaseColumnRepository,
     DatabaseConnectionRepository,
     DatabaseSchemaRepository,
     DatabaseTableRepository,
+)
+from ..utils.exceptions import (
+    ConnectionNotFoundError,
+    InactiveConnectionError,
+    MetadataNotFoundError,
+    SourceDatabaseUnavailableError,
 )
 
 

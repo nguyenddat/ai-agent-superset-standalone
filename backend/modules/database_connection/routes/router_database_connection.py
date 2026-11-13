@@ -3,8 +3,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, Response
 
-from backend.modules.database_connection.dependencies import get_connection_service
-from backend.modules.database_connection.schemas.schema_database_connection import (
+from ..dependencies import get_connection_service
+from ..schemas.schema_database_connection import (
     ConnectionCreateIn,
     ConnectionOut,
     ConnectionPatchIn,
@@ -12,8 +12,7 @@ from backend.modules.database_connection.schemas.schema_database_connection impo
     ConnectionTestOut,
     DialectOut,
 )
-from backend.modules.database_connection.services import ConnectionService
-
+from ..services import ConnectionService
 
 router = APIRouter(prefix="/api/v1", tags=["database-connections"])
 ConnectionServiceDep = Annotated[ConnectionService, Depends(get_connection_service)]

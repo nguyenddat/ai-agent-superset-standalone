@@ -5,7 +5,8 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from backend.common.base_repository import BaseRepository
-from backend.modules.database_connection.models import DatabaseColumn
+
+from ..models import DatabaseColumn
 
 
 class DatabaseColumnRepository(BaseRepository[DatabaseColumn]):

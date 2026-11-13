@@ -6,6 +6,7 @@
 - Không viết docstring cho module và hàm khi chưa có yêu cầu riêng.
 - Đặt tên theo nghiệp vụ: `database_connection`, `selected_schema`, `created_at`; tránh tên viết tắt khó hiểu.
 - Giữ dòng code tối đa 120 ký tự. Chỉ tách dòng khi cần để dễ đọc hoặc vượt giới hạn.
+- Import trong cùng một module dùng import tương đối (`from ..models import TableDictionary`, `from .semantics import ...`). Import từ module khác, `backend.common`, `backend.core` hoặc `backend.agent_package` dùng đường dẫn đầy đủ. Nhóm import tương đối đặt sau nhóm import tuyệt đối; có thể sắp xếp bằng `uvx ruff check --select I --fix --line-length 120`.
 - Một module sở hữu model và truy vấn của nghiệp vụ đó. Repository nhận session, không tự commit. Service không đọc trực tiếp HTTP request.
 - Exception cụ thể đặt trong module, kế thừa từ `backend.common.base_exceptions`, có `code` riêng và thông điệp an toàn để trả cho client.
 - Biến cấu hình chung đọc qua `backend.core.setting.Config`; không đọc `os.getenv` rải rác trong module.
