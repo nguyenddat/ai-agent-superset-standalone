@@ -1,22 +1,22 @@
 # Hành vi chung của API
 
-**Trạng thái:** quy ước cho API sẽ triển khai; repository hiện chưa có web framework hoặc route hoạt động.
+**Trạng thái:** API FastAPI của module `database_connection` đã triển khai tại `/api/v1`; chưa có xác thực/phân quyền.
 
 ## Luồng xử lý
 
 ```text
-Route → kiểm tra quyền và dữ liệu vào → service → repository → commit → formatter → response
+Route → kiểm tra dữ liệu vào → service → repository → commit → response
 ```
 
 Route sở hữu session của request qua `get_database()`. Service và repository không tự commit. Một thao tác ghi commit một lần sau khi mọi bước đã thành công; khi phát sinh exception, `get_database()` rollback và đóng session. Repository có thể flush để lấy ID hoặc phát hiện ràng buộc sớm. Không trả URI hoặc secret đã giải mã trong response.
 
 ## Lỗi
 
-`backend.common.base_exceptions` định nghĩa lỗi gốc với `status`, `code` và thông điệp an toàn cho client. Mỗi module khai báo subclass cụ thể trong `exceptions.py`; lỗi từ driver hoặc SQLAlchemy được chuyển sang lỗi nghiệp vụ ở lớp hiểu được ý nghĩa của nó. Không đưa SQL, stack trace hoặc mật khẩu vào thông điệp lỗi.
+`backend.common.base_exceptions` định nghĩa lỗi gốc với `status`, `code` và thông điệp an toàn cho client. Module `database_connection` khai báo subclass trong `utils/exceptions.py`; lỗi từ driver hoặc SQLAlchemy được chuyển sang lỗi nghiệp vụ ở lớp hiểu được ý nghĩa của nó. Không đưa SQL, stack trace hoặc mật khẩu vào thông điệp lỗi. Mọi lỗi HTTP trả JSON dạng `{"detail":"..."}`; lỗi xác thực cấu trúc request trả thông điệp chung để không lộ URI.
 
 | Nhóm lỗi | HTTP status |
 | --- | ---: |
-| Dữ liệu không hợp lệ | 400 |
+| Dữ liệu kết nối hoặc request không hợp lệ | 422 |
 | Chưa xác thực | 401 |
 | Không có quyền | 403 |
 | Không tìm thấy | 404 |
@@ -24,8 +24,8 @@ Route sở hữu session của request qua `get_database()`. Service và reposit
 | Quá nhiều yêu cầu | 429 |
 | Dịch vụ phụ thuộc không sẵn sàng | 503 |
 
-HTTP framework, đường dẫn endpoint, schema JSON và cơ chế xác thực chưa được chọn trong code. Tài liệu luồng API từng module ghi rõ đầu vào, kiểm tra, thao tác dữ liệu, lỗi, đầu ra và trạng thái triển khai; không coi tên đường dẫn dự kiến là hợp đồng đã phát hành.
+FastAPI cung cấp route và schema JSON. CORS cho phép `http://localhost:3000`; CORS không thay thế xác thực. Backend hiện chưa kiểm tra danh tính và quyền của người gọi, nên chỉ chạy trên môi trường phát triển tin cậy cho đến khi bổ sung chính sách truy cập.
 
 ## Định dạng response
 
-Datetime xuất ISO 8601 UTC với sáu chữ số phần giây và `Z`; date xuất `YYYY-MM-DD`. UUID và Decimal xuất chuỗi; số nguyên, chuỗi và boolean giữ kiểu JSON tương ứng. Datetime thiếu timezone bị từ chối tại biên chuyển đổi để tránh hiểu sai thời điểm.
+API hiện dùng Pydantic để xuất datetime ISO 8601 và UUID dạng chuỗi. Formatter chung trong `backend.common.utils.type_formatters` quy định UTC với sáu chữ số phần giây và `Z`; route hiện chưa dùng formatter này. Số nguyên, chuỗi và boolean giữ kiểu JSON tương ứng.

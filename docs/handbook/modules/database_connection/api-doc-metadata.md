@@ -1,18 +1,22 @@
 # API đọc kết nối và metadata
 
-**Trạng thái:** dự kiến, chưa có route. **Method dự kiến:** `GET`. Đường dẫn và schema JSON chưa chốt.
+**Trạng thái:** đã triển khai các route `GET`.
 
 ## Các dạng đọc
 
-- Danh sách kết nối mà người gọi được phép xem; phân trang và sắp xếp ổn định.
-- Chi tiết một kết nối, gồm ID, tên, dialect/driver, trạng thái và thời gian tạo/sửa; không trả secret.
-- Danh sách schema theo connection, table/view theo schema và column theo table; đọc từ snapshot trong metadata database.
+- `GET /api/v1/database-connections`: danh sách kết nối, `offset` mặc định 0 và `limit` mặc định 100 (tối đa 100).
+- `GET /api/v1/database-connections/dialects`: danh sách dialect/driver hỗ trợ, hiện có PostgreSQL và psycopg.
+- `GET /api/v1/database-connections/{id}`: chi tiết kết nối, không trả URI.
+- `GET /api/v1/database-connections/{id}/schemas`: danh sách `id`, `name`, `last_synced_at`.
+- `GET /api/v1/schemas/{id}/tables`: danh sách `id`, `name`, `table_type`, `description`, `last_synced_at`.
+- `GET /api/v1/tables/{id}/columns`: danh sách `name`, `data_type`, `ordinal_position`, `is_nullable`, `is_primary_key`, `default_value`, `description`.
+Kết nối gồm ID, tên, dialect/driver, trạng thái và thời gian tạo/sửa. Metadata được đọc từ snapshot trong metadata database.
 
-## Luồng xử lý dự kiến
+## Luồng xử lý hiện tại
 
-1. Route xác thực và kiểm tra quyền trên connection được yêu cầu.
-2. Service xác nhận quan hệ cha–con trước khi đọc, để không lộ metadata từ connection khác qua ID con.
-3. Repository chỉ truy vấn metadata database; route dùng formatter chung cho thời gian và kiểu dữ liệu.
-4. Trả 404 khi ID không tồn tại hoặc không được phép tiết lộ, theo chính sách phân quyền sẽ chốt.
+1. Route kiểm tra ID UUID; chưa có xác thực/phân quyền.
+2. Service xác nhận bản ghi cha tồn tại trước khi đọc danh sách con.
+3. Repository chỉ truy vấn metadata database; Pydantic serialize response.
+4. Trả 404 khi ID cha không tồn tại.
 
 `last_synced_at` cần có trong kết quả để người dùng nhận biết snapshot cũ. API đọc không tự truy vấn database nguồn; làm mới metadata đi qua luồng đồng bộ riêng.

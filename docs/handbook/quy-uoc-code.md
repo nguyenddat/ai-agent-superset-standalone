@@ -3,6 +3,7 @@
 ## Python và tổ chức module
 
 - Dùng Python 3.14, SQLAlchemy 2.1 và type hints cho hàm, thuộc tính quan trọng.
+- Không viết docstring cho module và hàm khi chưa có yêu cầu riêng.
 - Đặt tên theo nghiệp vụ: `database_connection`, `selected_schema`, `created_at`; tránh tên viết tắt khó hiểu.
 - Giữ dòng code tối đa 120 ký tự. Chỉ tách dòng khi cần để dễ đọc hoặc vượt giới hạn.
 - Một module sở hữu model và truy vấn của nghiệp vụ đó. Repository nhận session, không tự commit. Service không đọc trực tiếp HTTP request.

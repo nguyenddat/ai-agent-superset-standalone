@@ -1,14 +1,14 @@
 # API đăng ký kết nối database nguồn
 
-**Trạng thái:** dự kiến, chưa có route. **Method dự kiến:** `POST`. Đường dẫn và schema JSON chưa chốt.
+**Trạng thái:** đã triển khai route. **Endpoint:** `POST /api/v1/database-connections`.
 
 ## Đầu vào và kết quả
 
-Đầu vào gồm tên hiển thị, dialect/driver và thông tin kết nối. Kết quả là ID và metadata không nhạy cảm của kết nối; không trả URI rõ, URI đã mã hóa hoặc mật khẩu.
+JSON đầu vào gồm `name`, `dialect` (`postgresql`), `driver` tùy chọn (`psycopg`) và `uri`. Thành công trả 201 cùng `id`, `name`, `dialect`, `driver`, `is_active`, `created_at`, `updated_at`; không trả URI rõ, URI đã mã hóa hoặc mật khẩu.
 
-## Luồng xử lý dự kiến
+## Luồng xử lý hiện tại
 
-1. Kiểm tra quyền quản trị, tên hợp lệ và loại database được hỗ trợ.
+1. Kiểm tra cấu trúc JSON, tên hợp lệ và loại database được hỗ trợ. Route hiện chưa xác thực người gọi.
 2. Kiểm tra kết nối bằng logic service dùng chung với luồng kiểm tra kết nối.
 3. Mã hóa URI bằng khóa do backend quản lý rồi tạo `database_connections`; không bao giờ lưu URI rõ vào `uri_ciphertext`.
 4. Repository flush để nhận ID và phát hiện tên trùng; caller commit một lần.
@@ -16,8 +16,12 @@
 
 ## Điều kiện lỗi
 
-Tên hoặc cấu hình sai là 400; thiếu quyền là 403; tên đã tồn tại là 409; database nguồn không truy cập được là lỗi kết nối an toàn cho client. Khi bất kỳ bước nào thất bại, transaction metadata rollback.
+Tên, URI hoặc cấu hình sai trả 422; tên đã tồn tại trả 409; database nguồn không truy cập được trả 503 với thông điệp đã che secret. Lỗi có dạng `{"detail":"..."}`. Khi bất kỳ bước nào thất bại, transaction metadata rollback.
+
+## Quyết định hiện tại
+
+Service chỉ hỗ trợ `postgresql+psycopg`, kiểm tra kết nối trước khi mã hóa URI bằng Fernet. Tên được cắt khoảng trắng đầu/cuối, dài 1–255 ký tự và không trùng tên đã lưu. `ConnectionSummary` không có URI hay ciphertext. `CONNECTION_ENCRYPTION_KEY` là khóa Fernet do backend quản lý; mất khóa sẽ không giải mã được URI đã lưu. Route commit một lần sau khi service thành công.
 
 ## Chưa quyết định
 
-Cách quản lý khóa mã hóa, cơ chế chống đăng ký trùng cùng một nguồn và đường dẫn endpoint phải được chốt trước khi triển khai.
+Cơ chế xác thực/phân quyền, luân chuyển khóa và chống đăng ký trùng cùng một nguồn chưa được chốt.

@@ -7,6 +7,8 @@
 
 `DATABASE_URL` không được trỏ đến database nguồn chỉ để thử kết nối. Không chạy Alembic trên database nguồn.
 
+Service đăng ký database nguồn dùng `CONNECTION_ENCRYPTION_KEY` (khóa Fernet) để mã hóa URI trước khi lưu. Tạo khóa bằng `uv run python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"` rồi đặt trong `.env` hoặc secret manager. Không lưu khóa trong Git; sao lưu khóa an toàn vì mất khóa sẽ không đọc được các URI đã mã hóa.
+
 ## Cấu trúc Alembic
 
 `alembic.ini` ở gốc repository, script nằm trong `backend/migrations/`. Revision đầu tiên là baseline; mỗi module có thư mục `backend/migrations/versions/init_<ten_module>_module/`. Module `database_connection` hiện dùng thư mục `init_database_module`. `version_locations` trong `alembic.ini` liệt kê các thư mục này. Revision của module đó lần lượt tạo connection, schema, table và column.
@@ -22,6 +24,6 @@ Khi thêm bảng: viết model, import model trong `models/__init__.py` và bả
 
 ## Khóa và thời gian
 
-`BaseModel` mới cung cấp UUID v7, `created_at` và `updated_at`; `AuditedModel` thêm `created_by_id`, `updated_by_id` nullable. Bốn bảng của module `database_connection` đã được tạo với ID số nguyên. Chúng không tự chuyển sang UUID v7 khi thêm base model; việc đổi khóa phải có migration dữ liệu và khóa ngoại riêng.
+`BaseModel` cung cấp UUID v7, `created_at` và `updated_at`; `AuditedModel` thêm `created_by_id`, `updated_by_id` nullable. Bốn bảng của module `database_connection` kế thừa `BaseModel`. Revision chuyển đổi sau bốn script tạo bảng đổi ID và khóa ngoại số nguyên sang UUID v7, giữ metadata và quan hệ. Downgrade đánh lại ID số nguyên; không thể khôi phục giá trị số nguyên ban đầu.
 
 Thời gian lưu trong cột timezone-aware theo UTC. Formatter ở `common` xuất thời gian thành ISO 8601 UTC có hậu tố `Z`. Các giá trị `last_synced_at` là thời điểm metadata được lấy từ database nguồn, không phải thời điểm dữ liệu nghiệp vụ của bảng nguồn thay đổi.
