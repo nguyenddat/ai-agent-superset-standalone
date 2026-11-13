@@ -3,7 +3,7 @@
 from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, UniqueConstraint, false
 from sqlalchemy.orm import Mapped, mapped_column
 
-from ..base import Base
+from backend.common.base_model import Base
 
 
 class DatabaseColumn(Base):

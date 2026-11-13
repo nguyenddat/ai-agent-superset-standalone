@@ -1,22 +1,18 @@
 """Alembic migration environment for the application metadata database."""
 
-import os
-
 from alembic import context
 from sqlalchemy import create_engine, pool
 
-from ai_agent_superset_standalone.database import models  # noqa: F401 - register models with Base
-from ai_agent_superset_standalone.database.base import Base
+from backend.common.base_model import Base
+from backend.core.setting import Config
+from backend.modules.database_connection import models  # noqa: F401 - register models with Base
 
 
 target_metadata = Base.metadata
 
 
 def database_url() -> str:
-    url = os.getenv("DATABASE_URL")
-    if not url:
-        raise RuntimeError("DATABASE_URL is required to run Alembic migrations")
-    return url
+    return Config().require_database_url()
 
 
 def run_migrations_offline() -> None:
