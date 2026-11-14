@@ -9,10 +9,15 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+export function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  return requestJson<T>(`${API_URL}${path}`, init)
+}
+
+// For routes this app serves itself, such as the server-side proxy that holds a secret key.
+export async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
   let response: Response
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetch(url, {
       ...init,
       headers: init?.body ? { "Content-Type": "application/json", ...init.headers } : init?.headers,
     })

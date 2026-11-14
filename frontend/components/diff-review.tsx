@@ -210,6 +210,12 @@ function InlineDiff({ before, after, decision, reduced }: { before: string; afte
   );
 }
 
+// Read-only word diff, for comparing two wordings without offering to accept or reject anything.
+export function WordDiff({ before, after }: { before: string; after: string }) {
+  const reduced = useReducedMotion();
+  return <InlineDiff before={before} after={after} decision="pending" reduced={reduced} />;
+}
+
 function LineDiff({ before, after, decision, reduced }: { before: string; after: string; decision: ChangeDecision; reduced: boolean }) {
   const ops = React.useMemo(
     () =>

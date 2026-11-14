@@ -22,5 +22,6 @@ Handbook ghi lại cấu trúc và quy ước đang dùng trong repository stand
 | `metric_management` | [Tổng quan module](modules/metric_management/README.md) | CRUD metric tự tạo và đồng bộ một chiều metric, user, database từ Superset đã có; giao diện là tab `Metric`. |
 | `glossary_management` | [Tổng quan module](modules/glossary_management/README.md) | Migration, API và tab `Thuật ngữ` đã có. |
 | `expert_rule_management` | [Tổng quan module](modules/expert_rule_management/README.md) | Migration, API và tab `Quy tắc` đã có. |
+| `own_knowledge` | [Tổng quan module](modules/own_knowledge/README.md) | API Agent push câu hỏi làm rõ, lưu tri thức riêng sau xác nhận, admin review và chuyển thành bản ghi hệ thống đã có; chat runtime và frontend dự kiến. |
 
 Khi thêm module mới, tạo `modules/<ten_module>/README.md`, tài liệu dữ liệu và một file riêng cho từng luồng API. Cập nhật mục lục này cùng thay đổi code.

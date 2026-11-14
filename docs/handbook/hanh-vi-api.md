@@ -1,6 +1,6 @@
 # Hành vi chung của API
 
-**Trạng thái:** API FastAPI của `database_connection`, `data_dictionary`, `business_model`, `data_lineage`, `metric_management`, `glossary_management` và `expert_rule_management` đã triển khai tại `/api/v1`; chưa có xác thực/phân quyền.
+**Trạng thái:** API FastAPI của `database_connection`, `data_dictionary`, `business_model`, `data_lineage`, `metric_management`, `glossary_management`, `expert_rule_management` và `own_knowledge` đã triển khai tại `/api/v1`. Các module trước chưa có xác thực/phân quyền; `own_knowledge` dùng khóa dịch vụ Agent và admin riêng.
 
 ## Luồng xử lý
 

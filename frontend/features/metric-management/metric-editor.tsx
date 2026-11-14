@@ -36,6 +36,14 @@ type MetricEditorProps = {
   onClose: () => void
   onSaved: (metric: Metric) => void
   onDeleted: () => void
+  promotion?: MetricPromotion
+}
+
+// Promoting a user's own entry reuses this form: it opens with their wording and saves through the own-knowledge API.
+export type MetricPromotion = {
+  title: string
+  seed: { table: string | null; label: string; description: string }
+  create: (input: MetricInput) => Promise<Metric>
 }
 
 const isView = (tableType: string) => tableType.toLowerCase().includes("view")
@@ -62,18 +70,18 @@ function aggregate(fn: ColumnAggregation, column: string) {
 const nullable = (value: string) => (value.trim() ? value.trim() : null)
 
 export function MetricEditor(props: MetricEditorProps) {
-  const { connectionId, tables, metrics, metric, initialTable, onClose, onSaved, onDeleted } = props
+  const { connectionId, tables, metrics, metric, initialTable, onClose, onSaved, onDeleted, promotion } = props
   const byId = useMemo(() => new Map(tables.map((table) => [table.table_id, table])), [tables])
   const options = useMemo(() => tables.map(tableOption), [tables])
   const expressionRef = useRef<HTMLTextAreaElement>(null)
 
-  const [tableId, setTableId] = useState<string | null>(metric?.table_id ?? initialTable)
+  const [tableId, setTableId] = useState<string | null>(metric?.table_id ?? promotion?.seed.table ?? initialTable)
   const [name, setName] = useState(metric?.name ?? "")
   const [nameTouched, setNameTouched] = useState(!!metric)
-  const [label, setLabel] = useState(metric?.label ?? "")
-  const [labelTouched, setLabelTouched] = useState(!!metric)
+  const [label, setLabel] = useState(metric?.label ?? promotion?.seed.label ?? "")
+  const [labelTouched, setLabelTouched] = useState(!!metric || !!promotion)
   const [expression, setExpression] = useState(metric?.expression ?? "")
-  const [description, setDescription] = useState(metric?.description ?? "")
+  const [description, setDescription] = useState(metric?.description ?? promotion?.seed.description ?? "")
   const presetOf = (format: string | null | undefined) =>
     FORMAT_PRESETS.some((preset) => preset.value === (format ?? "")) ? (format ?? "") : CUSTOM_FORMAT
   const [formatChoice, setFormatChoice] = useState(presetOf(metric?.format))
@@ -155,9 +163,9 @@ export function MetricEditor(props: MetricEditorProps) {
         ) as Partial<MetricInput>
         saved = Object.keys(changes).length ? await updateMetric(connectionId, metric.id, changes) : metric
       } else {
-        saved = await createMetric(connectionId, next)
+        saved = promotion ? await promotion.create(next) : await createMetric(connectionId, next)
       }
-      toast.success(metric ? "Đã lưu metric" : "Đã tạo metric", { description: metricTitle(saved) })
+      if (!promotion) toast.success(metric ? "Đã lưu metric" : "Đã tạo metric", { description: metricTitle(saved) })
       onSaved(saved)
     } catch (caught) {
       setError(caught instanceof ApiError ? caught : new ApiError(0, "Không lưu được metric."))
@@ -185,8 +193,12 @@ export function MetricEditor(props: MetricEditorProps) {
     <section aria-label={metric ? "Sửa metric" : "Thêm metric"} className="flex size-full min-h-0 flex-col bg-background">
       <header className="flex items-start justify-between gap-3 border-b px-5 py-4">
         <div className="flex flex-col gap-0.5">
-          <h2 className="text-base font-medium">{metric ? "Sửa metric" : "Thêm metric"}</h2>
-          <p className="text-sm text-muted-foreground">Một con số tính từ bảng, dùng lại được ở mọi biểu đồ.</p>
+          <h2 className="text-base font-medium">{promotion?.title ?? (metric ? "Sửa metric" : "Thêm metric")}</h2>
+          <p className="text-sm text-muted-foreground">
+            {promotion
+              ? "Người dùng chỉ mô tả bằng lời. Hãy tự viết và kiểm tra biểu thức SQL; metric hoạt động ngay khi lưu."
+              : "Một con số tính từ bảng, dùng lại được ở mọi biểu đồ."}
+          </p>
         </div>
         <Button variant="ghost" size="icon-sm" aria-label="Đóng" onClick={onClose}>
           <XIcon />
@@ -416,7 +428,7 @@ export function MetricEditor(props: MetricEditorProps) {
           </Button>
           <Button type="submit" form="metric-form" disabled={busy !== null}>
             {busy === "save" ? <Spinner data-icon="inline-start" /> : null}
-            {metric ? "Lưu thay đổi" : "Tạo metric"}
+            {promotion ? "Đưa vào kho" : metric ? "Lưu thay đổi" : "Tạo metric"}
           </Button>
         </div>
       </footer>

@@ -34,4 +34,6 @@ Module khác dùng service hoặc repository của module sở hữu dữ liệu
 
 `expert_rule_management` lưu rule trên một bảng metadata, điều kiện có cấu trúc và các revision. Bảng ghép nối mỗi revision tới glossary đã duyệt và metric cùng bảng; discovery chỉ trả bản đã duyệt khi các liên kết còn đúng phiên bản. Frontend là tab `Quy tắc`. Xem [dữ liệu glossary](modules/glossary_management/du-lieu.md).
 
+`own_knowledge` nhận câu hỏi làm rõ từ AI Agent, chỉ ghi định nghĩa riêng sau khi người dùng xác nhận, và cung cấp API để admin review hoặc chuyển thành glossary/metric/expert rule. Dữ liệu thuộc một `user_id` và connection. AI Agent và admin gọi API bằng hai khóa dịch vụ riêng; chat runtime phải lấy `user_id` từ phiên đăng nhập đáng tin cậy. Xem [module own knowledge](modules/own_knowledge/README.md).
+
 Các model database hiện có kế thừa `BaseModel` trong `common`, dùng ID UUID v7 và timestamps. Revision mới chuyển ID số nguyên đã tạo bởi các migration đầu sang UUID v7 cùng các khóa ngoại liên quan.

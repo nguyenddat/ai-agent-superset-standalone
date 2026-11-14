@@ -15,7 +15,7 @@ import {
   ScaleIcon,
   SettingsIcon,
   SigmaIcon,
-  TableIcon,
+  UserPenIcon,
   WorkflowIcon,
 } from "lucide-react"
 
@@ -40,13 +40,13 @@ import { syncWithToast } from "../sync-with-toast"
 
 const sections = [
   { segment: "", label: "Tổng quan", icon: LayoutDashboardIcon },
-  { segment: "metadata", label: "Metadata", icon: TableIcon },
   { segment: "dictionary", label: "Từ điển", icon: BookOpenIcon },
   { segment: "model", label: "Mô hình", icon: NetworkIcon },
   { segment: "lineage", label: "Dòng dữ liệu", icon: WorkflowIcon },
   { segment: "metrics", label: "Metric", icon: SigmaIcon },
   { segment: "glossary", label: "Thuật ngữ", icon: BookTextIcon },
   { segment: "rules", label: "Quy tắc", icon: ScaleIcon },
+  { segment: "own-knowledge", label: "Tri thức riêng", icon: UserPenIcon },
   { segment: "settings", label: "Cài đặt", icon: SettingsIcon },
 ]
 
@@ -154,7 +154,7 @@ export function ConnectionLayout({ children }: { children: React.ReactNode }) {
         </header>
         <nav aria-label="Mục của kết nối" className="mt-2 overflow-x-auto overflow-y-hidden border-b">
           <Tabs value={active}>
-            <TabsList variant="line" className="h-10">
+            <TabsList variant="line" className="h-10 w-full min-w-max">
               {sections.map(({ segment, label, icon: Icon }) => (
                 <TabsTrigger key={segment} value={segment} asChild>
                   <Link href={segment ? `${base}/${segment}` : base}>

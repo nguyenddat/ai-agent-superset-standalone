@@ -18,7 +18,7 @@ import { ApiError } from "@/lib/api"
 import { createTerm, saveDraft } from "./api"
 import { foldName, linkKey, normalizeName, parseLinkKey, sameLinks, sameSynonyms } from "./labels"
 import { LINK_KINDS, type LinkTargets } from "./link-targets"
-import type { GlossaryTerm } from "./types"
+import type { GlossaryCreate, GlossaryLink, GlossaryTerm } from "./types"
 
 type TermEditorProps = {
   connectionId: string
@@ -29,6 +29,14 @@ type TermEditorProps = {
   onClose: () => void
   onSaved: (term: GlossaryTerm) => void
   onReload: () => void
+  promotion?: TermPromotion
+}
+
+// Promoting a user's own entry reuses this form: it opens with their wording and saves through the own-knowledge API.
+export type TermPromotion = {
+  title: string
+  seed: { name: string; definition: string; links: GlossaryLink[] }
+  create: (input: GlossaryCreate) => Promise<GlossaryTerm>
 }
 
 const groupOption = (name: string): ComboboxOption => ({
@@ -38,14 +46,14 @@ const groupOption = (name: string): ComboboxOption => ({
 })
 
 export function TermEditor(props: TermEditorProps) {
-  const { connectionId, terms, term, initialGroup, targets, onClose, onSaved, onReload } = props
+  const { connectionId, terms, term, initialGroup, targets, onClose, onSaved, onReload, promotion } = props
   const revision = term?.current
 
-  const [name, setName] = useState(term?.canonical_name ?? "")
+  const [name, setName] = useState(term?.canonical_name ?? promotion?.seed.name ?? "")
   const [group, setGroup] = useState<string | null>(term ? term.group_name : initialGroup)
-  const [definition, setDefinition] = useState(revision?.definition ?? "")
+  const [definition, setDefinition] = useState(revision?.definition ?? promotion?.seed.definition ?? "")
   const [synonyms, setSynonyms] = useState<string[]>(revision?.synonyms ?? [])
-  const [links, setLinks] = useState<string[]>(revision?.links.map(linkKey) ?? [])
+  const [links, setLinks] = useState<string[]>((revision?.links ?? promotion?.seed.links ?? []).map(linkKey))
   // The revision this edit started from: saving on top of a newer one is a conflict, not an overwrite.
   const [baseRevision] = useState(revision?.number ?? 0)
   const [busy, setBusy] = useState(false)
@@ -102,10 +110,17 @@ export function TermEditor(props: TermEditorProps) {
     try {
       const saved = term
         ? await saveDraft(connectionId, term.id, { ...content, group_name: group, expected_revision: baseRevision })
-        : await createTerm({ ...content, connection_id: connectionId, canonical_name: normalizeName(name), group_name: group })
-      toast.success(term ? "Đã lưu bản nháp" : "Đã tạo thuật ngữ", {
-        description: `${saved.canonical_name} đang chờ duyệt.`,
-      })
+        : await (promotion?.create ?? createTerm)({
+            ...content,
+            connection_id: connectionId,
+            canonical_name: normalizeName(name),
+            group_name: group,
+          })
+      if (!promotion) {
+        toast.success(term ? "Đã lưu bản nháp" : "Đã tạo thuật ngữ", {
+          description: `${saved.canonical_name} đang chờ duyệt.`,
+        })
+      }
       onSaved(saved)
     } catch (caught) {
       setError(caught instanceof ApiError ? caught : new ApiError(0, "Không lưu được thuật ngữ."))
@@ -118,8 +133,14 @@ export function TermEditor(props: TermEditorProps) {
     <section aria-label={term ? "Sửa thuật ngữ" : "Thêm thuật ngữ"} className="flex size-full min-h-0 flex-col bg-background">
       <header className="flex items-start justify-between gap-3 border-b px-5 py-4">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <h2 className="truncate text-base font-medium">{term ? `Sửa ${term.canonical_name}` : "Thêm thuật ngữ"}</h2>
-          <p className="text-sm text-muted-foreground">Lưu sẽ tạo bản nháp. AI chỉ dùng thuật ngữ sau khi được duyệt.</p>
+          <h2 className="truncate text-base font-medium">
+            {promotion?.title ?? (term ? `Sửa ${term.canonical_name}` : "Thêm thuật ngữ")}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {promotion
+              ? "Điền sẵn từ cách hiểu của người dùng. Hãy sửa cho đúng chuẩn của kho trước khi lưu."
+              : "Lưu sẽ tạo bản nháp. AI chỉ dùng thuật ngữ sau khi được duyệt."}
+          </p>
         </div>
         <Button variant="ghost" size="icon-sm" aria-label="Đóng" onClick={onClose}>
           <XIcon />
@@ -265,7 +286,7 @@ export function TermEditor(props: TermEditorProps) {
         </Button>
         <Button type="submit" form="term-form" disabled={busy || conflict}>
           {busy ? <Spinner data-icon="inline-start" /> : null}
-          {term ? "Lưu bản nháp" : "Tạo thuật ngữ"}
+          {promotion ? "Đưa vào kho" : term ? "Lưu bản nháp" : "Tạo thuật ngữ"}
         </Button>
       </footer>
     </section>

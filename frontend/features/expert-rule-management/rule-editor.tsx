@@ -31,7 +31,7 @@ import { foldName, normalizeName } from "../glossary-management/labels"
 import { createRule, saveRuleDraft } from "./api"
 import { OPERATORS, OPERATORS_BY_KIND, columnKind, valueTypeFor } from "./labels"
 import type { RuleRefs, TableRef } from "./rule-refs"
-import type { ExpertRule, Operator, OptionColumn, RuleCondition, RuleContent, ValueType } from "./types"
+import type { ExpertRule, Operator, OptionColumn, RuleCondition, RuleContent, RuleCreate, ValueType } from "./types"
 
 type RuleEditorProps = {
   connectionId: string
@@ -42,6 +42,14 @@ type RuleEditorProps = {
   onClose: () => void
   onSaved: (rule: ExpertRule) => void
   onReload: () => void
+  promotion?: RulePromotion
+}
+
+// Promoting a user's own entry reuses this form: it opens with their wording and saves through the own-knowledge API.
+export type RulePromotion = {
+  title: string
+  seed: { name: string; table: string | null; description: string }
+  create: (input: RuleCreate) => Promise<ExpertRule>
 }
 
 type ConditionDraft = {
@@ -126,13 +134,13 @@ const pairIssue = (pair: PairDraft) => !!pair.first.trim() !== !!pair.second.tri
 const filled = (pair: PairDraft) => !!pair.first.trim() && !!pair.second.trim()
 
 export function RuleEditor(props: RuleEditorProps) {
-  const { connectionId, rules, refs, rule, initialTable, onClose, onSaved, onReload } = props
+  const { connectionId, rules, refs, rule, initialTable, onClose, onSaved, onReload, promotion } = props
   const revision = rule?.current
 
-  const [name, setName] = useState(rule?.name ?? "")
-  const [tableId, setTableId] = useState<string | null>(rule?.table_id ?? initialTable)
+  const [name, setName] = useState(rule?.name ?? promotion?.seed.name ?? "")
+  const [tableId, setTableId] = useState<string | null>(rule?.table_id ?? promotion?.seed.table ?? initialTable)
   const [group, setGroup] = useState<string | null>(rule ? rule.group_name : null)
-  const [description, setDescription] = useState(revision?.description ?? "")
+  const [description, setDescription] = useState(revision?.description ?? promotion?.seed.description ?? "")
   const [conditions, setConditions] = useState<ConditionDraft[]>(
     revision ? revision.conditions.map(toDraft) : [emptyCondition()],
   )
@@ -230,7 +238,7 @@ export function RuleEditor(props: RuleEditorProps) {
     try {
       const saved = rule
         ? await saveRuleDraft(connectionId, rule.id, { ...content, group_name: group, expected_revision: baseRevision })
-        : await createRule({
+        : await (promotion?.create ?? createRule)({
             ...content,
             connection_id: connectionId,
             table_id: tableId!,
@@ -239,7 +247,7 @@ export function RuleEditor(props: RuleEditorProps) {
           })
       if (rule && saved.current.number === rule.current.number) {
         toast.info("Không có thay đổi nội dung", { description: saved.name })
-      } else {
+      } else if (!promotion) {
         toast.success(rule ? "Đã lưu bản nháp" : "Đã tạo quy tắc", { description: `${saved.name} đang chờ duyệt.` })
       }
       onSaved(saved)
@@ -254,8 +262,12 @@ export function RuleEditor(props: RuleEditorProps) {
     <section aria-label={rule ? "Sửa quy tắc" : "Thêm quy tắc"} className="flex size-full min-h-0 flex-col bg-background">
       <header className="flex items-start justify-between gap-3 border-b px-5 py-4">
         <div className="flex min-w-0 flex-col gap-0.5">
-          <h2 className="truncate text-base font-medium">{rule ? `Sửa ${rule.name}` : "Thêm quy tắc"}</h2>
-          <p className="text-sm text-muted-foreground">Lưu sẽ tạo bản nháp. AI chỉ áp dụng quy tắc sau khi được duyệt.</p>
+          <h2 className="truncate text-base font-medium">{promotion?.title ?? (rule ? `Sửa ${rule.name}` : "Thêm quy tắc")}</h2>
+          <p className="text-sm text-muted-foreground">
+            {promotion
+              ? "Người dùng chỉ mô tả bằng lời. Hãy dựng điều kiện và chọn thuật ngữ cho đúng trước khi lưu."
+              : "Lưu sẽ tạo bản nháp. AI chỉ áp dụng quy tắc sau khi được duyệt."}
+          </p>
         </div>
         <Button variant="ghost" size="icon-sm" aria-label="Đóng" onClick={onClose}>
           <XIcon />
@@ -493,7 +505,7 @@ export function RuleEditor(props: RuleEditorProps) {
         </Button>
         <Button type="submit" form="rule-form" disabled={busy || conflict}>
           {busy ? <Spinner data-icon="inline-start" /> : null}
-          {rule ? "Lưu bản nháp" : "Tạo quy tắc"}
+          {promotion ? "Đưa vào kho" : rule ? "Lưu bản nháp" : "Tạo quy tắc"}
         </Button>
       </footer>
     </section>

@@ -4,7 +4,6 @@ import { apiFetch } from "@/lib/api"
 
 import type {
   ConnectionTestResult,
-  DatabaseColumn,
   DatabaseConnection,
   DatabaseSchema,
   DatabaseTable,
@@ -47,18 +46,6 @@ const isConnectionKey = (key: unknown) => typeof key === "string" && key.startsW
 
 export function useDialects() {
   return useSWR<Dialect[]>(`${CONNECTIONS}/dialects`, fetcher, { revalidateOnFocus: false })
-}
-
-export function useSchemas(connectionId: string | null) {
-  return useSWR<DatabaseSchema[]>(connectionId && `${CONNECTIONS}/${connectionId}/schemas`, fetcher)
-}
-
-export function useTables(schemaId: string | null) {
-  return useSWR<DatabaseTable[]>(schemaId && `/api/v1/schemas/${schemaId}/tables`, fetcher)
-}
-
-export function useColumns(tableId: string | null) {
-  return useSWR<DatabaseColumn[]>(tableId && `/api/v1/tables/${tableId}/columns`, fetcher)
 }
 
 export function testConnection(input: ConnectionInput) {
