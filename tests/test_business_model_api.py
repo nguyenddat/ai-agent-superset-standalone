@@ -133,14 +133,14 @@ class BusinessModelApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 422)
         self.assertEqual(self.client.post(f"{BASE}/layers", json={"name": "Bad", "color": "red"}).status_code, 422)
 
-    def test_layer_levels_change_inferred_direction_and_invalid_domain_is_atomic(self) -> None:
+    def test_layer_levels_do_not_change_reference_direction_and_invalid_domain_is_atomic(self) -> None:
         core = self.client.post(f"{BASE}/layers", json={"name": "Core", "level": 0}).json()
         mart = self.client.post(f"{BASE}/layers", json={"name": "Mart", "level": 1}).json()
         self.client.put(f"{BASE}/tables/{self.target_id}/layer", json={"layer_id": core["id"]})
         self.client.put(f"{BASE}/tables/{self.source_id}/layer", json={"layer_id": mart["id"]})
         edge = self.client.get(f"{BASE}/connections/{self.connection_id}").json()["lineage_edges"][0]
         self.assertEqual((edge["kind"], edge["source_table_id"], edge["target_table_id"]), (
-            "flow", str(self.target_id), str(self.source_id),
+            "relation", str(self.source_id), str(self.target_id),
         ))
 
         order = self.client.put(f"{BASE}/layers/order", json={"levels": [[mart["id"]], [core["id"]]]})

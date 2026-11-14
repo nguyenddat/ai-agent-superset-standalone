@@ -191,7 +191,7 @@ class BusinessModelService:
             } for schema, table in table_rows],
             "business_canvas": json.loads(business_canvas.layout) if business_canvas else {},
             "lineage_canvas": json.loads(lineage_canvas.layout) if lineage_canvas else {},
-            "lineage_edges": self._visible_edges(table_ids, dictionaries, layers),
+            "lineage_edges": self._visible_edges(table_ids, dictionaries),
         }
 
     def save_canvas(self, connection_id: UUID, view: str, layout: dict[str, Any]) -> dict[str, Any]:
@@ -254,20 +254,12 @@ class BusinessModelService:
         self.edges.delete(edge)
 
     def _visible_edges(
-        self, table_ids: list[UUID], dictionaries: dict[UUID, TableDictionary], layers: list[DataLayer],
+        self, table_ids: list[UUID], dictionaries: dict[UUID, TableDictionary],
     ) -> list[dict[str, Any]]:
         by_dictionary = {dictionary.id: dictionary.table_id for dictionary in dictionaries.values()}
-        layer_levels = {layer.id: layer.level for layer in layers}
         inferred: dict[tuple[UUID, UUID, str], dict[str, Any]] = {}
         for referencing_id, referenced_id in self.column_dictionaries.read_table_references(table_ids):
-            referencing = dictionaries.get(referencing_id)
-            referenced = dictionaries.get(referenced_id)
-            referencing_level = layer_levels.get(referencing.layer_id) if referencing else None
-            referenced_level = layer_levels.get(referenced.layer_id) if referenced else None
-            if referencing_level is not None and referenced_level is not None and referenced_level < referencing_level:
-                source_id, target_id, kind = referenced_id, referencing_id, "flow"
-            else:
-                source_id, target_id, kind = referencing_id, referenced_id, "relation"
+            source_id, target_id, kind = referencing_id, referenced_id, "relation"
             inferred[(source_id, target_id, kind)] = {
                 "id": None, "source_table_id": source_id, "target_table_id": target_id,
                 "kind": kind, "origin": "dictionary", "label": None, "color": None,

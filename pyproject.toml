@@ -13,6 +13,7 @@ dependencies = [
     "pydantic-settings>=2.16.2",
     "python-dotenv>=1.2.4",
     "sqlalchemy>=2.1.8",
+    "sqlglot>=28.10.1,<29",
     "uvicorn>=0.54.0",
 ]
 

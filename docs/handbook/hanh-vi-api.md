@@ -1,6 +1,6 @@
 # Hành vi chung của API
 
-**Trạng thái:** API FastAPI của `database_connection`, `data_dictionary` và `business_model` đã triển khai tại `/api/v1`; chưa có xác thực/phân quyền.
+**Trạng thái:** API FastAPI của `database_connection`, `data_dictionary`, `business_model` và `data_lineage` đã triển khai tại `/api/v1`; chưa có xác thực/phân quyền.
 
 ## Luồng xử lý
 

@@ -26,6 +26,6 @@ Module khác dùng service hoặc repository của module sở hữu dữ liệu
 
 `data_dictionary` có model, migration, service và API tổng quan theo kết nối, đọc, lưu, tự động điền từ điển mức bảng và mức cột, tham chiếu bảng và cột của `database_connection`. Frontend có tab `Từ điển` để chọn bảng, sửa thông tin bảng và cột, theo dõi tiến độ tự động điền. `backend/agent_package/` chứa phần dùng chung cho mô hình ngôn ngữ: chat model (`get_chat_models.py`), prompt, tool và tài liệu tool.
 
-`business_model` có model, migration, repository, service và API cho tầng dữ liệu, miền nghiệp vụ, bố cục canvas và cạnh lineage. Nó tham chiếu từ điển bảng của `data_dictionary` và kết nối của `database_connection`; giao diện Semantic Model chưa triển khai.
+`business_model` có model, migration, repository, service và API cho tầng dữ liệu, miền nghiệp vụ, bố cục canvas và cạnh lineage thủ công/tham chiếu. `data_lineage` lưu phép biến đổi từ nhiều bảng nguồn, phụ thuộc cột và đọc đồ thị data flow; SQL chỉ được phân tích để xem trước, không thực thi. Hai module tham chiếu metadata của `database_connection`; giao diện Data Lineage là tab `Dòng dữ liệu` của frontend.
 
 Các model database hiện có kế thừa `BaseModel` trong `common`, dùng ID UUID v7 và timestamps. Revision mới chuyển ID số nguyên đã tạo bởi các migration đầu sang UUID v7 cùng các khóa ngoại liên quan.

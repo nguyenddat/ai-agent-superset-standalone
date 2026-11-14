@@ -11,7 +11,7 @@ Service đăng ký database nguồn dùng `CONNECTION_ENCRYPTION_KEY` (khóa Fer
 
 ## Cấu trúc Alembic
 
-`alembic.ini` ở gốc repository, script nằm trong `backend/migrations/`. Revision đầu tiên là baseline; mỗi module có thư mục `backend/migrations/versions/init_<ten_module>_module/`. Module `database_connection` dùng `init_database_module`, `data_dictionary` dùng `init_data_dictionary_module`, `business_model` dùng `init_business_model_module`. `version_locations` trong `alembic.ini` liệt kê các thư mục này. Các revision đầu của `database_connection` lần lượt tạo connection, schema, table và column.
+`alembic.ini` ở gốc repository, script nằm trong `backend/migrations/`. Revision đầu tiên là baseline; mỗi module có thư mục `backend/migrations/versions/init_<ten_module>_module/`. Module `database_connection` dùng `init_database_module`, `data_dictionary` dùng `init_data_dictionary_module`, `business_model` dùng `init_business_model_module`, `data_lineage` dùng `init_data_lineage_module`. `version_locations` trong `alembic.ini` liệt kê các thư mục này. Các revision đầu của `database_connection` lần lượt tạo connection, schema, table và column.
 
 ```powershell
 uv sync

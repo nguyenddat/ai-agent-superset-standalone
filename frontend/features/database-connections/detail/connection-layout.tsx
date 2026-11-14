@@ -13,6 +13,7 @@ import {
   RefreshCwIcon,
   SettingsIcon,
   TableIcon,
+  WorkflowIcon,
 } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -32,6 +33,7 @@ const sections = [
   { segment: "metadata", label: "Metadata", icon: TableIcon },
   { segment: "dictionary", label: "Từ điển", icon: BookOpenIcon },
   { segment: "model", label: "Mô hình", icon: NetworkIcon },
+  { segment: "lineage", label: "Dòng dữ liệu", icon: WorkflowIcon },
   { segment: "settings", label: "Cài đặt", icon: SettingsIcon },
 ]
 
