@@ -5,9 +5,11 @@ import Link from "next/link"
 import { useParams, usePathname } from "next/navigation"
 import {
   ArrowLeftIcon,
+  BookOpenIcon,
   CircleXIcon,
   DatabaseIcon,
   LayoutDashboardIcon,
+  NetworkIcon,
   RefreshCwIcon,
   SettingsIcon,
   TableIcon,
@@ -22,12 +24,14 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ApiError } from "@/lib/api"
 
 import { useConnection } from "../api"
-import { dateFormat, describe, StatusBadge } from "../connection-format"
+import { StatusBadge } from "../connection-format"
 import { syncWithToast } from "../sync-with-toast"
 
 const sections = [
   { segment: "", label: "Tổng quan", icon: LayoutDashboardIcon },
   { segment: "metadata", label: "Metadata", icon: TableIcon },
+  { segment: "dictionary", label: "Từ điển", icon: BookOpenIcon },
+  { segment: "model", label: "Mô hình", icon: NetworkIcon },
   { segment: "settings", label: "Cài đặt", icon: SettingsIcon },
 ]
 
@@ -98,14 +102,10 @@ export function ConnectionLayout({ children }: { children: React.ReactNode }) {
                 <h1 className="truncate text-2xl font-semibold tracking-tight">{connection.name}</h1>
                 <StatusBadge active={connection.is_active} />
               </div>
-              <p className="text-sm text-muted-foreground">
-                {describe(connection)} · Tạo lúc {dateFormat.format(new Date(connection.created_at))}
-              </p>
             </div>
           ) : (
             <div className="flex flex-col gap-1">
               <Skeleton className="h-8 w-64" />
-              <Skeleton className="h-5 w-80" />
             </div>
           )}
           <Button
@@ -123,7 +123,7 @@ export function ConnectionLayout({ children }: { children: React.ReactNode }) {
             Đồng bộ metadata
           </Button>
         </header>
-        <nav aria-label="Mục của kết nối" className="mt-2 border-b">
+        <nav aria-label="Mục của kết nối" className="mt-2 overflow-x-auto overflow-y-hidden border-b">
           <Tabs value={active}>
             <TabsList variant="line" className="h-10">
               {sections.map(({ segment, label, icon: Icon }) => (

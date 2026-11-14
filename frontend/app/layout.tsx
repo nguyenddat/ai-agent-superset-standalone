@@ -4,6 +4,7 @@ import { ThemeProvider } from "next-themes"
 
 import { AppShell } from "@/components/layout/app-shell"
 import { Toaster } from "@/components/ui/sonner"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 import "./globals.css"
@@ -20,7 +21,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="vi" className={cn("font-sans", geist.variable)} suppressHydrationWarning>
       <body className="min-h-screen antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} storageKey="theme" disableTransitionOnChange>
-          <AppShell>{children}</AppShell>
+          <TooltipProvider>
+            <AppShell>{children}</AppShell>
+          </TooltipProvider>
           <Toaster richColors />
         </ThemeProvider>
       </body>

@@ -15,7 +15,8 @@ import type {
 const CONNECTIONS = "/api/v1/database-connections"
 
 type ConnectionInput = { dialect: string; driver: string | null; uri: string }
-type ConnectionChanges = Partial<{ name: string; is_active: boolean; uri: string }>
+type ConnectionScope = Pick<DatabaseConnection, "schema_includes" | "schema_excludes" | "table_includes" | "table_excludes">
+type ConnectionChanges = Partial<{ name: string; is_active: boolean; uri: string } & ConnectionScope>
 
 const fetcher = <T,>(path: string) => apiFetch<T>(path)
 
@@ -64,7 +65,7 @@ export function testConnection(input: ConnectionInput) {
   return apiFetch<ConnectionTestResult>(`${CONNECTIONS}/test`, { method: "POST", body: JSON.stringify(input) })
 }
 
-export async function createConnection(input: ConnectionInput & { name: string }) {
+export async function createConnection(input: ConnectionInput & { name: string } & ConnectionScope) {
   const result = await apiFetch<DatabaseConnection>(CONNECTIONS, { method: "POST", body: JSON.stringify(input) })
   await mutate(CONNECTIONS)
   return result

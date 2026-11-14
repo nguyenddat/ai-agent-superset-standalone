@@ -20,6 +20,8 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 
+import { DictionaryCoverageCard, DictionaryRankCards } from "../../data-dictionary/dictionary-stats"
+
 import { useConnection, useSchemaTables } from "../api"
 import { dateFormat, StatusBadge } from "../connection-format"
 import { syncWithToast } from "../sync-with-toast"
@@ -68,85 +70,88 @@ export function ConnectionOverview() {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <Card size="sm">
-        <CardHeader>
-          <CardTitle>Kết nối</CardTitle>
-          <CardDescription>Database nguồn được đăng ký với ứng dụng. URI được mã hóa và không hiển thị lại.</CardDescription>
-          <CardAction>{connection && <StatusBadge active={connection.is_active} />}</CardAction>
-        </CardHeader>
-        <CardContent>
-          {connection ? (
-            <dl className="text-sm">
-              <InfoRow label="Loại database">{connection.dialect}</InfoRow>
-              <InfoRow label="Driver">{connection.driver ?? "—"}</InfoRow>
-              <InfoRow label="Tạo lúc">{dateFormat.format(new Date(connection.created_at))}</InfoRow>
-              <InfoRow label="Cập nhật lúc">{dateFormat.format(new Date(connection.updated_at))}</InfoRow>
-            </dl>
-          ) : (
-            <Skeleton className="h-36" />
-          )}
-        </CardContent>
-      </Card>
+    <div className="flex flex-col gap-3">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <Card size="sm">
+          <CardHeader>
+            <CardTitle>Thông tin kết nối</CardTitle>
+            <CardAction>{connection && <StatusBadge active={connection.is_active} />}</CardAction>
+          </CardHeader>
+          <CardContent>
+            {connection ? (
+              <dl className="text-sm">
+                <InfoRow label="Loại database">{connection.dialect}</InfoRow>
+                <InfoRow label="Driver">{connection.driver ?? "—"}</InfoRow>
+                <InfoRow label="Tạo lúc">{dateFormat.format(new Date(connection.created_at))}</InfoRow>
+                <InfoRow label="Cập nhật lúc">{dateFormat.format(new Date(connection.updated_at))}</InfoRow>
+              </dl>
+            ) : (
+              <Skeleton className="h-36" />
+            )}
+          </CardContent>
+        </Card>
 
-      <Card size="sm">
-        <CardHeader>
-          <CardTitle>Metadata</CardTitle>
-          <CardDescription>
-            {lastSynced ? `Đồng bộ lần cuối ${dateFormat.format(new Date(lastSynced))}.` : "Chưa đồng bộ metadata."}
-          </CardDescription>
-          {groups && groups.length > 0 && (
-            <CardAction>
-              <Badge variant="secondary" className="font-mono">
-                {rows.length} schema · {total} đối tượng
-              </Badge>
-            </CardAction>
-          )}
-        </CardHeader>
-        <CardContent className="flex-1">
-          {error ? (
-            <Alert variant="destructive">
-              <CircleXIcon />
-              <AlertDescription>{error.message}</AlertDescription>
-            </Alert>
-          ) : !groups ? (
-            <Skeleton className="h-44" />
-          ) : groups.length === 0 ? (
-            <Empty className="p-4">
-              <EmptyHeader>
-                <EmptyMedia variant="icon">
-                  <RefreshCwIcon />
-                </EmptyMedia>
-                <EmptyTitle>Chưa có dữ liệu metadata</EmptyTitle>
-                <EmptyDescription>Đồng bộ để đọc schema, bảng và view từ database nguồn.</EmptyDescription>
-              </EmptyHeader>
-              {connection?.is_active && (
-                <EmptyContent>
-                  <Button disabled={syncing} onClick={handleSync}>
-                    {syncing ? <Spinner data-icon="inline-start" /> : <RefreshCwIcon data-icon="inline-start" />}
-                    Đồng bộ ngay
-                  </Button>
-                </EmptyContent>
-              )}
-            </Empty>
-          ) : (
-            <ChartContainer config={chartConfig} className="h-52 w-full">
-              <BarChart data={rows} margin={{ top: 20, left: -16, right: 8 }} barGap={0}>
-                <CartesianGrid vertical={false} />
-                <XAxis dataKey="schema" tickLine={false} axisLine={false} />
-                <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
-                <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                <ChartLegend content={<ChartLegendContent />} />
-                {series.map((key) => (
-                  <Bar key={key} dataKey={key} fill={`var(--color-${key})`} radius={[4, 4, 0, 0]} maxBarSize={32}>
-                    <LabelList dataKey={key} position="top" className="fill-foreground font-mono text-xs" />
-                  </Bar>
-                ))}
-              </BarChart>
-            </ChartContainer>
-          )}
-        </CardContent>
-      </Card>
+        <Card size="sm">
+          <CardHeader>
+            <CardTitle>Metadata</CardTitle>
+            <CardDescription>
+              {lastSynced ? `Đồng bộ lần cuối ${dateFormat.format(new Date(lastSynced))}.` : "Chưa đồng bộ metadata."}
+            </CardDescription>
+            {groups && groups.length > 0 && (
+              <CardAction>
+                <Badge variant="secondary" className="font-mono">
+                  {rows.length} schema · {total} đối tượng
+                </Badge>
+              </CardAction>
+            )}
+          </CardHeader>
+          <CardContent className="flex-1">
+            {error ? (
+              <Alert variant="destructive">
+                <CircleXIcon />
+                <AlertDescription>{error.message}</AlertDescription>
+              </Alert>
+            ) : !groups ? (
+              <Skeleton className="h-44" />
+            ) : groups.length === 0 ? (
+              <Empty className="p-4">
+                <EmptyHeader>
+                  <EmptyMedia variant="icon">
+                    <RefreshCwIcon />
+                  </EmptyMedia>
+                  <EmptyTitle>Chưa có dữ liệu metadata</EmptyTitle>
+                  <EmptyDescription>Đồng bộ để đọc schema, bảng và view từ database nguồn.</EmptyDescription>
+                </EmptyHeader>
+                {connection?.is_active && (
+                  <EmptyContent>
+                    <Button disabled={syncing} onClick={handleSync}>
+                      {syncing ? <Spinner data-icon="inline-start" /> : <RefreshCwIcon data-icon="inline-start" />}
+                      Đồng bộ ngay
+                    </Button>
+                  </EmptyContent>
+                )}
+              </Empty>
+            ) : (
+              <ChartContainer config={chartConfig} className="h-52 w-full">
+                <BarChart data={rows} margin={{ top: 20, left: -16, right: 8 }} barGap={0}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis dataKey="schema" tickLine={false} axisLine={false} />
+                  <YAxis allowDecimals={false} tickLine={false} axisLine={false} />
+                  <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                  {series.map((key) => (
+                    <Bar key={key} dataKey={key} fill={`var(--color-${key})`} radius={[4, 4, 0, 0]} maxBarSize={32}>
+                      <LabelList dataKey={key} position="top" className="fill-foreground font-mono text-xs" />
+                    </Bar>
+                  ))}
+                </BarChart>
+              </ChartContainer>
+            )}
+          </CardContent>
+        </Card>
+        <DictionaryCoverageCard connectionId={id} />
+      </div>
+      <DictionaryRankCards connectionId={id} />
     </div>
   )
 }

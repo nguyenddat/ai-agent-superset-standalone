@@ -4,6 +4,10 @@ export type DatabaseConnection = {
   dialect: string
   driver: string | null
   is_active: boolean
+  schema_includes: string[]
+  schema_excludes: string[]
+  table_includes: string[]
+  table_excludes: string[]
   created_at: string
   updated_at: string
 }

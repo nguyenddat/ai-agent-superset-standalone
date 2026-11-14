@@ -29,6 +29,8 @@ npm run dev
 
 Trang chính mở tại `http://localhost:3000` và chưa có luồng đăng nhập. Xem [hướng dẫn frontend](frontend/README.md).
 
+Trong trang chi tiết kết nối, tab `Từ điển` cho phép chọn bảng đã đồng bộ metadata, sửa mô tả bảng và cột, rồi lưu thay đổi. Tính năng `Tự động điền` gợi ý mô tả bằng AI khi `OPENROUTER_API_KEY` được cấu hình. Xem [handbook Data Dictionary](docs/handbook/modules/data_dictionary/README.md) để biết API và phần đã triển khai.
+
 Backend API dùng FastAPI. Sau khi cấu hình `DATABASE_URL`, `CONNECTION_ENCRYPTION_KEY` và chạy migration, khởi động từ gốc repository:
 
 ```powershell

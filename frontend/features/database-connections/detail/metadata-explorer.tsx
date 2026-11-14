@@ -1,11 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { CircleXIcon, EyeIcon, FolderIcon, KeyRoundIcon, RefreshCwIcon, SearchIcon, TableIcon } from "lucide-react"
+import Link from "next/link"
+import { BookOpenIcon, CircleXIcon, EyeIcon, FolderIcon, KeyRoundIcon, RefreshCwIcon, SearchIcon, TableIcon } from "lucide-react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group"
 import { Item, ItemContent, ItemDescription, ItemGroup, ItemMedia, ItemTitle } from "@/components/ui/item"
@@ -68,7 +70,7 @@ export function MetadataExplorer() {
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[13rem_17rem_minmax(0,1fr)]">
+    <div className="grid gap-3 lg:grid-cols-[13rem_17rem_minmax(0,1fr)]">
       <Card size="sm">
         <CardHeader>
           <CardTitle>Schema</CardTitle>
@@ -158,6 +160,16 @@ export function MetadataExplorer() {
           <CardDescription>
             {table?.description || (columns.data ? `${columns.data.length} cột` : " ")}
           </CardDescription>
+          {table && (
+            <CardAction>
+              <Button variant="outline" size="sm" asChild>
+                <Link href={`/connections/${connectionId}/dictionary?table=${table.id}`}>
+                  <BookOpenIcon data-icon="inline-start" />
+                  Mô tả bảng
+                </Link>
+              </Button>
+            </CardAction>
+          )}
         </CardHeader>
         <CardContent>
           {!table ? (

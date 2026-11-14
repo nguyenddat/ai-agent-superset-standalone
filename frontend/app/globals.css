@@ -114,6 +114,76 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  @keyframes ui-col-in {
+  from {
+    max-width: 0;
+    opacity: 0;
+    }
+  to {
+    max-width: 1em;
+    opacity: 1;
+    }
+  }
+  @keyframes ui-col-out {
+  from {
+    max-width: 1em;
+    opacity: 1;
+    }
+  to {
+    max-width: 0;
+    opacity: 0;
+    }
+  }
+  @keyframes ui-scan {
+  from {
+    transform: translateX(-100%);
+    }
+  to {
+    transform: translateX(250%);
+    }
+  }
+  @keyframes ui-sheen {
+  from {
+    mask-position: 150% 0;
+    }
+  to {
+    mask-position: -50% 0;
+    }
+  }
+  @keyframes ui-empty-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+    filter: blur(4px);
+    }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    }
+  }
+  @keyframes ui-empty-out {
+  from {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    }
+  to {
+    opacity: 0;
+    transform: translateY(-4px);
+    filter: blur(4px);
+    }
+  }
+  @keyframes ui-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.96);
+    }
+  to {
+    opacity: 1;
+    transform: none;
+    }
+  }
 }
 
 html { color-scheme: light; }
@@ -132,4 +202,7 @@ html.dark { color-scheme: dark; }
   html {
     @apply font-sans;
   }
+}
+.model-canvas .react-flow__node:not(.dragging) {
+  transition: transform 360ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
