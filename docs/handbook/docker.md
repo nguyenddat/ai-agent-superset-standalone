@@ -6,6 +6,8 @@
 
 Từ gốc repository, sao chép `.env.example` thành `.env`. Đổi `POSTGRES_PASSWORD` và tạo `CONNECTION_ENCRYPTION_KEY` bằng lệnh ghi trong file mẫu. Không commit `.env`; khóa Fernet phải được giữ ổn định để đọc lại URI nguồn đã mã hóa. `POSTGRES_USER` và `POSTGRES_DB` có giá trị mặc định trong Compose. Đặt `OPENROUTER_API_KEY` nếu dùng tính năng tự động điền từ điển dữ liệu; để trống thì API đó trả 503.
 
+Đồng bộ metric từ Superset cần `SUPERSET_URL`, `SUPERSET_USERNAME` và `SUPERSET_PASSWORD`. URL phải truy cập được từ container backend; nếu Superset chạy trên Docker Desktop với cổng host `8089`, dùng `http://host.docker.internal:8089` thay cho `localhost`.
+
 ```powershell
 Copy-Item .env.example .env
 uv run python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"

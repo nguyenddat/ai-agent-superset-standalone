@@ -28,4 +28,6 @@ Module khác dùng service hoặc repository của module sở hữu dữ liệu
 
 `business_model` có model, migration, repository, service và API cho tầng dữ liệu, miền nghiệp vụ, bố cục canvas và cạnh lineage thủ công/tham chiếu. `data_lineage` lưu phép biến đổi từ nhiều bảng nguồn, phụ thuộc cột và đọc đồ thị data flow; SQL chỉ được phân tích để xem trước, không thực thi. Hai module tham chiếu metadata của `database_connection`; giao diện Data Lineage là tab `Dòng dữ liệu` của frontend.
 
+`metric_management` lưu metric SQL tự tạo trên bảng metadata và bản sao metric từ Superset. User/database Superset được lưu theo ID và URL nguồn; database được liên kết tới connection standalone đã đăng ký để tìm bảng tương ứng. Đồng bộ chỉ đọc API Superset và không ghi ngược. Giao diện là tab `Metric` của frontend.
+
 Các model database hiện có kế thừa `BaseModel` trong `common`, dùng ID UUID v7 và timestamps. Revision mới chuyển ID số nguyên đã tạo bởi các migration đầu sang UUID v7 cùng các khóa ngoại liên quan.

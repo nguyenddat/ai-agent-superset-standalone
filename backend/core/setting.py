@@ -17,6 +17,9 @@ class Config(BaseSettings):
     # database
     database_url: SecretStr | None = Field(default=None, validation_alias="DATABASE_URL")
     connection_encryption_key: SecretStr | None = Field(default=None, validation_alias="CONNECTION_ENCRYPTION_KEY")
+    superset_url: str | None = Field(default=None, validation_alias="SUPERSET_URL")
+    superset_username: str | None = Field(default=None, validation_alias="SUPERSET_USERNAME")
+    superset_password: SecretStr | None = Field(default=None, validation_alias="SUPERSET_PASSWORD")
     frontend_origin: str = Field(
         default="http://localhost:3000,http://127.0.0.1:3000", validation_alias="FRONTEND_ORIGIN"
     )

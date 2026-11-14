@@ -9,6 +9,7 @@ from backend.modules.business_model.routes.router_business_model import (
     router as business_model_router,
 )
 from backend.modules.data_lineage.routes.router_data_lineage import router as data_lineage_router
+from backend.modules.metric_management.routes.router_metric import router as metric_router
 from backend.modules.data_dictionary.routes.router_data_dictionary import (
     router as data_dictionary_router,
 )
@@ -32,6 +33,7 @@ app.include_router(database_metadata_router)
 app.include_router(data_dictionary_router)
 app.include_router(business_model_router)
 app.include_router(data_lineage_router)
+app.include_router(metric_router)
 
 
 @app.exception_handler(AppError)
