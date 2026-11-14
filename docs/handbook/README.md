@@ -10,6 +10,7 @@ Handbook ghi lại cấu trúc và quy ước đang dùng trong repository stand
 - [Hành vi API](hanh-vi-api.md): transaction, lỗi, định dạng dữ liệu và cấu trúc luồng API.
 - [Frontend](frontend/README.md): Next.js, điều hướng và trạng thái tích hợp backend.
 - [Docker](docker.md): build image, Compose, vận hành stack cục bộ và simulation weather warehouse.
+- [MCP server](mcp-server.md): phần nền giao thức, cách chạy stdio và HTTP cục bộ.
 
 ## Module
 

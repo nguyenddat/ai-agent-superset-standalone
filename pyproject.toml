@@ -10,6 +10,7 @@ dependencies = [
     "fastapi>=0.162.5",
     "httpx>=0.28.1",
     "langchain-openai>=1.0",
+    "mcp>=2,<3",
     "psycopg[binary]>=3.3.9",
     "pydantic-settings>=2.16.2",
     "python-dotenv>=1.2.4",
@@ -20,6 +21,7 @@ dependencies = [
 
 [project.scripts]
 ai-agent-superset-standalone = "backend:main"
+superset-ai-mcp = "backend.mcp_server.__main__:main"
 
 [build-system]
 requires = ["uv_build>=0.12.7,<0.13.0"]
