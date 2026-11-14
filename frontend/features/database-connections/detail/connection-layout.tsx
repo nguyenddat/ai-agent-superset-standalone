@@ -20,6 +20,13 @@ import {
 } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
 import { Button } from "@/components/ui/button"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -101,24 +108,34 @@ export function ConnectionLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <div className="flex flex-col gap-1">
-        {back}
-        <header className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-          {connection ? (
-            <div className="flex min-w-0 flex-col gap-1">
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="truncate text-2xl font-semibold tracking-tight">{connection.name}</h1>
-                <StatusBadge active={connection.is_active} />
-              </div>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-1">
-              <Skeleton className="h-8 w-64" />
-            </div>
-          )}
+      <div className="flex flex-col">
+        <header className="flex items-center justify-between gap-3">
+          <Breadcrumb aria-label="Đường dẫn" className="min-w-0">
+            <BreadcrumbList className="flex-nowrap gap-2">
+              <BreadcrumbItem className="shrink-0">
+                <BreadcrumbLink asChild>
+                  <Link href="/">Kết nối</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem className="min-w-0 gap-2.5">
+                {connection ? (
+                  <>
+                    <h1 aria-current="page" title={connection.name} className="truncate text-xl font-semibold tracking-tight text-foreground">
+                      {connection.name}
+                    </h1>
+                    <StatusBadge active={connection.is_active} />
+                  </>
+                ) : (
+                  <Skeleton className="h-7 w-48" />
+                )}
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
           <Button
             variant="outline"
             className="shrink-0"
+            aria-label="Đồng bộ metadata"
             disabled={!connection?.is_active || syncing}
             onClick={async () => {
               if (!connection) return
@@ -128,7 +145,7 @@ export function ConnectionLayout({ children }: { children: React.ReactNode }) {
             }}
           >
             {syncing ? <Spinner data-icon="inline-start" /> : <RefreshCwIcon data-icon="inline-start" />}
-            Đồng bộ metadata
+            <span className="hidden sm:inline">Đồng bộ metadata</span>
           </Button>
         </header>
         <nav aria-label="Mục của kết nối" className="mt-2 overflow-x-auto overflow-y-hidden border-b">

@@ -2,7 +2,7 @@ import type { BadgeTone } from "@/components/badge"
 
 import type { GlossaryContent, GlossaryLink, GlossaryRevision, GlossaryTerm } from "./types"
 
-/** What a reader cares about: is the AI using this term, and is there something waiting for review. */
+// What a reader cares about: is the AI using this term, and is there something waiting for review.
 export type TermState = "approved" | "changed" | "draft" | "revoked"
 
 export function termState(term: GlossaryTerm): TermState {
@@ -22,7 +22,7 @@ export const TERM_STATES: Record<TermState, { label: string; tone: BadgeTone; hi
   revoked: { label: "Đã thu hồi", tone: "neutral", hint: "AI không còn dùng thuật ngữ này." },
 }
 
-/** Mirrors the backend: runs of spaces collapse, and names compare without case. */
+// Mirrors the backend: runs of spaces collapse, and names compare without case.
 export const normalizeName = (value: string) => value.split(/\s+/).filter(Boolean).join(" ")
 export const foldName = (value: string) => normalizeName(value).toLocaleLowerCase("vi")
 

@@ -148,19 +148,21 @@ function RuleList({ connectionId, rules, refs }: { connectionId: string; rules: 
           onSearch={setQuery}
           shortcut="/"
         />
-        <SegmentedControl
-          label="Trạng thái quy tắc"
-          size="sm"
-          value={filter}
-          onValueChange={(value) => setFilter(value as StateFilter)}
-          options={[
-            { value: "all", label: `Tất cả ${counts.all}` },
-            { value: "pending", label: `Chờ duyệt ${counts.pending}` },
-            { value: "active", label: `Đang áp dụng ${counts.active}` },
-            { value: "stale", label: `Cần cập nhật ${counts.stale}` },
-            { value: "revoked", label: `Đã thu hồi ${counts.revoked}` },
-          ]}
-        />
+        <div className="max-w-full overflow-x-auto [scrollbar-width:none]">
+          <SegmentedControl
+            label="Trạng thái quy tắc"
+            size="sm"
+            value={filter}
+            onValueChange={(value) => setFilter(value as StateFilter)}
+            options={[
+              { value: "all", label: `Tất cả ${counts.all}` },
+              { value: "pending", label: `Chờ duyệt ${counts.pending}` },
+              { value: "active", label: `Đang áp dụng ${counts.active}` },
+              { value: "stale", label: `Cần cập nhật ${counts.stale}` },
+              { value: "revoked", label: `Đã thu hồi ${counts.revoked}` },
+            ]}
+          />
+        </div>
         {tableFilter ? (
           <Badge variant="secondary" className="h-7 gap-1 pr-1">
             Bảng: {refs.tableById.get(tableFilter)?.displayName ?? "không rõ"}

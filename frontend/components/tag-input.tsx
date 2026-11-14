@@ -492,7 +492,7 @@ export function TagInput({
           });
           if (fill && current.some((t) => t.id === tag.id)) {
             commit(current.map((t) => (t.id === tag.id ? { ...t, ...fill } : t)));
-            if (fill.label) say(`${tag.value} is ${fill.label}.`);
+            if (fill.label) say(`${tag.value} là ${fill.label}.`);
           }
         });
     }
@@ -545,8 +545,8 @@ export function TagInput({
     say(
       [
         result.added.length === 1 ? `Đã thêm ${display(result.added[0])}.` : result.added.length ? `Đã thêm ${result.added.length}.` : "",
-        invalid ? `${invalid} not valid.` : "",
-        result.dups.length ? `${result.dups.length} already added.` : "",
+        invalid ? `${invalid} không hợp lệ.` : "",
+        result.dups.length ? `${result.dups.length} đã có.` : "",
         result.overflow ? `${limitMessage}.` : "",
       ]
         .filter(Boolean)
@@ -960,7 +960,7 @@ export function TagInput({
                       data-token={t.id}
                       role="listitem"
                       tabIndex={-1}
-                      aria-label={`${shown}${named ? `, ${t.value}` : ""}${t.error ? `, ${t.error}` : ""}${busy ? ", looking up" : ""}`}
+                      aria-label={`${shown}${named ? `, ${t.value}` : ""}${t.error ? `, ${t.error}` : ""}${busy ? ", đang tra cứu" : ""}`}
                       aria-describedby={`${uid}-keys`}
                       title={shown.length > LONG ? shown : undefined}
                       onFocus={() => setSelected(t.id)}
@@ -1103,7 +1103,7 @@ export function TagInput({
           <div
             role="listbox"
             id={listId}
-            aria-label={`${label}: suggestions`}
+            aria-label={`${label}: gợi ý`}
             onMouseDown={(e) => e.preventDefault()}
             className="relative max-h-64 overflow-auto rounded-[14px] border border-border bg-popover p-1 text-popover-foreground"
           >
@@ -1171,7 +1171,7 @@ export function TagInput({
 
       {name && <input type="hidden" name={name} value={tags.filter((t) => !t.error).map((t) => t.value).join(",")} />}
       <p id={`${uid}-keys`} className="sr-only">
-        Backspace edits, Delete removes, arrow keys move between tags.
+        Backspace để sửa, Delete để xóa, phím mũi tên để chuyển giữa các thẻ.
       </p>
       <p className="sr-only" role="status" aria-live="polite">
         {announce}

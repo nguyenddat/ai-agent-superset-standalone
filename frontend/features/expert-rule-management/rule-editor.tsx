@@ -262,7 +262,8 @@ export function RuleEditor(props: RuleEditorProps) {
         </Button>
       </header>
 
-      <ScrollArea className="min-h-0 flex-1">
+      {/* Radix sizes the viewport content as a table, which lets the nowrap selects push the form past the panel. */}
+      <ScrollArea className="min-h-0 flex-1 [&_[data-slot=scroll-area-viewport]>div]:block!">
         <form
           id="rule-form"
           className="flex flex-col gap-6 px-5 py-5"
@@ -345,7 +346,7 @@ export function RuleEditor(props: RuleEditorProps) {
 
           <Separator />
 
-          <FieldSet>
+          <FieldSet className="min-w-0">
             <FieldLegend>Điều kiện</FieldLegend>
             <FieldDescription>Mỗi điều kiện so một cột của bảng với một giá trị.</FieldDescription>
             {!table ? (
@@ -531,13 +532,13 @@ function ConditionRow({
   return (
     <Field
       data-invalid={!!error || undefined}
-      className="gap-2 rounded-lg border bg-muted/30 p-3"
+      className="@container gap-2 rounded-lg border bg-muted/30 p-3"
       role="group"
       aria-label={label}
     >
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Select value={draft.column_id ?? ""} onValueChange={(value) => retype({ column_id: value })}>
-          <SelectTrigger aria-label={`Cột của ${label}`} className="min-w-0 flex-1" aria-invalid={(!!error && !column) || undefined}>
+          <SelectTrigger aria-label={`Cột của ${label}`} className="min-w-0 flex-1 basis-full @sm:basis-0" aria-invalid={(!!error && !column) || undefined}>
             <SelectValue placeholder="Chọn cột" />
           </SelectTrigger>
           <SelectContent>
@@ -552,7 +553,7 @@ function ConditionRow({
           </SelectContent>
         </Select>
         <Select value={draft.operator} onValueChange={(value) => retype({ operator: value as Operator })}>
-          <SelectTrigger aria-label={`Phép so của ${label}`} className="w-40 shrink-0">
+          <SelectTrigger aria-label={`Phép so của ${label}`} className="min-w-0 flex-1 @sm:w-40 @sm:flex-none">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -634,7 +635,7 @@ function PairList({
     onChange(items.map((item) => (item.key === key ? { ...item, ...change } : item)))
 
   return (
-    <FieldSet>
+    <FieldSet className="min-w-0">
       <FieldLegend>{legend}</FieldLegend>
       <FieldDescription>{description}</FieldDescription>
       <div className="flex flex-col gap-2">

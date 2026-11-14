@@ -2,7 +2,7 @@ import type { BadgeTone } from "@/components/badge"
 
 import type { ExpertRule, Operator, RuleCondition, RuleContent, RuleRevision, Scalar, ValueType } from "./types"
 
-/** What a reader cares about: is the AI applying this rule, and is something waiting for review. */
+// What a reader cares about: is the AI applying this rule, and is something waiting for review.
 export type RuleState = "active" | "stale" | "changed" | "draft" | "revoked"
 
 export function ruleState(rule: ExpertRule): RuleState {
@@ -11,7 +11,7 @@ export function ruleState(rule: ExpertRule): RuleState {
   return rule.serving ? "changed" : "draft"
 }
 
-/** An approved revision the AI no longer applies, because a term or metric it pinned has changed since. */
+// An approved revision the AI no longer applies, because a term or metric it pinned has changed since.
 export const servingIsStale = (rule: ExpertRule) => !!rule.serving && !rule.is_discoverable
 
 export const RULE_STATES: Record<RuleState, { label: string; tone: BadgeTone; hint: string }> = {
@@ -53,7 +53,7 @@ export function columnKind(dataType: string): ColumnKind {
   return "text"
 }
 
-/** Only the comparisons the backend accepts for a column of this kind. */
+// Only the comparisons the backend accepts for a column of this kind.
 export const OPERATORS_BY_KIND: Record<ColumnKind, Operator[]> = {
   number: [
     "equals",
