@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 
 import { useBusinessModel } from "../business-model/api"
 import type { BusinessModel } from "../business-model/types"
-import { useConnectionId } from "../database-connections/detail/connection-layout"
+import { FILL_SCREEN, useConnectionId } from "../database-connections/detail/connection-layout"
 import { useLineageGraph, useTableColumns, useTransformations } from "./api"
 import { buildLineage, traceColumn, traceTable, traceTransformation, type DetailLevel, type Highlight } from "./graph"
 import { LineageCanvas, type CanvasFocus } from "./lineage-canvas"
@@ -20,7 +20,7 @@ import { LineageSidebar, type Selection } from "./lineage-sidebar"
 import { TransformationEditor } from "./transformation-editor"
 import type { LineageGraph, Transformation } from "./types"
 
-const FRAME = "grid min-h-[560px] gap-3 lg:h-[calc(100svh-12.75rem)] lg:grid-cols-[19rem_minmax(0,1fr)]"
+const FRAME = `grid min-h-[560px] gap-3 ${FILL_SCREEN} lg:grid-cols-[19rem_minmax(0,1fr)]`
 
 export function LineageWorkspace() {
   const connectionId = useConnectionId()

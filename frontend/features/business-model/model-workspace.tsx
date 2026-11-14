@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 
-import { useConnectionId } from "../database-connections/detail/connection-layout"
+import { FILL_SCREEN, useConnectionId } from "../database-connections/detail/connection-layout"
 import { refreshModel, updateDomain, updateModel, useBusinessModel } from "./api"
 import { DomainCanvas, regionNodeId, type CanvasFocus, type ColoredDomain } from "./domain-canvas"
 import { DomainDialog } from "./domain-dialog"
@@ -17,7 +17,7 @@ import { ModelSidebar } from "./model-sidebar"
 import type { BusinessDomain, BusinessModel } from "./types"
 import { domainColor } from "./venn-layout"
 
-const FRAME = "grid min-h-[560px] gap-3 lg:h-[calc(100svh-12.75rem)] lg:grid-cols-[17rem_minmax(0,1fr)]"
+const FRAME = `grid min-h-[560px] gap-3 ${FILL_SCREEN} lg:grid-cols-[17rem_minmax(0,1fr)]`
 
 export function ModelWorkspace() {
   const connectionId = useConnectionId()

@@ -50,6 +50,10 @@ const sections = [
   { segment: "settings", label: "Cài đặt", icon: SettingsIcon },
 ]
 
+// Height left under the site header, this page header and the tabs, for sections that fill the screen.
+// It hard-codes the height of everything above, so change it whenever the header below changes height.
+export const FILL_SCREEN = "lg:h-[calc(100svh-10.3rem)]"
+
 export function useConnectionId() {
   return useParams<{ id: string }>().id
 }
