@@ -23,13 +23,17 @@ import { Spinner } from "@/components/ui/spinner"
 import { ModelStatsCard } from "../../business-model/model-stats"
 import { DictionaryCoverageCard, DictionaryRankCards } from "../../data-dictionary/dictionary-stats"
 import { LineageStatsCard } from "../../data-lineage/lineage-stats"
+import { RuleStatsCard } from "../../expert-rule-management/rule-stats"
+import { GlossaryStatsCard } from "../../glossary-management/glossary-stats"
 import { MetricStatsCard } from "../../metric-management/metric-stats"
+import { KnowledgeStatsCard } from "../../own-knowledge/knowledge-stats"
 
 import { useConnection, useSchemaTables } from "../api"
 import { dateFormat, StatusBadge } from "../connection-format"
 import { syncWithToast } from "../sync-with-toast"
 import type { DatabaseTable } from "../types"
 import { useConnectionId } from "./connection-layout"
+import { KnowledgeGrowthCard } from "./knowledge-growth"
 
 const chartConfig = {
   tables: { label: "Bảng", color: "var(--chart-1)" },
@@ -159,6 +163,12 @@ export function ConnectionOverview() {
         <ModelStatsCard connectionId={id} />
         <LineageStatsCard connectionId={id} />
         <MetricStatsCard connectionId={id} />
+      </div>
+      <KnowledgeGrowthCard connectionId={id} />
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <GlossaryStatsCard connectionId={id} />
+        <RuleStatsCard connectionId={id} />
+        <KnowledgeStatsCard connectionId={id} />
       </div>
     </div>
   )

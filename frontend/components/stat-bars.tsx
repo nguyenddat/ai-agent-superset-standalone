@@ -87,3 +87,40 @@ export function RankList({ items, unit }: { items: RankItem[]; unit: string }) {
     </ol>
   )
 }
+
+export type Share = { key: string; label: string; value: number; color: string }
+
+/** A whole split into parts: one bar with a 2px gap between parts, and a legend that carries every count. */
+export function ShareBar({ parts, unit, label }: { parts: Share[]; unit: string; label: string }) {
+  const total = parts.reduce((sum, part) => sum + part.value, 0)
+
+  return (
+    <div className="flex flex-col gap-2.5">
+      <div
+        role="img"
+        aria-label={`${label}: ${parts.map((part) => `${part.label} ${part.value}`).join(", ")} ${unit}`}
+        className="flex h-2.5 gap-0.5 overflow-hidden rounded-sm bg-muted"
+      >
+        {parts
+          .filter((part) => part.value > 0)
+          .map((part) => (
+            <div
+              key={part.key}
+              title={`${part.label}: ${part.value} ${unit} (${percent(part.value, total)}%)`}
+              className="h-full min-w-1 transition-[flex-grow]"
+              style={{ flexGrow: part.value, background: part.color }}
+            />
+          ))}
+      </div>
+      <ul className="grid grid-cols-[repeat(auto-fill,minmax(9.5rem,1fr))] gap-x-4 gap-y-1 text-sm">
+        {parts.map((part) => (
+          <li key={part.key} className="flex min-w-0 items-center gap-2">
+            <span className="size-2.5 shrink-0 rounded-full" style={{ background: part.color }} />
+            <span className="truncate text-muted-foreground">{part.label}</span>
+            <span className="ml-auto font-medium tabular-nums">{part.value}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
