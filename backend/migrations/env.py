@@ -5,9 +5,9 @@ from sqlalchemy import create_engine, pool
 
 from backend.common.base_model import Base
 from backend.core.setting import Config
+from backend.modules.business_model import models as business_model_models  # noqa: F401 - register models with Base
 from backend.modules.data_dictionary import models as data_dictionary_models  # noqa: F401 - register models with Base
 from backend.modules.database_connection import models  # noqa: F401 - register models with Base
-
 
 target_metadata = Base.metadata
 

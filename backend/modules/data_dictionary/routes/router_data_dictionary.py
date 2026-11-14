@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
 
@@ -16,6 +16,8 @@ from ..dependencies import (
 )
 from ..schemas.schema_data_dictionary import (
     ColumnDictionariesIn,
+    DictionaryStatsOut,
+    DictionarySummaryOut,
     TableDictionaryIn,
     TableDictionaryOut,
 )
@@ -80,3 +82,15 @@ def _autofill_stream(service: DataDictionaryAutofillService, plan: AutofillPlan)
         yield _sse("error", {"code": "dictionary_autofill_failed", "message": "Không thể tạo gợi ý từ điển dữ liệu."})
     finally:
         service.release(plan)
+
+
+@router.get("/database-connections/{connection_id}/dictionary-summary", response_model=DictionarySummaryOut)
+def get_dictionary_summary(connection_id: UUID, service: DataDictionaryServiceDep) -> DictionarySummaryOut:
+    return DictionarySummaryOut.model_validate(service.get_connection_summary(connection_id))
+
+
+@router.get("/database-connections/{connection_id}/dictionary-stats", response_model=DictionaryStatsOut)
+def get_dictionary_stats(
+    connection_id: UUID, service: DataDictionaryServiceDep, limit: Annotated[int, Query(ge=1, le=20)] = 5,
+) -> DictionaryStatsOut:
+    return DictionaryStatsOut.model_validate(service.get_connection_stats(connection_id, limit))

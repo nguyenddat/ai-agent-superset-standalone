@@ -21,6 +21,7 @@ from ..utils.exceptions import (
     InvalidConnectionError,
     SourceDatabaseUnavailableError,
 )
+from .metadata_scope import MetadataScope, SCOPE_FIELDS, checked_patterns
 
 
 @dataclass(frozen=True)
@@ -30,6 +31,10 @@ class ConnectionSummary:
     dialect: str
     driver: str | None
     is_active: bool
+    schema_includes: list[str]
+    schema_excludes: list[str]
+    table_includes: list[str]
+    table_excludes: list[str]
     created_at: datetime
     updated_at: datetime
 
@@ -62,7 +67,11 @@ class ConnectionService:
         self._probe(url)
         return "postgresql", "psycopg"
 
-    def register(self, *, name: str, uri: str) -> ConnectionSummary:
+    def register(
+        self, *, name: str, uri: str,
+        schema_includes: list[str] | None = None, schema_excludes: list[str] | None = None,
+        table_includes: list[str] | None = None, table_excludes: list[str] | None = None,
+    ) -> ConnectionSummary:
         clean_name = name.strip()
         if not clean_name or len(clean_name) > 255:
             raise InvalidConnectionError()
@@ -78,6 +87,10 @@ class ConnectionService:
             driver="psycopg",
             uri_ciphertext=ciphertext,
             is_active=True,
+            schema_includes=checked_patterns(schema_includes if schema_includes is not None else []),
+            schema_excludes=checked_patterns(schema_excludes if schema_excludes is not None else []),
+            table_includes=checked_patterns(table_includes if table_includes is not None else []),
+            table_excludes=checked_patterns(table_excludes if table_excludes is not None else []),
         )
         try:
             self.repository.create(entity)
@@ -122,6 +135,9 @@ class ConnectionService:
             values["uri_ciphertext"] = self.cipher.encrypt(uri.encode("utf-8")).decode("ascii")
             values["dialect"] = "postgresql"
             values["driver"] = "psycopg"
+        for field in SCOPE_FIELDS:
+            if field in changes:
+                values[field] = checked_patterns(changes[field])
         if not values:
             raise InvalidConnectionError()
         try:
@@ -159,12 +175,17 @@ class ConnectionService:
 
     @staticmethod
     def _summary(entity: DatabaseConnection) -> ConnectionSummary:
+        scope = MetadataScope(entity)
         return ConnectionSummary(
             id=entity.id,
             name=entity.name,
             dialect=entity.dialect,
             driver=entity.driver,
             is_active=entity.is_active,
+            schema_includes=scope.schema_includes,
+            schema_excludes=scope.schema_excludes,
+            table_includes=scope.table_includes,
+            table_excludes=scope.table_excludes,
             created_at=entity.created_at,
             updated_at=entity.updated_at,
         )

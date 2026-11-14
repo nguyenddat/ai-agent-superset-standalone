@@ -1,4 +1,5 @@
 import unittest
+from uuid import UUID
 
 from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
@@ -69,6 +70,7 @@ class DatabaseConnectionApiTests(unittest.TestCase):
         connection_id = created.json()["id"]
         self.assertEqual(set(created.json()), {
             "id", "name", "dialect", "driver", "is_active", "created_at", "updated_at",
+            "schema_includes", "schema_excludes", "table_includes", "table_excludes",
         })
         self.assertNotIn("secret", created.text)
         self.assertEqual(self.client.get(f"{BASE}/database-connections/{connection_id}").status_code, 200)
@@ -173,6 +175,77 @@ class DatabaseConnectionApiTests(unittest.TestCase):
         })
         self.assertEqual(preflight.status_code, 200)
         self.assertEqual(preflight.headers["access-control-allow-origin"], "http://localhost:3000")
+
+    def test_scope_filters_metadata_without_deleting_existing_dictionary(self) -> None:
+        from backend.modules.business_model.services import BusinessModelService
+        from backend.modules.data_dictionary.models import TableDictionary
+        from backend.modules.data_dictionary.services import DataDictionaryService
+        from backend.modules.database_connection.models import DatabaseTable
+
+        self.snapshot = [
+            SourceSchema("public", (
+                SourceTable("orders", "TABLE", None, (SourceColumn("id", "INTEGER", 1, False, True, None, None),)),
+                SourceTable("tmp_orders", "TABLE", None, (SourceColumn("id", "INTEGER", 1, False, True, None, None),)),
+            )),
+            SourceSchema("staging", (
+                SourceTable("raw_orders", "TABLE", None, (SourceColumn("id", "INTEGER", 1, False, True, None, None),)),
+            )),
+        ]
+        created = self.client.post(f"{BASE}/database-connections", json={
+            "name": "Scoped", "dialect": "postgresql", "uri": URI,
+        })
+        connection_id = created.json()["id"]
+        self.client.post(f"{BASE}/database-connections/{connection_id}/sync")
+        schemas = self.client.get(f"{BASE}/database-connections/{connection_id}/schemas").json()
+        public_id = next(schema["id"] for schema in schemas if schema["name"] == "public")
+        tables = self.client.get(f"{BASE}/schemas/{public_id}/tables").json()
+        tmp_id = UUID(next(table["id"] for table in tables if table["name"] == "tmp_orders"))
+        with Session(self.engine) as session:
+            session.add(TableDictionary(table_id=tmp_id, display_name="Bảng tạm cần giữ"))
+            session.commit()
+
+        changed = self.client.patch(f"{BASE}/database-connections/{connection_id}", json={
+            "schema_excludes": ["staging"], "table_includes": ["orders", "tmp_*"],
+            "table_excludes": ["tmp_*"],
+        })
+        self.assertEqual(changed.status_code, 200, changed.text)
+        synced = self.client.post(f"{BASE}/database-connections/{connection_id}/sync")
+        self.assertEqual((synced.json()["schema_count"], synced.json()["table_count"]), (1, 1))
+        self.assertEqual(
+            [schema["name"] for schema in self.client.get(f"{BASE}/database-connections/{connection_id}/schemas").json()],
+            ["public"],
+        )
+        self.assertEqual(
+            [table["name"] for table in self.client.get(f"{BASE}/schemas/{public_id}/tables").json()], ["orders"],
+        )
+        with Session(self.engine) as session:
+            self.assertIsNotNone(session.get(DatabaseTable, tmp_id))
+            self.assertEqual(session.query(TableDictionary).filter_by(table_id=tmp_id).one().display_name, "Bảng tạm cần giữ")
+            self.assertEqual(DataDictionaryService(session).get_connection_summary(UUID(connection_id))["table_count"], 1)
+            self.assertEqual(len(BusinessModelService(session).get_model(UUID(connection_id))["tables"]), 1)
+
+        self.client.patch(f"{BASE}/database-connections/{connection_id}", json={
+            "schema_excludes": [], "table_includes": [], "table_excludes": [],
+        })
+        restored = self.client.get(f"{BASE}/schemas/{public_id}/tables").json()
+        self.assertEqual(next(table["id"] for table in restored if table["name"] == "tmp_orders"), str(tmp_id))
+        self.assertEqual(
+            [schema["name"] for schema in self.client.get(f"{BASE}/database-connections/{connection_id}/schemas").json()],
+            ["public", "staging"],
+        )
+        self.client.patch(f"{BASE}/database-connections/{connection_id}", json={
+            "schema_includes": ["public"], "table_includes": ["public.orders"],
+        })
+        self.assertEqual(
+            [table["name"] for table in self.client.get(f"{BASE}/schemas/{public_id}/tables").json()], ["orders"],
+        )
+        self.assertEqual(
+            [schema["name"] for schema in self.client.get(f"{BASE}/database-connections/{connection_id}/schemas").json()],
+            ["public"],
+        )
+        self.assertEqual(self.client.patch(f"{BASE}/database-connections/{connection_id}", json={
+            "schema_includes": None,
+        }).status_code, 422)
 
 
 if __name__ == "__main__":

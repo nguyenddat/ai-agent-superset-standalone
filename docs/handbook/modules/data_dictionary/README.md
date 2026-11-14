@@ -5,11 +5,12 @@ Module sở hữu từ điển dữ liệu: phần mô tả nghiệp vụ của 
 **Đã triển khai:**
 
 - Model và revision Alembic cho từ điển mức bảng (`table_dictionaries`, `table_column_roles`, `table_time_grains`, `indicator_aggregations`) và mức cột (`column_dictionaries`, `column_aggregations`, `column_synonyms`).
-- Repository và `DataDictionaryService` đọc, lưu từ điển cùng giá trị mặc định.
+- Repository và `DataDictionaryService` trả tổng quan từ điển theo kết nối, đọc và lưu từ điển cùng giá trị mặc định.
 - `DataDictionaryAutofillService` tự động điền bằng mô hình ngôn ngữ, stream kết quả qua Server-Sent Events.
 - FastAPI route với tiền tố `/api/v1`.
+- Giao diện tab `Từ điển` trong trang kết nối (xem [handbook frontend](../../frontend/README.md)).
 
-**Dự kiến:** quan hệ đã kiểm tra dữ liệu giữa các bảng, phân tích dữ liệu nguồn để gợi ý grain và vai trò, đọc danh sách mã chỉ số từ bảng danh mục, nhãn PII cho catalog của AI agent và giao diện.
+**Dự kiến:** quan hệ đã kiểm tra dữ liệu giữa các bảng, phân tích dữ liệu nguồn để gợi ý grain và vai trò, đọc danh sách mã chỉ số từ bảng danh mục, nhãn PII cho catalog của AI agent, đồng bộ khóa ngoại từ database nguồn để làm tham chiếu mặc định.
 
 Bản ghi từ điển chỉ được tạo khi người dùng lưu hoặc chạy tự động điền. Bảng hoặc cột chưa có bản ghi được API trả về giá trị mặc định suy ra từ metadata.
 
@@ -24,6 +25,8 @@ Bản ghi từ điển chỉ được tạo khi người dùng lưu hoặc chạ
 ## Tài liệu module
 
 - [Mô hình dữ liệu](du-lieu.md)
+- [Tổng quan từ điển của một kết nối](api-tong-quan-ket-noi.md)
+- [Thống kê từ điển của một kết nối](api-thong-ke-ket-noi.md)
 - [Đọc từ điển của bảng](api-doc-tu-dien.md)
 - [Lưu từ điển mức bảng](api-luu-tu-dien-bang.md)
 - [Lưu từ điển mức cột](api-luu-tu-dien-cot.md)

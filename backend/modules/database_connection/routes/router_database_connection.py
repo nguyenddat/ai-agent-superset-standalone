@@ -40,7 +40,11 @@ def test_connection(body: ConnectionTestIn, service: ConnectionServiceDep) -> Co
 
 @router.post("/database-connections", response_model=ConnectionOut, status_code=201)
 def create_connection(body: ConnectionCreateIn, service: ConnectionServiceDep) -> ConnectionOut:
-    result = service.register(name=body.name, uri=body.uri)
+    result = service.register(
+        name=body.name, uri=body.uri,
+        schema_includes=body.schema_includes, schema_excludes=body.schema_excludes,
+        table_includes=body.table_includes, table_excludes=body.table_excludes,
+    )
     response = ConnectionOut.model_validate(result)
     service.session.commit()
     return response

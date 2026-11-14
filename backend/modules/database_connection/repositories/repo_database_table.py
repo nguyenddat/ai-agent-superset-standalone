@@ -17,6 +17,12 @@ class DatabaseTableRepository(BaseRepository[DatabaseTable]):
         statement = select(self.model).where(self.model.schema_id == schema_id).order_by(self.model.name)
         return list(self.session.scalars(statement).all())
 
+    def read_by_schema_ids(self, schema_ids: Collection[UUID]) -> list[DatabaseTable]:
+        if not schema_ids:
+            return []
+        statement = select(self.model).where(self.model.schema_id.in_(schema_ids)).order_by(self.model.name)
+        return list(self.session.scalars(statement).all())
+
     def read_by_schema_and_name(self, schema_id: UUID, name: str) -> DatabaseTable | None:
         statement = select(self.model).where(self.model.schema_id == schema_id, self.model.name == name)
         return self.session.scalar(statement)

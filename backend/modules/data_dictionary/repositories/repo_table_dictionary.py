@@ -1,3 +1,4 @@
+from collections.abc import Collection
 from uuid import UUID
 
 from sqlalchemy import select, update
@@ -14,6 +15,11 @@ class TableDictionaryRepository(BaseRepository[TableDictionary]):
 
     def read_by_table_id(self, table_id: UUID) -> TableDictionary | None:
         return self.session.scalar(select(self.model).where(self.model.table_id == table_id))
+
+    def read_by_table_ids(self, table_ids: Collection[UUID]) -> list[TableDictionary]:
+        if not table_ids:
+            return []
+        return list(self.session.scalars(select(self.model).where(self.model.table_id.in_(table_ids))).all())
 
     def clear_catalog_references(self, catalog_id: UUID) -> None:
         statement = update(self.model).where(self.model.indicator_catalog_id == catalog_id).values(

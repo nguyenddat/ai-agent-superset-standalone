@@ -19,6 +19,12 @@ class DatabaseColumnRepository(BaseRepository[DatabaseColumn]):
         )
         return list(self.session.scalars(statement).all())
 
+    def read_table_ids_by_column_id(self, table_ids: Collection[UUID]) -> dict[UUID, UUID]:
+        if not table_ids:
+            return {}
+        statement = select(self.model.id, self.model.table_id).where(self.model.table_id.in_(table_ids))
+        return {column_id: table_id for column_id, table_id in self.session.execute(statement)}
+
     def read_by_table_and_name(self, table_id: UUID, name: str) -> DatabaseColumn | None:
         statement = select(self.model).where(self.model.table_id == table_id, self.model.name == name)
         return self.session.scalar(statement)

@@ -34,6 +34,7 @@ class DataDictionaryApiTests(unittest.TestCase):
             other = DatabaseConnection(name="Other", dialect="postgresql", uri_ciphertext="y", is_active=True)
             session.add_all([connection, other])
             session.flush()
+            self.connection_id = connection.id
             schema = DatabaseSchema(connection_id=connection.id, name="public")
             other_schema = DatabaseSchema(connection_id=other.id, name="public")
             session.add_all([schema, other_schema])
@@ -98,6 +99,7 @@ class DataDictionaryApiTests(unittest.TestCase):
         self.assertFalse(body["is_saved"])
         self.assertEqual((body["display_name"], body["description"], body["layout"]), ("orders", "Đơn", "wide"))
         roles = {column["name"]: column["semantic_role"] for column in body["columns"]}
+        self.assertTrue(all(column["semantic_role_is_default"] for column in body["columns"]))
         self.assertEqual(roles, {
             "id": "key", "customer_id": "key", "amount": "measure", "order_date": "time",
             "status": "dimension", "created_at": "time",
@@ -209,6 +211,8 @@ class DataDictionaryApiTests(unittest.TestCase):
         self.assertEqual(columns["amount"]["synonyms"], ["doanh thu", "doanh số"])
         self.assertEqual(columns["customer_id"]["referenced_column"]["table_name"], "customers")
         self.assertEqual(columns["customer_id"]["semantic_role"], "key")
+        self.assertFalse(columns["customer_id"]["semantic_role_is_default"])
+        self.assertTrue(columns["amount"]["semantic_role_is_default"])
         self.assertFalse(columns["id"]["is_saved"])
 
         updated = self.put_columns(self.orders, [
@@ -236,6 +240,90 @@ class DataDictionaryApiTests(unittest.TestCase):
                 response = self.put_columns(self.orders, [column])
                 self.assertEqual(response.status_code, 422, response.text)
         self.assertEqual(self.put_columns(self.orders, [amount, amount]).status_code, 422)
+
+    def test_connection_summary(self) -> None:
+        self.put_table(self.orders, display_name="Đơn hàng")
+        self.client.put(f"{BASE}/tables/{self.orders.id}/dictionary/columns", json={"columns": [
+            {"column_id": str(self.order_id.id), "display_name": "Mã đơn"},
+            {"column_id": str(self.order_amount.id), "display_name": "Giá trị"},
+        ]})
+        self.client.put(f"{BASE}/tables/{self.customers.id}/dictionary/columns", json={"columns": [
+            {"column_id": str(self.customer_id.id), "display_name": "Mã khách"},
+        ]})
+
+        response = self.client.get(f"{BASE}/database-connections/{self.connection_id}/dictionary-summary")
+        self.assertEqual(response.status_code, 200)
+        summary = response.json()
+        self.assertEqual((summary["table_count"], summary["described_table_count"]), (4, 1))
+        self.assertEqual([schema["schema_name"] for schema in summary["schemas"]], ["public"])
+        tables = {table["table_name"]: table for table in summary["schemas"][0]["tables"]}
+        self.assertEqual(list(tables), ["customers", "metric_catalog", "metric_values", "orders"])
+        self.assertEqual(
+            (tables["orders"]["is_saved"], tables["orders"]["display_name"], tables["orders"]["column_count"],
+             tables["orders"]["described_column_count"]),
+            (True, "Đơn hàng", 6, 2),
+        )
+        self.assertEqual(
+            (tables["customers"]["is_saved"], tables["customers"]["display_name"],
+             tables["customers"]["described_column_count"]),
+            (False, "customers", 1),
+        )
+        self.assertEqual((tables["orders"]["layout"], tables["customers"]["layout"]), ("wide", "wide"))
+        missing_id = "01a1d33a-0000-7000-8000-000000000000"
+        missing = self.client.get(f"{BASE}/database-connections/{missing_id}/dictionary-summary")
+        self.assertEqual(missing.status_code, 404)
+
+    def test_connection_stats(self) -> None:
+        self.put_table(self.orders, display_name="Đơn hàng")
+        self.put_columns(self.orders, [
+            {"column_id": str(self.order_id.id), "display_name": "Mã đơn"},
+            {
+                "column_id": str(self.order_customer.id), "display_name": "Khách",
+                "referenced_column_id": str(self.customer_id.id),
+            },
+        ])
+        self.put_columns(self.values, [
+            {
+                "column_id": str(self.value_metric.id), "display_name": "Chỉ số",
+                "referenced_column_id": str(self.catalog_id.id),
+            },
+        ])
+        self.put_columns(self.catalog, [
+            {
+                "column_id": str(self.catalog_code.id), "display_name": "Mã",
+                "referenced_column_id": str(self.catalog_id.id),
+            },
+        ])
+
+        response = self.client.get(f"{BASE}/database-connections/{self.connection_id}/dictionary-stats?limit=2")
+        self.assertEqual(response.status_code, 200)
+        stats = response.json()
+        self.assertEqual(
+            (stats["table_count"], stats["described_table_count"], stats["column_count"],
+             stats["described_column_count"]),
+            (4, 1, 13, 4),
+        )
+        self.assertEqual(
+            [(schema["schema_name"], schema["table_count"], schema["described_table_count"])
+             for schema in stats["schemas"]],
+            [("public", 4, 1)],
+        )
+        self.assertEqual(
+            [(table["table_name"], table["column_count"], table["described_column_count"])
+             for table in stats["most_columns"]],
+            [("orders", 6, 2), ("metric_catalog", 4, 1)],
+        )
+        self.assertEqual(stats["most_columns"][0]["display_name"], "Đơn hàng")
+        self.assertEqual(
+            [(table["table_name"], table["referencing_table_count"]) for table in stats["most_referenced"]],
+            [("customers", 1), ("metric_catalog", 1)],
+        )
+        self.assertEqual(
+            self.client.get(f"{BASE}/database-connections/{self.connection_id}/dictionary-stats?limit=0").status_code,
+            422,
+        )
+        missing_id = "01a1d33a-0000-7000-8000-000000000000"
+        self.assertEqual(self.client.get(f"{BASE}/database-connections/{missing_id}/dictionary-stats").status_code, 404)
 
     def test_source_column_removal_cleans_dictionary(self) -> None:
         self.put_table(self.orders, column_roles=[{"role": "time", "column_id": str(self.order_date.id)}])

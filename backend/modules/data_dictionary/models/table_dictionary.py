@@ -12,6 +12,9 @@ class TableDictionary(AuditedModel):
     table_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True), ForeignKey("database_tables.id", ondelete="CASCADE"), nullable=False, unique=True
     )
+    layer_id: Mapped[UUID | None] = mapped_column(
+        Uuid(as_uuid=True), ForeignKey("data_layers.id", ondelete="SET NULL"), index=True
+    )
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     grain_description: Mapped[str | None] = mapped_column(Text)

@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Iterable
 from typing import Any
 from uuid import UUID
@@ -8,9 +8,11 @@ from sqlalchemy.orm import Session
 from backend.modules.database_connection.models import DatabaseColumn, DatabaseTable
 from backend.modules.database_connection.repositories import (
     DatabaseColumnRepository,
+    DatabaseConnectionRepository,
     DatabaseSchemaRepository,
     DatabaseTableRepository,
 )
+from backend.modules.database_connection.services.metadata_scope import MetadataScope
 
 from ..models import (
     ColumnAggregation,
@@ -32,6 +34,7 @@ from ..repositories import (
 )
 from ..utils.exceptions import (
     DataDictionaryValidationError,
+    DictionaryConnectionNotFoundError,
     DictionaryTableNotFoundError,
 )
 from . import semantics
@@ -61,6 +64,7 @@ def _choice(value: str | None, field: str, choices: tuple[str, ...]) -> str | No
 class DataDictionaryService:
     def __init__(self, session: Session) -> None:
         self.session = session
+        self.connections = DatabaseConnectionRepository(session)
         self.schemas = DatabaseSchemaRepository(session)
         self.tables = DatabaseTableRepository(session)
         self.columns = DatabaseColumnRepository(session)
@@ -74,6 +78,94 @@ class DataDictionaryService:
 
     def get_table_dictionary(self, table_id: UUID) -> dict[str, Any]:
         return self._describe(self._table(table_id))
+
+    def get_connection_summary(self, connection_id: UUID) -> dict[str, Any]:
+        connection = self.connections.read_by_id(connection_id)
+        if connection is None:
+            raise DictionaryConnectionNotFoundError()
+        scope = MetadataScope(connection)
+        schemas = [schema for schema in self.schemas.read_by_connection_id(connection_id) if scope.schema(schema.name)]
+        schema_names = {schema.id: schema.name for schema in schemas}
+        tables = [
+            table for table in self.tables.read_by_schema_ids(schema_names)
+            if scope.table(schema_names[table.schema_id], table.name)
+        ]
+        if scope.table_includes or scope.table_excludes:
+            visible_schema_ids = {table.schema_id for table in tables}
+            schemas = [schema for schema in schemas if schema.id in visible_schema_ids]
+        table_ids = [table.id for table in tables]
+        dictionaries = {entry.table_id: entry for entry in self.table_dictionaries.read_by_table_ids(table_ids)}
+        table_by_column = self.columns.read_table_ids_by_column_id(table_ids)
+        column_counts = Counter(table_by_column.values())
+        described_counts = Counter(
+            table_by_column[column_id] for column_id in self.column_dictionaries.read_saved_column_ids(table_by_column)
+        )
+
+        tables_by_schema: dict[UUID, list[dict[str, Any]]] = defaultdict(list)
+        for table in tables:
+            dictionary = dictionaries.get(table.id)
+            tables_by_schema[table.schema_id].append({
+                "table_id": table.id,
+                "table_name": table.name,
+                "table_type": table.table_type,
+                "is_saved": dictionary is not None,
+                "display_name": dictionary.display_name if dictionary else table.name,
+                "layout": dictionary.layout if dictionary else "wide",
+                "column_count": column_counts[table.id],
+                "described_column_count": described_counts[table.id],
+            })
+        return {
+            "connection_id": connection_id,
+            "table_count": len(tables),
+            "described_table_count": len(dictionaries),
+            "schemas": [
+                {"schema_id": schema.id, "schema_name": schema.name, "tables": tables_by_schema[schema.id]}
+                for schema in schemas
+            ],
+        }
+
+    def get_connection_stats(self, connection_id: UUID, limit: int) -> dict[str, Any]:
+        summary = self.get_connection_summary(connection_id)
+        tables = [
+            {**table, "schema_name": schema["schema_name"]} for schema in summary["schemas"] for table in schema["tables"]
+        ]
+        referencing = defaultdict(set)
+        for source_id, target_id in self.column_dictionaries.read_table_references(
+            table["table_id"] for table in tables
+        ):
+            referencing[target_id].add(source_id)
+
+        def ranked(key: str, items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+            items = [item for item in items if item[key] > 0]
+            return sorted(items, key=lambda item: (-item[key], item["schema_name"], item["table_name"]))[:limit]
+
+        def entry(table: dict[str, Any], **values: Any) -> dict[str, Any]:
+            fields = ("table_id", "schema_name", "table_name", "display_name", "is_saved")
+            return {**{field: table[field] for field in fields}, **values}
+
+        return {
+            "connection_id": connection_id,
+            "table_count": summary["table_count"],
+            "described_table_count": summary["described_table_count"],
+            "column_count": sum(table["column_count"] for table in tables),
+            "described_column_count": sum(table["described_column_count"] for table in tables),
+            "schemas": [
+                {
+                    "schema_id": schema["schema_id"],
+                    "schema_name": schema["schema_name"],
+                    "table_count": len(schema["tables"]),
+                    "described_table_count": sum(table["is_saved"] for table in schema["tables"]),
+                }
+                for schema in summary["schemas"]
+            ],
+            "most_columns": ranked("column_count", [
+                entry(table, column_count=table["column_count"], described_column_count=table["described_column_count"])
+                for table in tables
+            ]),
+            "most_referenced": ranked("referencing_table_count", [
+                entry(table, referencing_table_count=len(referencing[table["table_id"]])) for table in tables
+            ]),
+        }
 
     def save_table_dictionary(self, table_id: UUID, values: dict[str, Any]) -> dict[str, Any]:
         table = self._table(table_id)
@@ -443,6 +535,7 @@ class DataDictionaryService:
             "description": entry.description if entry else column.description,
             "business_term": entry.business_term if entry else None,
             "semantic_role": semantic_role,
+            "semantic_role_is_default": not (entry and entry.semantic_role),
             "temporal_kind": temporal_kind,
             "unit": entry.unit if entry else None,
             "format": entry.format if entry else None,

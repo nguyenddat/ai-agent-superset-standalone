@@ -5,10 +5,18 @@ from fastapi.responses import JSONResponse
 
 from backend.common.base_exceptions import AppError
 from backend.core.setting import config
-from backend.modules.data_dictionary.routes.router_data_dictionary import router as data_dictionary_router
-from backend.modules.database_connection.routes.router_database_connection import router as database_connection_router
-from backend.modules.database_connection.routes.router_database_metadata import router as database_metadata_router
-
+from backend.modules.business_model.routes.router_business_model import (
+    router as business_model_router,
+)
+from backend.modules.data_dictionary.routes.router_data_dictionary import (
+    router as data_dictionary_router,
+)
+from backend.modules.database_connection.routes.router_database_connection import (
+    router as database_connection_router,
+)
+from backend.modules.database_connection.routes.router_database_metadata import (
+    router as database_metadata_router,
+)
 
 app = FastAPI(title="AI Agent Superset Standalone API", version="0.1.0")
 app.add_middleware(
@@ -21,6 +29,7 @@ app.add_middleware(
 app.include_router(database_connection_router)
 app.include_router(database_metadata_router)
 app.include_router(data_dictionary_router)
+app.include_router(business_model_router)
 
 
 @app.exception_handler(AppError)

@@ -11,7 +11,7 @@ database_connections (1)
 
 | Bảng | Trường chính | Ràng buộc |
 | --- | --- | --- |
-| `database_connections` | `id`, `name`, `dialect`, `driver`, `uri_ciphertext`, `is_active`, `created_at`, `updated_at` | `name` duy nhất. |
+| `database_connections` | `id`, `name`, `dialect`, `driver`, `uri_ciphertext`, `is_active`, bốn danh sách include/exclude schema/bảng, `created_at`, `updated_at` | `name` duy nhất. |
 | `database_schemas` | `id`, `connection_id`, `name`, `last_synced_at`, `created_at`, `updated_at` | FK đến connection; cặp `(connection_id, name)` duy nhất. |
 | `database_tables` | `id`, `schema_id`, `name`, `table_type`, `description`, `last_synced_at`, `created_at`, `updated_at` | FK đến schema; cặp `(schema_id, name)` duy nhất. |
 | `database_columns` | `id`, `table_id`, `name`, `data_type`, `ordinal_position`, `is_nullable`, `is_primary_key`, `default_value`, `description`, `created_at`, `updated_at` | FK đến table; cặp `(table_id, name)` duy nhất. |

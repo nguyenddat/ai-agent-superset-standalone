@@ -37,3 +37,9 @@ class DictionaryTableNotFoundError(NotFoundError):
     abstract = False
     code = "dictionary_table_not_found"
     message = "Không tìm thấy bảng được yêu cầu."
+
+
+class DictionaryConnectionNotFoundError(NotFoundError):
+    abstract = False
+    code = "dictionary_connection_not_found"
+    message = "Không tìm thấy kết nối database được yêu cầu."

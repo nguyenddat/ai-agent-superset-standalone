@@ -4,7 +4,7 @@
 
 ## Đầu vào và kết quả
 
-JSON đầu vào gồm `name`, `dialect` (`postgresql`), `driver` tùy chọn (`psycopg`) và `uri`. Thành công trả 201 cùng `id`, `name`, `dialect`, `driver`, `is_active`, `created_at`, `updated_at`; không trả URI rõ, URI đã mã hóa hoặc mật khẩu.
+JSON đầu vào gồm `name`, `dialect` (`postgresql`), `driver` tùy chọn (`psycopg`), `uri` và bốn danh sách lọc schema/bảng tùy chọn. Thành công trả 201 cùng `id`, `name`, `dialect`, `driver`, `is_active`, bốn danh sách lọc, `created_at`, `updated_at`; không trả URI rõ, URI đã mã hóa hoặc mật khẩu. Xem [phạm vi metadata](api-pham-vi-metadata.md).
 
 ## Luồng xử lý hiện tại
 

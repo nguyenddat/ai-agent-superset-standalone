@@ -1,6 +1,6 @@
 # Mô hình dữ liệu của `data_dictionary`
 
-**Trạng thái:** đã triển khai model và migration cho từ điển mức bảng và mức cột. Quan hệ giữa các bảng (khóa ngoại, cột được tham chiếu) là **dự kiến**.
+**Trạng thái:** đã triển khai model và migration cho từ điển mức bảng và mức cột, gồm khai báo cột được tham chiếu. Quan hệ giữa các bảng được kiểm tra bằng dữ liệu để phục vụ AI agent là **dự kiến**.
 
 ```text
 database_tables (1) ── (0..1) table_dictionaries
@@ -20,6 +20,7 @@ Mọi bảng của module kế thừa `AuditedModel`: ID UUID v7, `created_at`, 
 | Trường | Ý nghĩa |
 | --- | --- |
 | `table_id` | FK đến `database_tables`, duy nhất, `ON DELETE CASCADE`. |
+| `layer_id` | FK nullable đến `data_layers`, `ON DELETE SET NULL`; chuẩn bị cho phân tầng trong `business_model`. API từ điển hiện chưa đọc hoặc sửa trường này. |
 | `display_name`, `description` | Tên và mô tả nghiệp vụ. |
 | `grain_description` | Một dòng của bảng đại diện cho cái gì, viết bằng chữ. |
 | `table_kind` | `base` (bảng gốc), `aggregate` (bảng tổng hợp) hoặc null. |

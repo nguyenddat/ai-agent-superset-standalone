@@ -4,7 +4,7 @@
 
 ## Cập nhật
 
-Route kiểm tra ID UUID; service chỉ sửa `name`, `is_active`, `uri`. Nếu thay URI, service kiểm tra kết nối mới trước khi mã hóa và lưu. Không cho request ghi trực tiếp `uri_ciphertext`, `created_at` hoặc ID. Tên trùng trả 409; dữ liệu sai trả 422. Route commit một lần và trả chi tiết kết nối không chứa secret.
+Route kiểm tra ID UUID; service sửa `name`, `is_active`, `uri` và các danh sách `schema_includes`, `schema_excludes`, `table_includes`, `table_excludes`. Nếu thay URI, service kiểm tra kết nối mới trước khi mã hóa và lưu. Không cho request ghi trực tiếp `uri_ciphertext`, `created_at` hoặc ID. Tên trùng trả 409; dữ liệu sai trả 422. Route commit một lần và trả chi tiết kết nối không chứa secret. Đổi [phạm vi metadata](api-pham-vi-metadata.md) không tự đồng bộ nguồn.
 
 ## Xóa
 

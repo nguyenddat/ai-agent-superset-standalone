@@ -2,7 +2,7 @@
 
 Module sở hữu kết nối đến database nguồn và bản sao metadata của schema, bảng/view, cột trong metadata database của ứng dụng.
 
-**Đã triển khai:** bốn model SQLAlchemy dùng UUID v7, các revision Alembic, bốn repository, service và FastAPI route cho CRUD kết nối cùng đồng bộ/đọc metadata PostgreSQL. URI được mã hóa bằng Fernet trước khi lưu. **Chưa triển khai:** xác thực/phân quyền, giới hạn nguồn được phép kết nối và đồng bộ nền.
+**Đã triển khai:** bốn model SQLAlchemy dùng UUID v7, các revision Alembic, bốn repository, service và FastAPI route cho CRUD kết nối cùng đồng bộ/đọc metadata PostgreSQL. URI được mã hóa bằng Fernet trước khi lưu. Mỗi kết nối có bộ lọc include/exclude schema và bảng theo mẫu tên. **Chưa triển khai:** xác thực/phân quyền, giới hạn nguồn được phép kết nối và đồng bộ nền.
 
 Route nằm trong `routes/router_database_connection.py` và `routes/router_database_metadata.py`; request/response schema nằm trong `schemas/`, lỗi module nằm trong `utils/exceptions.py`. Các endpoint dùng tiền tố `/api/v1`.
 
@@ -17,6 +17,7 @@ Repository kế thừa CRUD từ `BaseRepository`, nhận `Session` và không t
 - [Đăng ký kết nối](api-dang-ky-ket-noi.md)
 - [Đọc kết nối và metadata](api-doc-metadata.md)
 - [Đồng bộ metadata](api-dong-bo-metadata.md)
+- [Phạm vi schema và bảng](api-pham-vi-metadata.md)
 - [Cập nhật hoặc xóa kết nối](api-cap-nhat-xoa-ket-noi.md)
 
 Luồng xử lý API áp dụng [hành vi chung](../../hanh-vi-api.md). `DATABASE_URL` luôn là metadata database của ứng dụng; kết nối được đăng ký là tài nguyên khác.

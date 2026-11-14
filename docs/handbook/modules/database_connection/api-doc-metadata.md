@@ -19,4 +19,4 @@ Kết nối gồm ID, tên, dialect/driver, trạng thái và thời gian tạo/
 3. Repository chỉ truy vấn metadata database; Pydantic serialize response.
 4. Trả 404 khi ID cha không tồn tại.
 
-`last_synced_at` cần có trong kết quả để người dùng nhận biết snapshot cũ. API đọc không tự truy vấn database nguồn; làm mới metadata đi qua luồng đồng bộ riêng.
+`last_synced_at` cần có trong kết quả để người dùng nhận biết snapshot cũ. Danh sách schema/bảng tuân theo [phạm vi metadata](api-pham-vi-metadata.md) của kết nối; đọc trực tiếp cột theo ID bảng không dùng bộ lọc này. API đọc không tự truy vấn database nguồn; làm mới metadata đi qua luồng đồng bộ riêng.

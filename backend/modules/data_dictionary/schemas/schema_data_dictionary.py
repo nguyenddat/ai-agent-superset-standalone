@@ -113,6 +113,7 @@ class ColumnDictionaryOut(BaseModel):
     description: str | None
     business_term: str | None
     semantic_role: str
+    semantic_role_is_default: bool
     temporal_kind: str | None
     unit: str | None
     format: str | None
@@ -144,3 +145,62 @@ class TableDictionaryOut(BaseModel):
     time_grains: list[TimeGrainOut]
     indicator_aggregations: list[IndicatorAggregationOut]
     columns: list[ColumnDictionaryOut]
+
+
+class DictionaryTableSummaryOut(BaseModel):
+    table_id: UUID
+    table_name: str
+    table_type: str
+    is_saved: bool
+    display_name: str
+    layout: str
+    column_count: int
+    described_column_count: int
+
+
+class DictionarySchemaSummaryOut(BaseModel):
+    schema_id: UUID
+    schema_name: str
+    tables: list[DictionaryTableSummaryOut]
+
+
+class DictionarySummaryOut(BaseModel):
+    connection_id: UUID
+    table_count: int
+    described_table_count: int
+    schemas: list[DictionarySchemaSummaryOut]
+
+
+class DictionaryStatsSchemaOut(BaseModel):
+    schema_id: UUID
+    schema_name: str
+    table_count: int
+    described_table_count: int
+
+
+class DictionaryStatsTableOut(BaseModel):
+    table_id: UUID
+    schema_name: str
+    table_name: str
+    display_name: str
+    is_saved: bool
+
+
+class DictionaryColumnRankOut(DictionaryStatsTableOut):
+    column_count: int
+    described_column_count: int
+
+
+class DictionaryReferenceRankOut(DictionaryStatsTableOut):
+    referencing_table_count: int
+
+
+class DictionaryStatsOut(BaseModel):
+    connection_id: UUID
+    table_count: int
+    described_table_count: int
+    column_count: int
+    described_column_count: int
+    schemas: list[DictionaryStatsSchemaOut]
+    most_columns: list[DictionaryColumnRankOut]
+    most_referenced: list[DictionaryReferenceRankOut]
