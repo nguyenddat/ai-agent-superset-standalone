@@ -142,6 +142,21 @@ function walk(start: string, next: (id: string) => string[]) {
   return seen
 }
 
+/** For every table that feeds another, how many tables are built from it directly and through any chain. */
+export function downstreamCounts(edges: GraphEdge[]) {
+  const children = new Map<string, Set<string>>()
+  for (const e of edges) {
+    if (e.source_table_id === e.target_table_id) continue
+    children.set(e.source_table_id, (children.get(e.source_table_id) ?? new Set()).add(e.target_table_id))
+  }
+  return new Map(
+    [...children].map(([id, direct]) => [
+      id,
+      { direct: direct.size, all: walk(id, (next) => [...(children.get(next) ?? [])]).size - 1 },
+    ]),
+  )
+}
+
 /**
  * One table with only its direct parents (the tables it is built from) and direct children (the tables built from
  * it); everything further away stays in the background so a busy graph still reads at a glance.

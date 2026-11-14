@@ -12,6 +12,7 @@ import {
   NetworkIcon,
   RefreshCwIcon,
   SettingsIcon,
+  SigmaIcon,
   TableIcon,
   WorkflowIcon,
 } from "lucide-react"
@@ -34,6 +35,7 @@ const sections = [
   { segment: "dictionary", label: "Từ điển", icon: BookOpenIcon },
   { segment: "model", label: "Mô hình", icon: NetworkIcon },
   { segment: "lineage", label: "Dòng dữ liệu", icon: WorkflowIcon },
+  { segment: "metrics", label: "Metric", icon: SigmaIcon },
   { segment: "settings", label: "Cài đặt", icon: SettingsIcon },
 ]
 

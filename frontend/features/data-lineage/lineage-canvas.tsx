@@ -142,10 +142,10 @@ function CanvasView({
     if (!positions || !measured || fitted.current === positions) return
     const timer = window.setTimeout(() => {
       fitted.current = positions
-      frame()
+      frame(focus?.tableIds)
     }, 120)
     return () => window.clearTimeout(timer)
-  }, [positions, measured, frame])
+  }, [positions, measured, frame, focus])
 
   useEffect(() => {
     if (focus?.tableIds.length) frame(focus.tableIds)

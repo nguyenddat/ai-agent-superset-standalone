@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useMemo, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { CircleXIcon, PlusIcon } from "lucide-react"
 
 import { EmptyState } from "@/components/empty-state"
@@ -83,9 +83,17 @@ function LineageEditor({
   transformations: Transformation[]
 }) {
   const router = useRouter()
+  // `?table=<id>` (from the overview) opens with that table and its direct neighbours in view.
+  const requested = useSearchParams().get("table")
   const [detail, setDetail] = useState<DetailLevel>("linked")
-  const [selection, setSelection] = useState<Selection | null>(null)
-  const [focus, setFocus] = useState<CanvasFocus | null>(null)
+  const [selection, setSelection] = useState<Selection | null>(() =>
+    requested && graph.edges.some((e) => e.source_table_id === requested || e.target_table_id === requested)
+      ? { kind: "table", id: requested }
+      : null,
+  )
+  const [focus, setFocus] = useState<CanvasFocus | null>(() =>
+    selection?.kind === "table" ? { tableIds: [...traceTable(graph.edges, selection.id).tables], nonce: 0 } : null,
+  )
   const [editor, setEditor] = useState<EditorState | null>(null)
 
   const tables = useMemo(() => new Map(model.tables.map((table) => [table.table_id, table])), [model.tables])

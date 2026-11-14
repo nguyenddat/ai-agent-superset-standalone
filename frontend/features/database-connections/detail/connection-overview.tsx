@@ -20,7 +20,10 @@ import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTi
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 
+import { ModelStatsCard } from "../../business-model/model-stats"
 import { DictionaryCoverageCard, DictionaryRankCards } from "../../data-dictionary/dictionary-stats"
+import { LineageStatsCard } from "../../data-lineage/lineage-stats"
+import { MetricStatsCard } from "../../metric-management/metric-stats"
 
 import { useConnection, useSchemaTables } from "../api"
 import { dateFormat, StatusBadge } from "../connection-format"
@@ -152,6 +155,11 @@ export function ConnectionOverview() {
         <DictionaryCoverageCard connectionId={id} />
       </div>
       <DictionaryRankCards connectionId={id} />
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <ModelStatsCard connectionId={id} />
+        <LineageStatsCard connectionId={id} />
+        <MetricStatsCard connectionId={id} />
+      </div>
     </div>
   )
 }
