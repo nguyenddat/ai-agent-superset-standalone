@@ -8,6 +8,8 @@ from backend.core.setting import Config
 from backend.modules.business_model import models as business_model_models  # noqa: F401 - register models with Base
 from backend.modules.data_lineage import models as data_lineage_models  # noqa: F401 - register models with Base
 from backend.modules.metric_management import models as metric_management_models  # noqa: F401 - register models with Base
+from backend.modules.glossary_management import models as glossary_management_models  # noqa: F401
+from backend.modules.expert_rule_management import models as expert_rule_management_models  # noqa: F401
 from backend.modules.data_dictionary import models as data_dictionary_models  # noqa: F401 - register models with Base
 from backend.modules.database_connection import models  # noqa: F401 - register models with Base
 

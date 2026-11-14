@@ -6,11 +6,13 @@ import { useParams, usePathname } from "next/navigation"
 import {
   ArrowLeftIcon,
   BookOpenIcon,
+  BookTextIcon,
   CircleXIcon,
   DatabaseIcon,
   LayoutDashboardIcon,
   NetworkIcon,
   RefreshCwIcon,
+  ScaleIcon,
   SettingsIcon,
   SigmaIcon,
   TableIcon,
@@ -36,6 +38,8 @@ const sections = [
   { segment: "model", label: "Mô hình", icon: NetworkIcon },
   { segment: "lineage", label: "Dòng dữ liệu", icon: WorkflowIcon },
   { segment: "metrics", label: "Metric", icon: SigmaIcon },
+  { segment: "glossary", label: "Thuật ngữ", icon: BookTextIcon },
+  { segment: "rules", label: "Quy tắc", icon: ScaleIcon },
   { segment: "settings", label: "Cài đặt", icon: SettingsIcon },
 ]
 

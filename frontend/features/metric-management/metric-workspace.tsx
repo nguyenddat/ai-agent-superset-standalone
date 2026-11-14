@@ -13,9 +13,9 @@ import {
 } from "lucide-react"
 
 import { EmptyState } from "@/components/empty-state"
-import { NumberRoll } from "@/components/number-roll"
 import { SearchInput } from "@/components/search-input"
 import { SegmentedControl } from "@/components/segmented-control"
+import { StatTile } from "@/components/stat-tile"
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -67,18 +67,6 @@ export function MetricWorkspace() {
   }
 
   return <MetricList connectionId={connectionId} tables={model.data.tables} metrics={metrics.data} />
-}
-
-function StatTile({ label, value, total }: { label: string; value: number; total?: number }) {
-  return (
-    <div className="flex flex-col gap-1 rounded-xl border px-4 py-3">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="text-2xl font-semibold tracking-tight tabular-nums">
-        <NumberRoll value={value} />
-        {total !== undefined ? <span className="text-base font-normal text-muted-foreground">/{total}</span> : null}
-      </span>
-    </div>
-  )
 }
 
 type Group = { id: string; table: ModelTable | undefined; metrics: Metric[] }

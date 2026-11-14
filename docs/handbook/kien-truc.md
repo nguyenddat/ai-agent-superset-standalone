@@ -30,4 +30,8 @@ Module khác dùng service hoặc repository của module sở hữu dữ liệu
 
 `metric_management` lưu metric SQL tự tạo trên bảng metadata và bản sao metric từ Superset. User/database Superset được lưu theo ID và URL nguồn; database được liên kết tới connection standalone đã đăng ký để tìm bảng tương ứng. Đồng bộ chỉ đọc API Superset và không ghi ngược. Giao diện là tab `Metric` của frontend.
 
+`glossary_management` lưu thuật ngữ và các revision theo connection, liên kết tới bảng/cột/metric bằng khóa ngoại. API duyệt, thu hồi và discovery đã có; frontend là tab `Thuật ngữ`.
+
+`expert_rule_management` lưu rule trên một bảng metadata, điều kiện có cấu trúc và các revision. Bảng ghép nối mỗi revision tới glossary đã duyệt và metric cùng bảng; discovery chỉ trả bản đã duyệt khi các liên kết còn đúng phiên bản. Frontend là tab `Quy tắc`. Xem [dữ liệu glossary](modules/glossary_management/du-lieu.md).
+
 Các model database hiện có kế thừa `BaseModel` trong `common`, dùng ID UUID v7 và timestamps. Revision mới chuyển ID số nguyên đã tạo bởi các migration đầu sang UUID v7 cùng các khóa ngoại liên quan.

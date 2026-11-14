@@ -20,5 +20,7 @@ Handbook ghi lại cấu trúc và quy ước đang dùng trong repository stand
 | `business_model` | [Tổng quan module](modules/business_model/README.md) | Model, migration, service và API cho tầng dữ liệu, miền nghiệp vụ, canvas và lineage đã có; giao diện dự kiến. |
 | `data_lineage` | [Tổng quan module](modules/data_lineage/README.md) | Migration và API xem trước SQL, khai báo phép biến đổi và đọc đồ thị đã có; giao diện là tab `Dòng dữ liệu`. |
 | `metric_management` | [Tổng quan module](modules/metric_management/README.md) | CRUD metric tự tạo và đồng bộ một chiều metric, user, database từ Superset đã có; giao diện là tab `Metric`. |
+| `glossary_management` | [Tổng quan module](modules/glossary_management/README.md) | Migration, API và tab `Thuật ngữ` đã có. |
+| `expert_rule_management` | [Tổng quan module](modules/expert_rule_management/README.md) | Migration, API và tab `Quy tắc` đã có. |
 
 Khi thêm module mới, tạo `modules/<ten_module>/README.md`, tài liệu dữ liệu và một file riêng cho từng luồng API. Cập nhật mục lục này cùng thay đổi code.
