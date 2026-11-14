@@ -131,7 +131,7 @@ function LineageEditor({
   const selectionLabel = !selection
     ? null
     : selection.kind === "table"
-      ? `Dòng dữ liệu của ${tables.get(selection.id)?.display_name ?? "bảng"}`
+      ? `Nguồn và đích trực tiếp của ${tables.get(selection.id)?.display_name ?? "bảng"}`
       : selection.kind === "transformation"
         ? `Phép biến đổi: ${names.get(selection.id) ?? ""}`
         : `Cột ${columnById.get(selection.id)?.name ?? ""}: nguồn và nơi dùng`

@@ -28,6 +28,7 @@ import { ROLES, ROLE_STROKE } from "./labels"
 import {
   LineageContext,
   LineageLink,
+  LineageMarkers,
   TableCard,
   type CardNode,
   type LineageCanvasState,
@@ -179,6 +180,7 @@ function CanvasView({
 
   return (
     <LineageContext.Provider value={{ ...state, hoveredLink }}>
+      <LineageMarkers />
       <ReactFlow<CardNode, LinkEdge>
         nodes={nodes}
         edges={edges}

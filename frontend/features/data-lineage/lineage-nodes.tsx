@@ -53,6 +53,7 @@ export function TableCard({ data, selected }: NodeProps<CardNode>) {
   const { table, layer } = card
   const lineage = useLineage()
   const dimmed = lineage.highlight !== null && !lineage.highlight.tables.has(card.id)
+  const relation = lineage.highlight?.neighbours?.get(card.id)
   const Icon = isView(table.table_type) ? EyeIcon : table.table_kind === "aggregate" ? SigmaIcon : Table2Icon
 
   return (
@@ -62,7 +63,7 @@ export function TableCard({ data, selected }: NodeProps<CardNode>) {
       className={cn(
         "relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm transition-[opacity,box-shadow] duration-200",
         selected && "ring-2 ring-ring/60",
-        dimmed && "opacity-30",
+        dimmed && "opacity-[0.12] grayscale",
       )}
     >
       <Handle id={headerHandle("in")} type="target" position={Position.Left} style={{ top: CARD_HEADER / 2 }} className={hidden} isConnectable={false} />
@@ -83,12 +84,17 @@ export function TableCard({ data, selected }: NodeProps<CardNode>) {
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
           <Icon className="size-4" />
         </span>
-        <span className="flex min-w-0 flex-col">
+        <span className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-sm font-medium">{table.display_name}</span>
           <span className="truncate font-mono text-[11px] text-muted-foreground">
             {table.schema_name}.{table.table_name}
           </span>
         </span>
+        {relation ? (
+          <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+            {relation === "parent" ? "Nguồn" : "Đích"}
+          </span>
+        ) : null}
       </header>
 
       {card.rows.map((row, index) => {
@@ -130,7 +136,39 @@ export function TableCard({ data, selected }: NodeProps<CardNode>) {
   )
 }
 
-export function LineageLink({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data, markerEnd }: EdgeProps<LinkEdge>) {
+const ARROW_TONES = { value: "var(--chart-1)", group: "var(--chart-2)", muted: "var(--muted-foreground)" }
+type ArrowTone = keyof typeof ARROW_TONES
+
+const arrowId = (tone: ArrowTone, strong: boolean) => `lineage-arrow-${tone}-${strong ? "strong" : "soft"}`
+
+/** Small arrowheads at the target end of a link, one per colour and strength, sized in screen units of the canvas. */
+export function LineageMarkers() {
+  return (
+    <svg aria-hidden className="pointer-events-none absolute size-0">
+      <defs>
+        {(Object.keys(ARROW_TONES) as ArrowTone[]).flatMap((tone) =>
+          [true, false].map((strong) => (
+            <marker
+              key={arrowId(tone, strong)}
+              id={arrowId(tone, strong)}
+              viewBox="0 0 10 10"
+              refX="9"
+              refY="5"
+              markerWidth="7"
+              markerHeight="7"
+              markerUnits="userSpaceOnUse"
+              orient="auto-start-reverse"
+            >
+              <path d="M1 1 L9 5 L1 9 Z" style={{ fill: ARROW_TONES[tone], fillOpacity: strong ? 1 : 0.6 }} />
+            </marker>
+          )),
+        )}
+      </defs>
+    </svg>
+  )
+}
+
+export function LineageLink({ id, sourceX, sourceY, targetX, targetY, sourcePosition, targetPosition, data }: EdgeProps<LinkEdge>) {
   const lineage = useLineage()
   const link = data!.link
   const [path, labelX, labelY] = getBezierPath({ sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition })
@@ -140,6 +178,10 @@ export function LineageLink({ id, sourceX, sourceY, targetX, targetY, sourcePosi
   const quiet = link.role !== null && link.role !== "value"
   const dimmed = lineage.highlight !== null && !lit
   const stroke = link.role ? ROLE_STROKE[link.role] : { color: "var(--muted-foreground)", dash: link.kind === "flow" ? "6 5" : undefined }
+  const strong = lit || hovered
+  const tone: ArrowTone = link.role === "value" ? "value" : link.role === "group" ? "group" : "muted"
+  // The arrow shows the direction where it can be read: faded links and faint row-shaping links go without one.
+  const arrow = (dimmed && !hovered) || (quiet && !strong) ? undefined : `url(#${arrowId(tone, strong)})`
   const name = lineage.transformationName(link.transformationId)
   const label = [name ?? (link.kind === "flow" ? "Cạnh khai báo ở Mô hình" : null), link.role ? roleLabel(link.role) : null]
     .filter(Boolean)
@@ -150,16 +192,20 @@ export function LineageLink({ id, sourceX, sourceY, targetX, targetY, sourcePosi
       <BaseEdge
         id={id}
         path={path}
-        markerEnd={markerEnd}
+        markerEnd={arrow}
         interactionWidth={18}
         style={{
           stroke: stroke.color,
           strokeDasharray: stroke.dash,
           strokeWidth: lit || hovered ? 2.4 : 1.5,
-          strokeOpacity: dimmed && !hovered ? 0.08 : lit || hovered ? 1 : quiet ? 0.22 : 0.55,
+          strokeOpacity: dimmed && !hovered ? 0.04 : lit || hovered ? 1 : quiet ? 0.22 : 0.55,
           transition: "stroke-opacity 200ms, stroke-width 200ms",
         }}
       />
+      {lit ? (
+        // Dots running from source to target on the links of the current selection.
+        <path d={path} fill="none" className="lineage-flow pointer-events-none" style={{ stroke: stroke.color }} />
+      ) : null}
       {hovered && label ? (
         <EdgeLabelRenderer>
           <span

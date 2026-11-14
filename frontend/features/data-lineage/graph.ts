@@ -125,6 +125,8 @@ export type Highlight = {
   tablePairs: Set<string>
   columnPairs: Set<string>
   transformationId: string | null
+  /** For a selected table, how each lit table relates to it. */
+  neighbours?: Map<string, "parent" | "child">
 }
 
 function walk(start: string, next: (id: string) => string[]) {
@@ -140,20 +142,25 @@ function walk(start: string, next: (id: string) => string[]) {
   return seen
 }
 
-/** Every table upstream and downstream of one table, with the edges between them. */
+/**
+ * One table with only its direct parents (the tables it is built from) and direct children (the tables built from
+ * it); everything further away stays in the background so a busy graph still reads at a glance.
+ */
 export function traceTable(edges: GraphEdge[], tableId: string): Highlight {
-  const up = walk(tableId, (id) => edges.filter((e) => e.target_table_id === id).map((e) => e.source_table_id))
-  const down = walk(tableId, (id) => edges.filter((e) => e.source_table_id === id).map((e) => e.target_table_id))
-  const tablePairs = new Set(
-    edges
-      .filter(
-        (e) =>
-          (up.has(e.source_table_id) && up.has(e.target_table_id)) ||
-          (down.has(e.source_table_id) && down.has(e.target_table_id)),
-      )
-      .map((e) => `${e.source_table_id}>${e.target_table_id}`),
-  )
-  return { tables: new Set([...up, ...down]), columns: new Set(), tablePairs, columnPairs: new Set(), transformationId: null }
+  const own = edges.filter((e) => e.target_table_id === tableId || e.source_table_id === tableId)
+  const neighbours = new Map<string, "parent" | "child">()
+  for (const e of own) {
+    if (e.target_table_id === tableId && e.source_table_id !== tableId) neighbours.set(e.source_table_id, "parent")
+    if (e.source_table_id === tableId && e.target_table_id !== tableId) neighbours.set(e.target_table_id, "child")
+  }
+  return {
+    tables: new Set([tableId, ...neighbours.keys()]),
+    columns: new Set(),
+    tablePairs: new Set(own.map((e) => `${e.source_table_id}>${e.target_table_id}`)),
+    columnPairs: new Set(),
+    transformationId: null,
+    neighbours,
+  }
 }
 
 /**
