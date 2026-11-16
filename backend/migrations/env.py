@@ -4,16 +4,11 @@ from alembic import context
 from sqlalchemy import create_engine, pool
 
 from backend.common.base_model import Base
+from backend.common.migration import alembic_options
 from backend.core.setting import Config
-from backend.modules.business_model import models as business_model_models  # noqa: F401 - register models with Base
-from backend.modules.data_lineage import models as data_lineage_models  # noqa: F401 - register models with Base
-from backend.modules.metric_management import models as metric_management_models  # noqa: F401 - register models with Base
-from backend.modules.glossary_management import models as glossary_management_models  # noqa: F401
-from backend.modules.expert_rule_management import models as expert_rule_management_models  # noqa: F401
-from backend.modules.own_knowledge import models as own_knowledge_models  # noqa: F401
-from backend.modules.data_dictionary import models as data_dictionary_models  # noqa: F401 - register models with Base
-from backend.modules.database_connection import models  # noqa: F401 - register models with Base
+from backend.modules.model_registry import register_all_models
 
+register_all_models()
 target_metadata = Base.metadata
 
 
@@ -28,6 +23,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         compare_type=True,
+        **alembic_options(),
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -37,7 +33,10 @@ def run_migrations_online() -> None:
     engine = create_engine(database_url(), poolclass=pool.NullPool)
     try:
         with engine.connect() as connection:
-            context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)
+            context.configure(
+                connection=connection, target_metadata=target_metadata, compare_type=True,
+                **alembic_options(),
+            )
             with context.begin_transaction():
                 context.run_migrations()
     finally:

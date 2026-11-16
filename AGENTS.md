@@ -18,13 +18,14 @@ Khi thay đổi hành vi, cấu trúc dữ liệu hoặc quy ước, cập nhậ
 
 - `backend/common/`: base model, repository, exception và formatter dùng chung.
 - `backend/core/`: cấu hình, engine và session của metadata database, hạ tầng bảo mật.
-- `backend/modules/`: các nghiệp vụ; hiện có `database_connection` và `data_dictionary`.
-- `backend/agent_package/`: chat model, prompt, tool dùng chung cho các tính năng AI.
-- `backend/migrations/`: Alembic; script của module nằm trong `versions/init_<ten_module>_module/`. Module `database_connection` hiện dùng tên thư mục `init_database_module`; `data_dictionary` dùng `init_data_dictionary_module`.
+- `backend/modules/`: các nghiệp vụ, mỗi module một thư mục (xem mục lục handbook); `text2sql` gồm cả worker ingestion chạy bằng `python -m backend.modules.text2sql.worker` và route chat streaming SSE `POST /api/v1/text2sql/chat` (pipeline ở `text2sql/chat/`, xem [luồng chat](docs/handbook/modules/text2sql/chat-flow.md)); `conversation` lưu lịch sử trò chuyện (API `/api/v1/conversations`; route chat ghi lượt qua `ConversationService` khi có `user_id`, xem [module conversation](docs/handbook/modules/conversation/README.md)).
+- `backend/mcp_server/`: MCP server, chia thư mục `tools/`, `resources/`, `prompts/`; hiện có 15 tool: tìm và xem bảng, cột, metric, thuật ngữ, quy tắc, tri thức riêng, `query_metric` chạy metric (chỉ đọc, che PII), `ask_data` (luồng hỏi đáp cố định), `find_fields` và `plan_join` (tìm trường, tính cách nối bảng), `query_dataset` (truy vấn nhiều bảng do server tự nối, lưu dataset dùng lại).
+- `backend/agent_package/`: chat model và hàm gọi dùng chung (`get_chat_models.py`: `invoke_structured`, `stream_structured`, `structured_model`, `build_messages`, `stream_text`), embedding model (`get_embedding_models.py`), prompt (`prompts/`), agent gọi mô hình một lượt (`agents/`: `QuestionRewriteAgent`, `QueryPlanAgent`, `DatasetPlanAgent`, `AnalysisAgent` cùng schema đầu ra; lỗi `AgentUnavailableError`), dùng chung cho các tính năng AI; xem [gói agent dùng chung](docs/handbook/modules/agent_package.md). Module nghiệp vụ gọi agent chứ không chứa lời gọi mô hình; `agent_package` không import từ `backend/modules`.
+- `backend/migrations/`: Alembic; script của module nằm trong `versions/init_<ten_module>_module/`. Module `database_connection` hiện dùng tên thư mục `init_database_module`; `data_dictionary` dùng `init_data_dictionary_module`; `text2sql` dùng `init_text2sql_module` và đặt bảng kỹ thuật trong schema `technical`; `conversation` dùng `init_conversation_module`.
 - `frontend/`: ứng dụng Next.js App Router độc lập, khởi tạo bằng `create-next-app`; hướng dẫn tại [handbook frontend](docs/handbook/frontend/README.md).
 - `docs/handbook/`: quy ước và luồng xử lý kỹ thuật.
 - `docs/reports/`: báo cáo, tách khỏi handbook.
-- `backend/Dockerfile`, `frontend/Dockerfile`, `compose.yaml`: image và stack chạy cục bộ.
+- `backend/Dockerfile`, `frontend/Dockerfile`, `compose.yaml`: image và stack chạy cục bộ (gồm `ingestion-worker`).
 
 ## Làm việc và kiểm tra
 

@@ -1,7 +1,6 @@
 import unittest
 from importlib import import_module
 from unittest.mock import patch
-from uuid import uuid4
 
 from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
@@ -12,7 +11,7 @@ from sqlalchemy import create_engine, event, inspect
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
-from backend.common.base_model import Base
+from backend.common.base_model import TECHNICAL_SCHEMA, Base
 from backend.core.setting import config
 from backend.main import app
 from backend.modules.database_connection.models import DatabaseColumn, DatabaseConnection, DatabaseSchema, DatabaseTable
@@ -20,7 +19,6 @@ from backend.modules.expert_rule_management.dependencies import get_expert_rule_
 from backend.modules.expert_rule_management.services import ExpertRuleService
 from backend.modules.glossary_management.dependencies import get_glossary_service
 from backend.modules.glossary_management.services import GlossaryService
-from backend.modules.metric_management.models import Metric
 from backend.modules.own_knowledge.dependencies import get_own_knowledge_service
 from backend.modules.own_knowledge.services import OwnKnowledgeService
 
@@ -269,7 +267,9 @@ class OwnKnowledgeApiTests(unittest.TestCase):
         with self.engine.begin() as connection:
             for table in ("own_knowledge_entries", "own_knowledge_proposals", "own_knowledge_clarifications"):
                 connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table}")
-            context = MigrationContext.configure(connection)
+            context = MigrationContext.configure(connection, opts={
+                "include_object": lambda obj, name, type_, reflected, compare_to: getattr(obj, "schema", None) != TECHNICAL_SCHEMA
+            })
             with Operations.context(context):
                 migration.upgrade()
             self.assertTrue({

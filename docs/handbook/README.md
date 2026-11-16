@@ -10,7 +10,7 @@ Handbook ghi lại cấu trúc và quy ước đang dùng trong repository stand
 - [Hành vi API](hanh-vi-api.md): transaction, lỗi, định dạng dữ liệu và cấu trúc luồng API.
 - [Frontend](frontend/README.md): Next.js, điều hướng và trạng thái tích hợp backend.
 - [Docker](docker.md): build image, Compose, vận hành stack cục bộ và simulation weather warehouse.
-- [MCP server](mcp-server.md): phần nền giao thức, cách chạy stdio và HTTP cục bộ.
+- [MCP server](mcp-server.md): cấu trúc theo tools/resources/prompts, 15 tool: 10 tool tìm (`search_*`) và xem chi tiết (`get_*`) bảng, cột, metric, thuật ngữ, quy tắc, tri thức riêng, `query_metric` chạy metric chỉ đọc, `ask_data` hỏi đáp một lần gọi ([luồng hỏi đáp](modules/text2sql/ask-flow.md)), `find_fields`, `plan_join` và `query_dataset` truy vấn nhiều bảng khi chưa có metric ([tìm trường và nối bảng](modules/text2sql/find-fields-join.md), [dựng truy vấn](modules/text2sql/build-query.md), [dataset truy vấn](modules/text2sql/query-datasets.md)), có che dữ liệu cá nhân, tham số `rerank`, cách chạy stdio và HTTP cục bộ.
 
 ## Module
 
@@ -24,5 +24,7 @@ Handbook ghi lại cấu trúc và quy ước đang dùng trong repository stand
 | `glossary_management` | [Tổng quan module](modules/glossary_management/README.md) | Migration, API và tab `Thuật ngữ` đã có. |
 | `expert_rule_management` | [Tổng quan module](modules/expert_rule_management/README.md) | Migration, API và tab `Quy tắc` đã có. |
 | `own_knowledge` | [Tổng quan module](modules/own_knowledge/README.md) | API Agent push câu hỏi làm rõ, lưu tri thức riêng sau xác nhận, admin review và chuyển thành bản ghi hệ thống đã có; chat runtime và frontend dự kiến. |
+| `conversation` | [Tổng quan module](modules/conversation/README.md) | Migration, service và API CRUD lịch sử trò chuyện (hội thoại, lượt hỏi đáp, đánh giá) theo `user_id` và connection đã có; pipeline chat ghi lượt, hỏi nối tiếp và chọn cách nối ở lượt sau đã có; frontend dự kiến. |
+| `text2sql` | [Luồng dùng metric có sẵn](modules/text2sql/README.md) | `query_metric` (chạy metric chỉ đọc, che PII bằng Presidio) và `ingestion` sáu topic (bảng, cột, metric, glossary, quy tắc, tri thức riêng) với hàng đợi, worker song song, trigger tự động và `retrieve` top K metric đã có ở backend; `ask_data` hỏi đáp một lần gọi, và khi chưa có metric thì `find_fields`, `plan_join`, `query_dataset` truy vấn nhiều bảng có lưu dataset dùng lại; route chat streaming `POST /api/v1/text2sql/chat` ([luồng chat](modules/text2sql/chat-flow.md)) và câu hỏi gợi ý `GET /api/v1/text2sql/suggestions` ([gợi ý](modules/text2sql/suggestions.md)) ghép các agent ở [gói agent dùng chung](modules/agent_package.md). |
 
 Khi thêm module mới, tạo `modules/<ten_module>/README.md`, tài liệu dữ liệu và một file riêng cho từng luồng API. Cập nhật mục lục này cùng thay đổi code.

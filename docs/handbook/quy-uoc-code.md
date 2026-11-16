@@ -10,6 +10,7 @@
 - Một module sở hữu model và truy vấn của nghiệp vụ đó. Repository nhận session, không tự commit. Service không đọc trực tiếp HTTP request.
 - Exception cụ thể đặt trong module, kế thừa từ `backend.common.base_exceptions`, có `code` riêng và thông điệp an toàn để trả cho client.
 - Biến cấu hình chung đọc qua `backend.core.setting.Config`; không đọc `os.getenv` rải rác trong module.
+- Tiến trình không đi qua `backend.main` (worker, MCP server, script) phải gọi `register_all_models()` từ `backend.modules.model_registry` trước khi truy vấn, vì các model tham chiếu bảng của nhau bằng khóa ngoại dạng chuỗi và thiếu một module thì SQLAlchemy không dựng được mapper. Module mới thêm package `models` của nó vào `MODEL_PACKAGES` ở file đó; `env.py` của Alembic dùng cùng danh sách.
 
 ## Dữ liệu và định dạng
 

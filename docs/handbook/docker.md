@@ -1,10 +1,10 @@
 # Chạy stack bằng Docker Compose
 
-**Trạng thái:** đã có image backend, image frontend và PostgreSQL trong `compose.yaml`.
+**Trạng thái:** đã có image backend, image frontend, PostgreSQL, Qdrant và `ingestion-worker` trong `compose.yaml`.
 
 ## Chuẩn bị
 
-Từ gốc repository, sao chép `.env.example` thành `.env`. Đổi `POSTGRES_PASSWORD` và tạo `CONNECTION_ENCRYPTION_KEY` bằng lệnh ghi trong file mẫu. Không commit `.env`; khóa Fernet phải được giữ ổn định để đọc lại URI nguồn đã mã hóa. `POSTGRES_USER` và `POSTGRES_DB` có giá trị mặc định trong Compose. Đặt `OPENROUTER_API_KEY` nếu dùng tính năng tự động điền từ điển dữ liệu; để trống thì API đó trả 503.
+Từ gốc repository, sao chép `.env.example` thành `.env`. Đổi `POSTGRES_PASSWORD` và tạo `CONNECTION_ENCRYPTION_KEY` bằng lệnh ghi trong file mẫu. Không commit `.env`; khóa Fernet phải được giữ ổn định để đọc lại URI nguồn đã mã hóa. `POSTGRES_USER` và `POSTGRES_DB` có giá trị mặc định trong Compose. Đặt `OPENROUTER_API_KEY` nếu dùng tự động điền từ điển hoặc Text2SQL ingestion/retrieve; để trống thì API tương ứng trả 503.
 
 Đồng bộ metric từ Superset cần `SUPERSET_URL`, `SUPERSET_USERNAME` và `SUPERSET_PASSWORD`. URL phải truy cập được từ container backend; nếu Superset chạy trên Docker Desktop với cổng host `8089`, dùng `http://host.docker.internal:8089` thay cho `localhost`.
 
@@ -22,10 +22,16 @@ Dán khóa vừa tạo vào `.env`. `DATABASE_URL` trong `.env` dùng cho lệnh
 | Service | Image hoặc build | Truy cập từ máy |
 | --- | --- | --- |
 | `postgres` | `postgres:17-alpine` | `localhost:5432` |
+| `qdrant` | `qdrant/qdrant:v1.20.1` | `http://localhost:6333` (REST), `http://localhost:6333/dashboard` |
+| `ingestion-worker` | `backend/Dockerfile`, lệnh `python -m backend.modules.text2sql.worker` | không mở cổng |
 | `backend` | `backend/Dockerfile`, Python 3.14 và uv | `http://localhost:8000` |
 | `frontend` | `frontend/Dockerfile`, Next.js standalone | `http://localhost:3000` |
 
 PostgreSQL lưu dữ liệu trong named volume `postgres_data`. Compose đợi database đạt healthcheck rồi backend chạy `alembic upgrade head`; frontend khởi động sau khi backend khỏe. API cho phép CORS từ `http://localhost:3000`.
+
+Qdrant lưu index trong named volume `qdrant_data`; cổng REST mặc định `6333`, đổi được bằng `QDRANT_PORT`. Container cùng mạng Compose truy cập `http://qdrant:6333`. Backend tạo collection và nạp dữ liệu khi đồng bộ Text2SQL lần đầu. Có thể kiểm tra service bằng `http://localhost:6333/healthz` sau khi khởi động.
+
+`ingestion-worker` dùng chung image với `backend` và khởi động sau khi backend khỏe (migration đã xong). Nó lấy job từ bảng `technical.text2sql_ingestion_jobs`, chạy song song theo topic, tự phát lịch và nhận job do backend xếp khi dữ liệu đổi. Airflow không còn dùng cho ingestion; service `airflow` trong profile `simulation` chỉ nạp dữ liệu thời tiết. Biến cấu hình `TEXT2SQL_WORKER_*`, `TEXT2SQL_JOB_*` và `TEXT2SQL_TOPIC_INTERVALS` ở [worker và hàng đợi](modules/text2sql/worker-ingestion.md); các API ở [API job](modules/text2sql/api-ingestion-jobs.md).
 
 Nếu cổng host bị chiếm, đặt `POSTGRES_PORT`, `BACKEND_PORT` hoặc `FRONTEND_PORT` trong `.env`. Khi đổi cổng backend, đặt `NEXT_PUBLIC_API_URL` theo cổng mới và build lại frontend. Compose tự đặt `FRONTEND_ORIGIN` cho CORS theo `FRONTEND_PORT`, gồm cả `localhost` và `127.0.0.1` vì trình duyệt coi đây là hai origin khác nhau. `FRONTEND_ORIGIN` nhận nhiều origin, phân tách bằng dấu phẩy.
 

@@ -3,6 +3,7 @@ from pathlib import Path
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+
 class Config(BaseSettings):
     model_config = SettingsConfigDict(
         env_file= Path(__file__).resolve().parents[2] / ".env",
@@ -30,6 +31,41 @@ class Config(BaseSettings):
     openrouter_api_key: SecretStr | None = Field(default=None, validation_alias="OPENROUTER_API_KEY")
     openrouter_base_url: str = Field(default="https://openrouter.ai/api/v1", validation_alias="OPENROUTER_BASE_URL")
     openrouter_model: str = Field(default="openai/gpt-6-luna", validation_alias="OPENROUTER_MODEL")
+    qdrant_url: str = Field(default="http://localhost:6333", validation_alias="QDRANT_URL")
+    text2sql_collection: str = Field(default="text2sql_semantics_v1", validation_alias="TEXT2SQL_COLLECTION")
+    text2sql_embedding_model: str = Field(
+        default="openai/text-embedding-3-small",
+        validation_alias="TEXT2SQL_EMBEDDING_MODEL",
+    )
+    text2sql_embedding_dimensions: int = Field(default=1536, validation_alias="TEXT2SQL_EMBEDDING_DIMENSIONS")
+    text2sql_worker_concurrency: int = Field(default=4, ge=1, le=32, validation_alias="TEXT2SQL_WORKER_CONCURRENCY")
+    text2sql_worker_poll_seconds: float = Field(default=2.0, gt=0, validation_alias="TEXT2SQL_WORKER_POLL_SECONDS")
+    text2sql_job_max_attempts: int = Field(default=3, ge=1, validation_alias="TEXT2SQL_JOB_MAX_ATTEMPTS")
+    text2sql_job_timeout_seconds: int = Field(default=900, ge=30, validation_alias="TEXT2SQL_JOB_TIMEOUT_SECONDS")
+    text2sql_job_retention_days: int = Field(default=7, ge=1, validation_alias="TEXT2SQL_JOB_RETENTION_DAYS")
+    text2sql_topic_intervals: str = Field(default="", validation_alias="TEXT2SQL_TOPIC_INTERVALS")
+    text2sql_query_timeout_seconds: int = Field(
+        default=15, ge=1, le=300, validation_alias="TEXT2SQL_QUERY_TIMEOUT_SECONDS"
+    )
+    text2sql_query_max_rows: int = Field(default=200, ge=1, le=5000, validation_alias="TEXT2SQL_QUERY_MAX_ROWS")
+    text2sql_chat_max_rows_to_llm: int = Field(
+        default=50, ge=1, le=1000, validation_alias="TEXT2SQL_CHAT_MAX_ROWS_TO_LLM"
+    )
+    conversation_max_stored_rows: int = Field(
+        default=200, ge=1, le=5000, validation_alias="CONVERSATION_MAX_STORED_ROWS"
+    )
+    text2sql_rerank_model: str = Field(default="typesafe/jev-1.14", validation_alias="TEXT2SQL_RERANK_MODEL")
+    text2sql_rerank_pool: int = Field(default=20, ge=1, le=50, validation_alias="TEXT2SQL_RERANK_POOL")
+    text2sql_field_min_score: float = Field(
+        default=0.6, ge=0, le=1, validation_alias="TEXT2SQL_FIELD_MIN_SCORE"
+    )
+    text2sql_ask_metric_min_score: float = Field(
+        default=0.6, ge=0, le=1, validation_alias="TEXT2SQL_ASK_METRIC_MIN_SCORE"
+    )
+    text2sql_rerank_concurrency: int = Field(default=8, ge=1, le=16, validation_alias="TEXT2SQL_RERANK_CONCURRENCY")
+    text2sql_rerank_timeout_seconds: float = Field(
+        default=20.0, gt=0, validation_alias="TEXT2SQL_RERANK_TIMEOUT_SECONDS"
+    )
 
     @property
     def frontend_origins(self) -> list[str]:

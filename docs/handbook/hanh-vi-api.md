@@ -1,6 +1,6 @@
 # Hành vi chung của API
 
-**Trạng thái:** API FastAPI của `database_connection`, `data_dictionary`, `business_model`, `data_lineage`, `metric_management`, `glossary_management`, `expert_rule_management` và `own_knowledge` đã triển khai tại `/api/v1`. Các module trước chưa có xác thực/phân quyền; `own_knowledge` dùng khóa dịch vụ Agent và admin riêng.
+**Trạng thái:** API FastAPI của `database_connection`, `data_dictionary`, `business_model`, `data_lineage`, `metric_management`, `glossary_management`, `expert_rule_management`, `own_knowledge`, `text2sql` (ingestion, retrieve, chat) và `conversation` đã triển khai tại `/api/v1`. Các module trước chưa có xác thực/phân quyền; `own_knowledge` dùng khóa dịch vụ Agent và admin riêng. `conversation` phân tách dữ liệu theo `user_id` do client gửi (chưa xác thực) và trả 404 cho hội thoại của người khác; xem [module conversation](modules/conversation/README.md).
 
 ## Luồng xử lý
 
@@ -10,9 +10,11 @@ Route → kiểm tra dữ liệu vào → service → repository → commit → 
 
 Route sở hữu session của request qua `get_database()`. Service và repository không tự commit. Một thao tác ghi commit một lần sau khi mọi bước đã thành công; khi phát sinh exception, `get_database()` rollback và đóng session. Repository có thể flush để lấy ID hoặc phát hiện ràng buộc sớm. Không trả URI hoặc secret đã giải mã trong response.
 
+Ngoại lệ: route streaming `POST /api/v1/text2sql/chat` trả `text/event-stream` và không dùng `get_database()` vì vòng đời dependency không khớp với stream. Route kiểm tra đầu vào, connection và hội thoại (khi có `user_id`) bằng một session ngắn trước khi stream; generator tự mở session và client rồi đóng trong `finally` (kể cả khi client ngắt kết nối), chỉ commit dataset sau khi truy vấn chạy thành công, và ghi lượt hội thoại bằng một session riêng (commit khi mở và khi kết thúc lượt; ngắt kết nối thì lượt được đóng với `error_code=client_disconnected`). Xem [luồng chat](modules/text2sql/chat-flow.md).
+
 ## Lỗi
 
-`backend.common.base_exceptions` định nghĩa lỗi gốc với `status`, `code` và thông điệp an toàn cho client. Module `database_connection` khai báo subclass trong `utils/exceptions.py`; lỗi từ driver hoặc SQLAlchemy được chuyển sang lỗi nghiệp vụ ở lớp hiểu được ý nghĩa của nó. Không đưa SQL, stack trace hoặc mật khẩu vào thông điệp lỗi. Mọi lỗi HTTP trả JSON dạng `{"detail":"..."}`; lỗi xác thực cấu trúc request trả thông điệp chung để không lộ URI.
+`backend.common.base_exceptions` định nghĩa lỗi gốc với `status`, `code` và thông điệp an toàn cho client. Module `database_connection` khai báo subclass trong `utils/exceptions.py`; lỗi từ driver hoặc SQLAlchemy được chuyển sang lỗi nghiệp vụ ở lớp hiểu được ý nghĩa của nó. Không đưa SQL, stack trace hoặc mật khẩu vào thông điệp lỗi. Mọi lỗi HTTP trả JSON dạng `{"detail":"..."}`; lỗi xác thực cấu trúc request trả thông điệp chung để không lộ URI. Với route streaming, lỗi trước khi stream bắt đầu trả HTTP lỗi như trên; lỗi sau đó được gửi thành event `error` (`{code, message}`) rồi kết thúc stream.
 
 | Nhóm lỗi | HTTP status |
 | --- | ---: |

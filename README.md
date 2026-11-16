@@ -11,6 +11,8 @@ docker compose up --build -d
 docker compose ps
 ```
 
+Stack chính gồm PostgreSQL metadata, Qdrant, backend, `ingestion-worker` và frontend. Qdrant REST API ở `http://localhost:6333` (cổng đổi bằng `QDRANT_PORT`); dữ liệu index nằm trong volume `qdrant_data`. `ingestion-worker` đồng bộ sáu loại dữ liệu sang Qdrant theo lịch riêng từng loại và ngay khi người dùng cập nhật dữ liệu ([worker và hàng đợi](docs/handbook/modules/text2sql/worker-ingestion.md)). Backend có [API xếp job ingest lại](docs/handbook/modules/text2sql/api-ingestion-jobs.md) và [API đồng bộ trực tiếp, truy hồi top K metric](docs/handbook/modules/text2sql/api-ingestion-retrieve.md). Cần `OPENROUTER_API_KEY` để tạo embedding qua OpenRouter.
+
 Web ở `http://localhost:3000`, API ở `http://localhost:8000/api/v1`, OpenAPI ở `http://localhost:8000/docs`. Backend tự chạy `alembic upgrade head` sau khi PostgreSQL khỏe. Dữ liệu PostgreSQL nằm trong volume `postgres_data`. Xem [hướng dẫn Docker](docs/handbook/docker.md) để biết các lệnh vận hành và giới hạn hiện tại.
 
 ## Project layout

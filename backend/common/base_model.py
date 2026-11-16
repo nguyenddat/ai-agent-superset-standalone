@@ -12,6 +12,9 @@ NAMING_CONVENTION = {
     "pk": "pk_%(table_name)s",
 }
 
+TECHNICAL_SCHEMA = "technical"
+
+
 class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=NAMING_CONVENTION)
 

@@ -6,15 +6,14 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import Session
 
 from backend.common.base_model import Base
+from backend.modules.database_connection.models import DatabaseConnection
+from backend.modules.database_connection.services import ConnectionService
 from backend.modules.database_connection.utils.exceptions import (
     ConnectionAlreadyExistsError,
     ConnectionNotFoundError,
     InvalidConnectionError,
     SourceDatabaseUnavailableError,
 )
-from backend.modules.database_connection.models import DatabaseConnection
-from backend.modules.database_connection.services import ConnectionService
-
 
 SOURCE_URI = "postgresql+psycopg://reader:secret@db.example.test:5432/source"
 

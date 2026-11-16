@@ -1,3 +1,20 @@
+x-backend-environment: &backend-environment
+  DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-ai_agent}
+  CONNECTION_ENCRYPTION_KEY: ${CONNECTION_ENCRYPTION_KEY:?Set CONNECTION_ENCRYPTION_KEY in .env}
+  FRONTEND_ORIGIN: http://localhost:${FRONTEND_PORT:-3000},http://127.0.0.1:${FRONTEND_PORT:-3000}
+  OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+  OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
+  OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-6-luna}
+  QDRANT_URL: http://qdrant:6333
+  TEXT2SQL_COLLECTION: ${TEXT2SQL_COLLECTION:-text2sql_semantics_v1}
+  TEXT2SQL_EMBEDDING_MODEL: ${TEXT2SQL_EMBEDDING_MODEL:-openai/text-embedding-3-small}
+  TEXT2SQL_EMBEDDING_DIMENSIONS: ${TEXT2SQL_EMBEDDING_DIMENSIONS:-1536}
+  SUPERSET_URL: ${SUPERSET_URL:-}
+  SUPERSET_USERNAME: ${SUPERSET_USERNAME:-}
+  SUPERSET_PASSWORD: ${SUPERSET_PASSWORD:-}
+  OWN_KNOWLEDGE_AGENT_KEY: ${OWN_KNOWLEDGE_AGENT_KEY:-}
+  OWN_KNOWLEDGE_ADMIN_KEY: ${OWN_KNOWLEDGE_ADMIN_KEY:-}
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -17,22 +34,19 @@ services:
       start_period: 10s
     restart: unless-stopped
 
+  qdrant:
+    image: qdrant/qdrant:v1.20.1
+    ports:
+      - "127.0.0.1:${QDRANT_PORT:-6333}:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    restart: unless-stopped
+
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    environment:
-      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/${POSTGRES_DB:-ai_agent}
-      CONNECTION_ENCRYPTION_KEY: ${CONNECTION_ENCRYPTION_KEY:?Set CONNECTION_ENCRYPTION_KEY in .env}
-      FRONTEND_ORIGIN: http://localhost:${FRONTEND_PORT:-3000},http://127.0.0.1:${FRONTEND_PORT:-3000}
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
-      OPENROUTER_BASE_URL: ${OPENROUTER_BASE_URL:-https://openrouter.ai/api/v1}
-      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-openai/gpt-6-luna}
-      SUPERSET_URL: ${SUPERSET_URL:-}
-      SUPERSET_USERNAME: ${SUPERSET_USERNAME:-}
-      SUPERSET_PASSWORD: ${SUPERSET_PASSWORD:-}
-      OWN_KNOWLEDGE_AGENT_KEY: ${OWN_KNOWLEDGE_AGENT_KEY:-}
-      OWN_KNOWLEDGE_ADMIN_KEY: ${OWN_KNOWLEDGE_ADMIN_KEY:-}
+    environment: *backend-environment
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
     depends_on:
@@ -67,6 +81,25 @@ services:
       timeout: 5s
       retries: 10
       start_period: 20s
+    restart: unless-stopped
+
+  ingestion-worker:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["python", "-m", "backend.modules.text2sql.worker"]
+    environment:
+      <<: *backend-environment
+      TEXT2SQL_WORKER_CONCURRENCY: ${TEXT2SQL_WORKER_CONCURRENCY:-4}
+      TEXT2SQL_WORKER_POLL_SECONDS: ${TEXT2SQL_WORKER_POLL_SECONDS:-2}
+      TEXT2SQL_JOB_MAX_ATTEMPTS: ${TEXT2SQL_JOB_MAX_ATTEMPTS:-3}
+      TEXT2SQL_JOB_TIMEOUT_SECONDS: ${TEXT2SQL_JOB_TIMEOUT_SECONDS:-900}
+      TEXT2SQL_JOB_RETENTION_DAYS: ${TEXT2SQL_JOB_RETENTION_DAYS:-7}
+      TEXT2SQL_TOPIC_INTERVALS: ${TEXT2SQL_TOPIC_INTERVALS:-}
+    depends_on:
+      backend:
+        condition: service_healthy
+    stop_grace_period: 90s
     restart: unless-stopped
 
   warehouse-db:
@@ -126,5 +159,6 @@ services:
 
 volumes:
   postgres_data:
+  qdrant_data:
   warehouse_db_data:
   airflow_home:

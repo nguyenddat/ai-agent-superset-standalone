@@ -1,0 +1,87 @@
+from collections.abc import Generator
+from typing import Annotated
+from uuid import UUID
+
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.orm import Session
+
+from backend.agent_package.get_embedding_models import OpenRouterEmbedding
+from backend.core.database import get_database
+from backend.modules.database_connection.models import DatabaseConnection
+
+from ..common.errors import Text2SqlConnectionNotFound
+from ..models.ingestion_job import MANUAL
+from ..schemas import (
+    CandidateOut,
+    JobEnqueueIn,
+    JobEnqueueOut,
+    JobOut,
+    JobStatus,
+    RetrieveIn,
+    RetrieveOut,
+    SyncIn,
+    SyncOut,
+)
+from ..vector_store.ingestion.jobs import IngestionJobQueue
+from ..vector_store.ingestion.registry import TOPICS
+from ..vector_store.ingestion.service import IngestionService
+from ..vector_store.qdrant_db_service import QdrantDbService
+from ..vector_store.retrieve.service import RetrievalService
+
+router = APIRouter()
+
+
+def get_index_services(
+    session: Annotated[Session, Depends(get_database)],
+) -> Generator[tuple[QdrantDbService, OpenRouterEmbedding, Session], None, None]:
+    index = QdrantDbService()
+    embedding = OpenRouterEmbedding()
+    try:
+        yield index, embedding, session
+    finally:
+        index.close()
+        embedding.close()
+
+
+ServiceDep = Annotated[tuple[QdrantDbService, OpenRouterEmbedding, Session], Depends(get_index_services)]
+SessionDep = Annotated[Session, Depends(get_database)]
+
+
+@router.post("/ingestion/sync", response_model=SyncOut)
+def sync_index(body: SyncIn, services: ServiceDep) -> SyncOut:
+    index, embedding, session = services
+    result = IngestionService(session, index, embedding).sync(body.connection_id, body.topics or TOPICS)
+    return SyncOut(
+        connection_id=result.connection_id, topics=list(result.topics), total=result.total,
+        indexed=result.indexed, unchanged=result.unchanged, deleted=result.deleted,
+    )
+
+
+@router.post("/ingestion/jobs", response_model=JobEnqueueOut, status_code=status.HTTP_202_ACCEPTED)
+def enqueue_ingestion(body: JobEnqueueIn, session: SessionDep) -> JobEnqueueOut:
+    if session.get(DatabaseConnection, body.connection_id) is None:
+        raise Text2SqlConnectionNotFound()
+    topics = body.topics or list(TOPICS)
+    IngestionJobQueue(session).enqueue([body.connection_id], topics, MANUAL)
+    session.commit()
+    return JobEnqueueOut(connection_id=body.connection_id, topics=topics)
+
+
+@router.get("/ingestion/jobs", response_model=list[JobOut])
+def list_ingestion_jobs(
+    session: SessionDep,
+    connection_id: UUID | None = None,
+    job_status: Annotated[JobStatus | None, Query(alias="status")] = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+) -> list[JobOut]:
+    jobs = IngestionJobQueue(session).list_recent(connection_id, job_status, limit)
+    return [JobOut.model_validate(job) for job in jobs]
+
+
+@router.post("/retrieve", response_model=RetrieveOut)
+def retrieve_metrics(body: RetrieveIn, services: ServiceDep) -> RetrieveOut:
+    index, embedding, session = services
+    candidates = RetrievalService(session, index, embedding).top_metrics(
+        body.connection_id, body.question, body.k
+    )
+    return RetrieveOut(candidates=[CandidateOut.model_validate(candidate.__dict__) for candidate in candidates])

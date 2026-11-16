@@ -10,7 +10,7 @@ from sqlalchemy import create_engine, event, inspect
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
-from backend.common.base_model import Base
+from backend.common.base_model import TECHNICAL_SCHEMA, Base
 from backend.main import app
 from backend.modules.database_connection.models import DatabaseColumn, DatabaseConnection, DatabaseSchema, DatabaseTable
 from backend.modules.expert_rule_management.dependencies import get_expert_rule_service
@@ -197,7 +197,9 @@ class ExpertRuleManagementApiTests(unittest.TestCase):
         with self.engine.begin() as connection:
             for table in tables:
                 connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table}")
-            context = MigrationContext.configure(connection)
+            context = MigrationContext.configure(connection, opts={
+                "include_object": lambda obj, name, type_, reflected, compare_to: getattr(obj, "schema", None) != TECHNICAL_SCHEMA
+            })
             with Operations.context(context):
                 migration.upgrade()
             self.assertTrue(set(tables) <= set(inspect(connection).get_table_names()))

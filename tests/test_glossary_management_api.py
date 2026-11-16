@@ -2,9 +2,9 @@ import unittest
 from importlib import import_module
 from uuid import uuid4
 
-from fastapi.testclient import TestClient
 from alembic.migration import MigrationContext
 from alembic.operations import Operations
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, event, inspect
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool

@@ -159,6 +159,14 @@ class OwnKnowledgeService:
         return [self._entry(entry) for entry in self.repository.own_entries(connection_id, self._text(user_id, 255))
                 if self._active_for_agent(entry)]
 
+    def active_entries(self, connection_id: UUID) -> list[dict[str, Any]]:
+        self._connection(connection_id)
+        entries = self.session.scalars(
+            select(OwnKnowledgeEntry).where(OwnKnowledgeEntry.connection_id == connection_id)
+            .order_by(OwnKnowledgeEntry.name, OwnKnowledgeEntry.id)
+        )
+        return [self._entry(entry) for entry in entries if self._active_for_agent(entry)]
+
     def update_own_entry(self, entry_id: UUID, values: dict[str, Any]) -> dict[str, Any]:
         entry = self._own_entry(entry_id, values["user_id"], lock=True)
         self._expected(entry, values["expected_version"])

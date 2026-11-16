@@ -13,7 +13,6 @@ from backend.modules.database_connection.dependencies import get_connection_serv
 from backend.modules.database_connection.services import ConnectionService, MetadataService
 from backend.modules.database_connection.services.metadata_service import SourceColumn, SourceSchema, SourceTable
 
-
 BASE = "/api/v1"
 URI = "postgresql+psycopg://reader:secret@db.example.test:5432/source"
 

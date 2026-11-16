@@ -8,13 +8,14 @@ from backend.core.setting import config
 from backend.modules.business_model.routes.router_business_model import (
     router as business_model_router,
 )
-from backend.modules.data_lineage.routes.router_data_lineage import router as data_lineage_router
-from backend.modules.expert_rule_management.routes.router_expert_rule import router as expert_rule_router
-from backend.modules.glossary_management.routes.router_glossary import router as glossary_router
-from backend.modules.metric_management.routes.router_metric import router as metric_router
-from backend.modules.own_knowledge.routes.router_own_knowledge import router as own_knowledge_router
+from backend.modules.conversation.routes.router_conversation import (
+    router as conversation_router,
+)
 from backend.modules.data_dictionary.routes.router_data_dictionary import (
     router as data_dictionary_router,
+)
+from backend.modules.data_lineage.routes.router_data_lineage import (
+    router as data_lineage_router,
 )
 from backend.modules.database_connection.routes.router_database_connection import (
     router as database_connection_router,
@@ -22,6 +23,22 @@ from backend.modules.database_connection.routes.router_database_connection impor
 from backend.modules.database_connection.routes.router_database_metadata import (
     router as database_metadata_router,
 )
+from backend.modules.expert_rule_management.routes.router_expert_rule import (
+    router as expert_rule_router,
+)
+from backend.modules.glossary_management.routes.router_glossary import (
+    router as glossary_router,
+)
+from backend.modules.metric_management.routes.router_metric import (
+    router as metric_router,
+)
+from backend.modules.own_knowledge.routes.router_own_knowledge import (
+    router as own_knowledge_router,
+)
+from backend.modules.text2sql.routes import router as text2sql_router
+from backend.modules.text2sql.vector_store.ingestion.triggers import register_triggers
+
+register_triggers()
 
 app = FastAPI(title="AI Agent Superset Standalone API", version="0.1.0")
 app.add_middleware(
@@ -40,6 +57,8 @@ app.include_router(metric_router)
 app.include_router(glossary_router)
 app.include_router(expert_rule_router)
 app.include_router(own_knowledge_router)
+app.include_router(text2sql_router)
+app.include_router(conversation_router)
 
 
 @app.exception_handler(AppError)
