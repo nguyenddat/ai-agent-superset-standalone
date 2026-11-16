@@ -210,6 +210,42 @@
     opacity: 0;
     }
   }
+  @keyframes ui-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+    }
+  to {
+    opacity: 1;
+    transform: none;
+    }
+  }
+  @keyframes ui-breathe {
+  0%, 100% {
+    transform: scale(0.82);
+    opacity: 0.55;
+    }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+    }
+  }
+  @keyframes ui-progress {
+  from {
+    transform: scaleX(0);
+    }
+  to {
+    transform: scaleX(1);
+    }
+  }
+  @keyframes ui-shimmer {
+  0% {
+    background-position: 150% 0;
+    }
+  100% {
+    background-position: -50% 0;
+    }
+  }
 }
 
 html { color-scheme: light; }

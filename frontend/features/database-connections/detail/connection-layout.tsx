@@ -10,6 +10,7 @@ import {
   CircleXIcon,
   DatabaseIcon,
   LayoutDashboardIcon,
+  MessageSquareTextIcon,
   NetworkIcon,
   RefreshCwIcon,
   ScaleIcon,
@@ -40,6 +41,7 @@ import { syncWithToast } from "../sync-with-toast"
 
 const sections = [
   { segment: "", label: "Tổng quan", icon: LayoutDashboardIcon },
+  { segment: "chat", label: "Hỏi dữ liệu", icon: MessageSquareTextIcon },
   { segment: "dictionary", label: "Từ điển", icon: BookOpenIcon },
   { segment: "model", label: "Mô hình", icon: NetworkIcon },
   { segment: "lineage", label: "Dòng dữ liệu", icon: WorkflowIcon },
@@ -53,6 +55,8 @@ const sections = [
 // Height left under the site header, this page header and the tabs, for sections that fill the screen.
 // It hard-codes the height of everything above, so change it whenever the header below changes height.
 export const FILL_SCREEN = "lg:h-[calc(100svh-10.3rem)]"
+// The same height at every width, for sections such as the chat that must keep their input on screen.
+export const FILL_SCREEN_ALWAYS = "h-[calc(100svh-10.3rem)]"
 
 export function useConnectionId() {
   return useParams<{ id: string }>().id
