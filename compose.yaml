@@ -162,3 +162,10 @@ volumes:
   qdrant_data:
   warehouse_db_data:
   airflow_home:
+
+networks:
+  default:
+    # Explicit subnet: the host's default Docker address pools are exhausted by other projects.
+    ipam:
+      config:
+        - subnet: ${COMPOSE_SUBNET:-10.254.94.0/24}
