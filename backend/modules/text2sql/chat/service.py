@@ -1,6 +1,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import UTC, date, datetime
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 from uuid import UUID
 
 from sqlalchemy.engine import URL
@@ -11,6 +12,7 @@ from backend.agent_package.agents.question_rewrite_agent import QuestionRewriteA
 from backend.agent_package.get_embedding_models import OpenRouterEmbedding
 from backend.core.setting import config
 
+from ..query.executor import TIME_ZONE
 from ..common.errors import Text2SqlInvalidRequest
 from ..query.service import QueryService
 from ..vector_store.qdrant_db_service import QdrantDbService
@@ -95,7 +97,8 @@ class CandidateSearch:
 
 
 def _today() -> date:
-    return datetime.now(UTC).date()
+    # The caller's day (TIME_ZONE, set per request by the chat route), as the SQL runs in it.
+    return datetime.now(ZoneInfo(TIME_ZONE.get())).date()
 
 
 class AskService:

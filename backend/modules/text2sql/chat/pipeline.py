@@ -1,7 +1,8 @@
 import logging
 from collections.abc import Callable, Generator, Iterable, Iterator
 from dataclasses import dataclass
-from datetime import UTC, date, datetime
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 from typing import Any, TypeVar
 from uuid import UUID
 
@@ -26,7 +27,7 @@ from ..dataset.schemas import DatasetQueryPlan
 from ..dataset.selection import dataset_column_ids
 from ..dataset.service import DatasetQueryService
 from ..dataset.store import DatasetStore
-from ..query.executor import run_read_only
+from ..query.executor import TIME_ZONE, run_read_only
 from ..query.service import QueryService, Runner
 from ..vector_store.ingestion.documents.context import CatalogContext, load_context
 from ..vector_store.qdrant_db_service import QdrantDbService
@@ -107,7 +108,8 @@ def open_clients() -> ChatClients:
 
 
 def _today() -> date:
-    return datetime.now(UTC).date()
+    # The caller's day (TIME_ZONE, set per request by the chat route), as the SQL runs in it.
+    return datetime.now(ZoneInfo(TIME_ZONE.get())).date()
 
 
 def _open_session() -> Session:

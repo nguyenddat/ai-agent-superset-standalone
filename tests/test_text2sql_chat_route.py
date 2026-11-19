@@ -196,3 +196,18 @@ class ServiceCallTests(unittest.TestCase):
         self.assertEqual(self.ask({"X-Service-Key": "k" * 40}).status_code, 200)
         self.config.text2sql_service_key = SecretStr("")  # compose passes "" when unset
         self.assertEqual(self.ask().status_code, 200)
+
+
+class TodayTests(unittest.TestCase):
+    def test_today_is_the_callers_day(self) -> None:
+        from backend.modules.text2sql.chat.pipeline import _today
+        from backend.modules.text2sql.query.executor import TIME_ZONE
+
+        days = []
+        for zone in ("Pacific/Kiritimati", "Pacific/Pago_Pago"):  # UTC+14 and UTC-11
+            reset = TIME_ZONE.set(zone)
+            try:
+                days.append(_today())
+            finally:
+                TIME_ZONE.reset(reset)
+        self.assertEqual((days[0] - days[1]).days, 1)
