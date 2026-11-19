@@ -11,6 +11,7 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Skeleton } from "@/components/ui/skeleton"
 
+import { groupByDomain, NO_DOMAIN } from "../business-model/domains"
 import { useRuleOptions } from "../expert-rule-management/api"
 import { useGlossary } from "./api"
 import { TERM_STATES, termState, type TermState } from "./labels"
@@ -33,11 +34,7 @@ export function GlossaryStatsCard({ connectionId }: { connectionId: string }) {
   for (const term of terms ?? []) states.set(termState(term), (states.get(termState(term)) ?? 0) + 1)
   const serving = (terms ?? []).filter((term) => term.serving).length
   const live = (terms ?? []).filter((term) => term.current.status !== "revoked")
-  const groups = new Map<string, number>()
-  for (const term of live) {
-    const name = term.group_name ?? "Chưa có nhóm"
-    groups.set(name, (groups.get(name) ?? 0) + 1)
-  }
+  const groups = groupByDomain(live, (term) => term.business_domains)
   const synonyms = live.reduce((sum, term) => sum + term.current.synonyms.length, 0)
   const tables = options?.tables ?? []
 
@@ -103,11 +100,11 @@ export function GlossaryStatsCard({ connectionId }: { connectionId: string }) {
                 done={tables.filter((table) => table.glossary_terms.length > 0).length}
                 total={tables.length}
               />
-              {groups.size > 0 ? (
+              {groups.length > 0 ? (
                 <GroupBars
-                  title="Thuật ngữ còn hiệu lực theo nhóm"
+                  title="Thuật ngữ còn hiệu lực theo miền nghiệp vụ"
                   unit="thuật ngữ"
-                  rows={[...groups].map(([name, value]) => ({ name, value }))}
+                  rows={groups.map((group) => ({ name: group.domain?.name ?? NO_DOMAIN, value: group.items.length }))}
                 />
               ) : null}
             </div>

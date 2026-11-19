@@ -30,6 +30,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { ApiError } from "@/lib/api"
 import { cn } from "@/lib/utils"
 
+import { DomainBadges } from "../business-model/domains"
 import { dateFormat } from "../database-connections/connection-format"
 import { termState } from "../glossary-management/labels"
 import { metricTitle } from "../metric-management/labels"
@@ -162,7 +163,7 @@ export function RuleDetail({ connectionId, rule, refs, onClose, onEdit, onDelete
       () =>
         saveRuleDraft(connectionId, rule.id, {
           ...contentOf(current),
-          group_name: rule.group_name,
+          business_domain_ids: rule.business_domains.map((domain) => domain.id),
           expected_revision: current.number,
         }),
       success,
@@ -177,10 +178,8 @@ export function RuleDetail({ connectionId, rule, refs, onClose, onEdit, onDelete
           <h2 className="truncate text-lg font-semibold tracking-tight">{rule.name}</h2>
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
             <RuleStatus rule={rule} explained />
-            <span className="truncate text-sm text-muted-foreground">
-              {table?.displayName ?? "Bảng đã xóa"}
-              {rule.group_name ? ` · ${rule.group_name}` : ""}
-            </span>
+            <span className="truncate text-sm text-muted-foreground">{table?.displayName ?? "Bảng đã xóa"}</span>
+            <DomainBadges domains={rule.business_domains} />
           </div>
         </div>
         <Button variant="ghost" size="icon-sm" aria-label="Đóng" onClick={onClose}>

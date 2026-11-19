@@ -1,3 +1,5 @@
+import type { DomainRef } from "../business-model/domains"
+
 export type Operator =
   | "equals"
   | "not_equals"
@@ -46,7 +48,7 @@ export type ExpertRule = {
   connection_id: string
   table_id: string
   name: string
-  group_name: string | null
+  business_domains: DomainRef[]
   current: RuleRevision
   serving: RuleRevision | null
   is_discoverable: boolean
@@ -58,12 +60,12 @@ export type RuleCreate = RuleContent & {
   connection_id: string
   table_id: string
   name: string
-  group_name: string | null
+  business_domain_ids: string[]
 }
 
 export type RuleUpdate = RuleContent & {
   expected_revision: number
-  group_name: string | null
+  business_domain_ids: string[]
 }
 
 export type OptionColumn = { id: string; name: string; data_type: string }

@@ -1,6 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import { CircleAlertIcon, ExternalLinkIcon, LockIcon, TriangleAlertIcon, XIcon } from "lucide-react"
+import { toast } from "sonner"
 
 import { CodeBlock } from "@/components/code-block"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -9,9 +11,10 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 
+import { DomainPicker } from "../business-model/domains"
 import type { ModelTable } from "../business-model/types"
 import { dateFormat } from "../database-connections/connection-format"
-import { useSupersetDatabases, useSupersetUsers } from "./api"
+import { updateMetric, useSupersetDatabases, useSupersetUsers } from "./api"
 import { formatSample, metricTitle } from "./labels"
 import type { Metric, SupersetUser } from "./types"
 
@@ -29,15 +32,18 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 
 /** A metric synced from Superset: everything it says, read-only, with the way back to where it can be edited. */
 export function MetricDetail({
+  connectionId,
   metric,
   table,
   onClose,
 }: {
+  connectionId: string
   metric: Metric
   table: ModelTable | undefined
   onClose: () => void
 }) {
   const { data: databases } = useSupersetDatabases()
+  const [domainIds, setDomainIds] = useState(metric.business_domains.map((domain) => domain.id))
   const { data: users } = useSupersetUsers()
   const database = databases?.find((item) => item.id === metric.source_database_id)
   const creator = userName(users?.find((item) => item.id === metric.source_user_id))
@@ -112,6 +118,23 @@ export function MetricDetail({
             ) : null}
             {metric.metric_type ? <Row label="Loại metric">{metric.metric_type}</Row> : null}
           </dl>
+
+          {/* Superset owns the metric itself, but its business domains are classified here. */}
+          <div className="flex flex-col gap-2">
+            <h3 className="text-sm font-medium">Miền nghiệp vụ</h3>
+            <DomainPicker
+              connectionId={connectionId}
+              value={domainIds}
+              onChange={(ids) => {
+                const previous = domainIds
+                setDomainIds(ids)
+                updateMetric(connectionId, metric.id, { business_domain_ids: ids }).catch(() => {
+                  setDomainIds(previous)
+                  toast.error("Không lưu được miền nghiệp vụ")
+                })
+              }}
+            />
+          </div>
 
           <Separator />
 

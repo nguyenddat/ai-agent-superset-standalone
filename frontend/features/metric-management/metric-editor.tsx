@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils"
 import type { ModelTable } from "../business-model/types"
 import { useTableDictionary } from "../data-dictionary/api"
 import type { ColumnAggregation, ColumnDictionary } from "../data-dictionary/types"
+import { DomainPicker, sameDomains } from "../business-model/domains"
 import { createMetric, deleteMetric, updateMetric } from "./api"
 import { CUSTOM_FORMAT, FORMAT_PRESETS, formatSample, metricTitle, suggestLabel, suggestName } from "./labels"
 import type { Metric, MetricInput } from "./types"
@@ -89,6 +90,7 @@ export function MetricEditor(props: MetricEditorProps) {
   const [currency, setCurrency] = useState(metric?.currency ?? "")
   const [metricType, setMetricType] = useState(metric?.metric_type ?? "")
   const [warning, setWarning] = useState(metric?.warning_text ?? "")
+  const [domainIds, setDomainIds] = useState<string[]>(metric?.business_domains.map((domain) => domain.id) ?? [])
   const [advanced, setAdvanced] = useState(!!(metric?.metric_type || metric?.warning_text))
   const [busy, setBusy] = useState<"save" | "delete" | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -145,6 +147,7 @@ export function MetricEditor(props: MetricEditorProps) {
       currency: nullable(currency),
       metric_type: nullable(metricType),
       warning_text: nullable(warning),
+      business_domain_ids: domainIds,
     }
   }
 
@@ -159,7 +162,11 @@ export function MetricEditor(props: MetricEditorProps) {
       if (metric) {
         // Only what changed goes out, so an edit never rewrites fields someone else touched meanwhile.
         const changes = Object.fromEntries(
-          Object.entries(next).filter(([key, value]) => metric[key as keyof MetricInput] !== value),
+          Object.entries(next).filter(([key, value]) =>
+            key === "business_domain_ids"
+              ? !sameDomains(metric.business_domains, domainIds)
+              : metric[key as keyof Omit<MetricInput, "business_domain_ids">] !== value,
+          ),
         ) as Partial<MetricInput>
         saved = Object.keys(changes).length ? await updateMetric(connectionId, metric.id, changes) : metric
       } else {
@@ -306,6 +313,12 @@ export function MetricEditor(props: MetricEditorProps) {
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
               />
+            </Field>
+
+            <Field>
+              <FieldLabel>Miền nghiệp vụ</FieldLabel>
+              <DomainPicker connectionId={connectionId} value={domainIds} onChange={setDomainIds} />
+              <FieldDescription>Một metric có thể thuộc nhiều miền của semantic model.</FieldDescription>
             </Field>
           </FieldGroup>
 

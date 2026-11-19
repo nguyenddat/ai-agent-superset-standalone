@@ -1,3 +1,5 @@
+import type { DomainRef } from "../business-model/domains"
+
 export type LinkKind = "table" | "column" | "metric"
 export type RevisionStatus = "draft" | "approved" | "revoked"
 
@@ -19,7 +21,7 @@ export type GlossaryTerm = {
   id: string
   connection_id: string
   canonical_name: string
-  group_name: string | null
+  business_domains: DomainRef[]
   current: GlossaryRevision
   serving: GlossaryRevision | null
   created_at: string
@@ -35,10 +37,10 @@ export type GlossaryContent = {
 export type GlossaryCreate = GlossaryContent & {
   connection_id: string
   canonical_name: string
-  group_name: string | null
+  business_domain_ids: string[]
 }
 
 export type GlossaryUpdate = GlossaryContent & {
   expected_revision: number
-  group_name: string | null
+  business_domain_ids: string[]
 }

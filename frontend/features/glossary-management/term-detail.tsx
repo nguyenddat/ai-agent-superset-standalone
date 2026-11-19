@@ -25,6 +25,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { ApiError } from "@/lib/api"
 import { cn } from "@/lib/utils"
 
+import { DomainBadges } from "../business-model/domains"
 import { dateFormat } from "../database-connections/connection-format"
 import { approveContent, approveTerm, deleteTerm, refreshGlossary, revokeTerm, saveDraft } from "./api"
 import { contentOf, linkKey, sameLinks, sameSynonyms, termState } from "./labels"
@@ -127,7 +128,7 @@ export function TermDetail({ connectionId, term, targets, onClose, onEdit, onDel
           <h2 className="truncate text-lg font-semibold tracking-tight">{term.canonical_name}</h2>
           <div className="flex flex-wrap items-center gap-2">
             <TermStatus term={term} explained />
-            <span className="text-sm text-muted-foreground">{term.group_name ?? "Chưa phân nhóm"}</span>
+            <DomainBadges domains={term.business_domains} />
           </div>
         </div>
         <Button variant="ghost" size="icon-sm" aria-label="Đóng" onClick={onClose}>
@@ -265,7 +266,7 @@ export function TermDetail({ connectionId, term, targets, onClose, onEdit, onDel
                       () =>
                         saveDraft(connectionId, term.id, {
                           ...contentOf(current),
-                          group_name: term.group_name,
+                          business_domain_ids: term.business_domains.map((domain) => domain.id),
                           expected_revision: current.number,
                         }),
                       "Đã khôi phục thành bản nháp",

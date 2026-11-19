@@ -55,7 +55,11 @@ export function revokeRule(connectionId: string, id: string, expectedRevision: n
 export async function approveRuleContent(connectionId: string, rule: ExpertRule, content: RuleContent) {
   const draft = await apiFetch<ExpertRule>(`${BASE}/${rule.id}/draft`, {
     method: "PUT",
-    body: JSON.stringify({ ...content, group_name: rule.group_name, expected_revision: rule.current.number }),
+    body: JSON.stringify({
+      ...content,
+      business_domain_ids: rule.business_domains.map((domain) => domain.id),
+      expected_revision: rule.current.number,
+    }),
   })
   return approveRule(connectionId, rule.id, draft.current.number)
 }

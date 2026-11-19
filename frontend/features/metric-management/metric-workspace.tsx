@@ -24,6 +24,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils"
 
 import { useBusinessModel } from "../business-model/api"
+import { domainNames } from "../business-model/domains"
 import type { ModelTable } from "../business-model/types"
 import { useConnectionId } from "../database-connections/detail/connection-layout"
 import { useMetrics, useSupersetDatabases } from "./api"
@@ -97,7 +98,10 @@ function MetricList({ connectionId, tables, metrics }: { connectionId: string; t
       if (tableFilter && metric.table_id !== tableFilter) return false
       if (!term) return true
       const table = metric.table_id ? byId.get(metric.table_id) : undefined
-      return [metric.name, metric.label, metric.expression, metric.description, table?.display_name, table?.table_name]
+      return [
+        metric.name, metric.label, metric.expression, metric.description, table?.display_name, table?.table_name,
+        ...domainNames(metric.business_domains),
+      ]
         .filter(Boolean)
         .some((text) => text!.toLowerCase().includes(term))
     })
@@ -249,6 +253,7 @@ function MetricList({ connectionId, tables, metrics }: { connectionId: string; t
             {selected?.origin === "superset" ? (
               <MetricDetail
                 key={panel.nonce}
+                connectionId={connectionId}
                 metric={selected}
                 table={selected.table_id ? byId.get(selected.table_id) : undefined}
                 onClose={() => setPanel(null)}
@@ -349,7 +354,10 @@ function MetricRow({ metric, selected, onOpen }: { metric: Metric; selected: boo
             <TriangleAlertIcon className="size-3.5 shrink-0 text-muted-foreground" aria-label="Có cảnh báo khi dùng" />
           ) : null}
         </span>
-        <span className="truncate font-mono text-xs text-muted-foreground">{metric.name}</span>
+        <span className="truncate text-xs text-muted-foreground">
+          <span className="font-mono">{metric.name}</span>
+          {metric.business_domains.length ? ` · ${domainNames(metric.business_domains).join(" · ")}` : ""}
+        </span>
       </span>
       <code className="hidden justify-self-start truncate rounded-md bg-muted/60 px-2 py-1 font-mono text-xs md:block md:max-w-full" title={metric.expression}>
         {metric.expression}

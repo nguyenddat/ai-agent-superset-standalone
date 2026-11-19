@@ -16,6 +16,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils"
 
 import { useBusinessModel } from "../business-model/api"
+import { domainNames, DomainDot, groupByDomain, NO_DOMAIN, type DomainRef } from "../business-model/domains"
 import type { ModelTable } from "../business-model/types"
 import { useConnectionId } from "../database-connections/detail/connection-layout"
 import { useMetrics } from "../metric-management/api"
@@ -29,8 +30,8 @@ import { TermStatus } from "./term-status"
 import type { GlossaryTerm } from "./types"
 
 type StateFilter = "all" | "pending" | "serving" | "revoked"
-type Panel = { termId: string | null; mode: "view" | "edit"; group: string | null; nonce: number }
-type Group = { name: string | null; terms: GlossaryTerm[] }
+type Panel = { termId: string | null; mode: "view" | "edit"; domainId: string | null; nonce: number }
+type Group = { domain: DomainRef | null; items: GlossaryTerm[] }
 
 const matchesFilter = (term: GlossaryTerm, filter: StateFilter) =>
   filter === "all" ||
@@ -88,7 +89,7 @@ function GlossaryList({
   const [query, setQuery] = useState("")
   const [filter, setFilter] = useState<StateFilter>("all")
   const [panel, setPanel] = useState<Panel | null>(
-    requestedTerm ? { termId: requestedTerm, mode: "view", group: null, nonce: 0 } : null,
+    requestedTerm ? { termId: requestedTerm, mode: "view", domainId: null, nonce: 0 } : null,
   )
 
   const selected = panel?.termId ? terms.find((term) => term.id === panel.termId) ?? null : null
@@ -108,31 +109,20 @@ function GlossaryList({
 
   const groups = useMemo(() => {
     const text = query.trim().toLocaleLowerCase("vi")
-    const map = new Map<string | null, Group>()
-    for (const term of terms) {
-      if (!matchesFilter(term, filter)) continue
-      if (
-        text &&
-        ![term.canonical_name, term.group_name, term.current.definition, ...term.current.synonyms]
-          .filter(Boolean)
-          .some((value) => value!.toLocaleLowerCase("vi").includes(text))
-      ) {
-        continue
-      }
-      const group = map.get(term.group_name) ?? { name: term.group_name, terms: [] }
-      group.terms.push(term)
-      map.set(term.group_name, group)
-    }
-    return [...map.values()]
-      .map((group) => ({
-        ...group,
-        terms: group.terms.sort((a, b) => a.canonical_name.localeCompare(b.canonical_name, "vi")),
-      }))
-      .sort((a, b) => (a.name === null ? 1 : b.name === null ? -1 : a.name.localeCompare(b.name, "vi")))
+    const shown = terms
+      .filter((term) => matchesFilter(term, filter))
+      .filter(
+        (term) =>
+          !text ||
+          [term.canonical_name, ...domainNames(term.business_domains), term.current.definition, ...term.current.synonyms]
+            .some((value) => value.toLocaleLowerCase("vi").includes(text)),
+      )
+      .sort((a, b) => a.canonical_name.localeCompare(b.canonical_name, "vi"))
+    return groupByDomain(shown, (term) => term.business_domains)
   }, [terms, query, filter])
 
-  const open = (termId: string | null, mode: Panel["mode"], group: string | null = null) =>
-    setPanel({ termId, mode, group, nonce: Date.now() })
+  const open = (termId: string | null, mode: Panel["mode"], domainId: string | null = null) =>
+    setPanel({ termId, mode, domainId, nonce: Date.now() })
   const filtered = !!query.trim() || filter !== "all"
 
   return (
@@ -212,11 +202,11 @@ function GlossaryList({
           ) : (
             groups.map((group) => (
               <TermGroup
-                key={group.name ?? ""}
+                key={group.domain?.id ?? ""}
                 group={group}
                 selectedId={panel?.termId ?? null}
                 onOpen={(id) => open(id, "view")}
-                onCreate={() => open(null, "edit", group.name)}
+                onCreate={() => open(null, "edit", group.domain?.id ?? null)}
               />
             ))
           )}
@@ -230,7 +220,7 @@ function GlossaryList({
                 connectionId={connectionId}
                 terms={terms}
                 term={selected}
-                initialGroup={panel.group}
+                initialDomainId={panel.domainId}
                 targets={targets}
                 onClose={() => (selected ? open(selected.id, "view") : setPanel(null))}
                 onSaved={(saved) => open(saved.id, "view")}
@@ -268,17 +258,18 @@ function TermGroup({
   onOpen: (id: string) => void
   onCreate: () => void
 }) {
-  const title = group.name ?? "Chưa phân nhóm"
-  const label = group.name ? "Thêm thuật ngữ vào nhóm này" : "Thêm thuật ngữ chưa phân nhóm"
+  const title = group.domain?.name ?? NO_DOMAIN
+  const label = group.domain ? "Thêm thuật ngữ vào miền này" : "Thêm thuật ngữ chưa phân miền"
 
   return (
     <section className="overflow-hidden rounded-xl border" aria-label={title}>
       <header className="flex items-center gap-3 border-b bg-muted/40 px-4 py-2.5">
-        <h3 className={cn("min-w-0 flex-1 truncate text-sm font-medium", !group.name && "text-muted-foreground")}>
+        {group.domain ? <DomainDot color={group.domain.color} /> : null}
+        <h3 className={cn("min-w-0 flex-1 truncate text-sm font-medium", !group.domain && "text-muted-foreground")}>
           {title}
         </h3>
         <Badge variant="outline" className="tabular-nums">
-          {group.terms.length} thuật ngữ
+          {group.items.length} thuật ngữ
         </Badge>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -290,7 +281,7 @@ function TermGroup({
         </Tooltip>
       </header>
       <ul className="flex flex-col divide-y">
-        {group.terms.map((term) => (
+        {group.items.map((term) => (
           <li key={term.id}>
             <TermRow term={term} selected={term.id === selectedId} onOpen={() => onOpen(term.id)} />
           </li>

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { BookTextIcon, CircleXIcon, FolderIcon, PlusIcon, SigmaIcon, Table2Icon, Trash2Icon, XIcon } from "lucide-react"
+import { BookTextIcon, CircleXIcon, PlusIcon, SigmaIcon, Table2Icon, Trash2Icon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { Combobox, type ComboboxOption } from "@/components/combobox"
@@ -27,6 +27,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import { ApiError } from "@/lib/api"
 
+import { DomainPicker } from "../business-model/domains"
 import { foldName, normalizeName } from "../glossary-management/labels"
 import { createRule, saveRuleDraft } from "./api"
 import { OPERATORS, OPERATORS_BY_KIND, columnKind, valueTypeFor } from "./labels"
@@ -113,12 +114,6 @@ function fromDraft(draft: ConditionDraft, column: OptionColumn | undefined): Rul
   }
 }
 
-const groupOption = (name: string): ComboboxOption => ({
-  value: name,
-  label: name,
-  icon: <FolderIcon className="size-4 text-muted-foreground" />,
-})
-
 function tableOption(table: TableRef): ComboboxOption {
   return {
     value: table.table_id,
@@ -139,7 +134,7 @@ export function RuleEditor(props: RuleEditorProps) {
 
   const [name, setName] = useState(rule?.name ?? promotion?.seed.name ?? "")
   const [tableId, setTableId] = useState<string | null>(rule?.table_id ?? promotion?.seed.table ?? initialTable)
-  const [group, setGroup] = useState<string | null>(rule ? rule.group_name : null)
+  const [domainIds, setDomainIds] = useState<string[]>(rule?.business_domains.map((domain) => domain.id) ?? [])
   const [description, setDescription] = useState(revision?.description ?? promotion?.seed.description ?? "")
   const [conditions, setConditions] = useState<ConditionDraft[]>(
     revision ? revision.conditions.map(toDraft) : [emptyCondition()],
@@ -159,10 +154,6 @@ export function RuleEditor(props: RuleEditorProps) {
   const [showErrors, setShowErrors] = useState(false)
 
   const table = tableId ? refs.tableById.get(tableId) : undefined
-  const groups = useMemo(
-    () => [...new Set(rules.flatMap((item) => (item.group_name ? [item.group_name] : [])))].sort((a, b) => a.localeCompare(b, "vi")),
-    [rules],
-  )
   const columnById = useMemo(() => new Map(table?.columns.map((column) => [column.id, column])), [table])
   const termOptions: ComboboxOption[] = (table?.glossary_terms ?? []).map((term) => ({
     value: term.id,
@@ -237,13 +228,13 @@ export function RuleEditor(props: RuleEditorProps) {
     setError(null)
     try {
       const saved = rule
-        ? await saveRuleDraft(connectionId, rule.id, { ...content, group_name: group, expected_revision: baseRevision })
+        ? await saveRuleDraft(connectionId, rule.id, { ...content, business_domain_ids: domainIds, expected_revision: baseRevision })
         : await (promotion?.create ?? createRule)({
             ...content,
             connection_id: connectionId,
             table_id: tableId!,
             name: normalizeName(name),
-            group_name: group,
+            business_domain_ids: domainIds,
           })
       if (rule && saved.current.number === rule.current.number) {
         toast.info("Không có thay đổi nội dung", { description: saved.name })
@@ -327,19 +318,9 @@ export function RuleEditor(props: RuleEditorProps) {
             )}
 
             <Field>
-              <FieldLabel>Nhóm</FieldLabel>
-              <Combobox
-                label="Nhóm"
-                placeholder="Không thuộc nhóm nào"
-                searchPlaceholder="Tìm hoặc tạo nhóm"
-                options={groups.map(groupOption)}
-                value={group ? groupOption(group) : null}
-                onValueChange={(option) => setGroup(option ? normalizeName(option.value) || null : null)}
-                onCreate={(query) => groupOption(normalizeName(query))}
-                createLabel={(query) => `Tạo nhóm “${normalizeName(query)}”`}
-                emptyMessage={() => "Chưa có nhóm nào"}
-                clearable
-              />
+              <FieldLabel>Miền nghiệp vụ</FieldLabel>
+              <DomainPicker connectionId={connectionId} value={domainIds} onChange={setDomainIds} />
+              <FieldDescription>Một quy tắc có thể thuộc nhiều miền của semantic model.</FieldDescription>
             </Field>
 
             <Field>

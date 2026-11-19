@@ -1,10 +1,10 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { CircleXIcon, FolderIcon, XIcon } from "lucide-react"
+import { CircleXIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 
-import { Combobox, type ComboboxOption } from "@/components/combobox"
+import { Combobox } from "@/components/combobox"
 import { TagInput } from "@/components/tag-input"
 import { Alert, AlertAction, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -15,6 +15,7 @@ import { Spinner } from "@/components/ui/spinner"
 import { Textarea } from "@/components/ui/textarea"
 import { ApiError } from "@/lib/api"
 
+import { DomainPicker, sameDomains } from "../business-model/domains"
 import { createTerm, saveDraft } from "./api"
 import { foldName, linkKey, normalizeName, parseLinkKey, sameLinks, sameSynonyms } from "./labels"
 import { LINK_KINDS, type LinkTargets } from "./link-targets"
@@ -24,7 +25,7 @@ type TermEditorProps = {
   connectionId: string
   terms: GlossaryTerm[]
   term: GlossaryTerm | null
-  initialGroup: string | null
+  initialDomainId: string | null
   targets: LinkTargets
   onClose: () => void
   onSaved: (term: GlossaryTerm) => void
@@ -39,18 +40,14 @@ export type TermPromotion = {
   create: (input: GlossaryCreate) => Promise<GlossaryTerm>
 }
 
-const groupOption = (name: string): ComboboxOption => ({
-  value: name,
-  label: name,
-  icon: <FolderIcon className="size-4 text-muted-foreground" />,
-})
-
 export function TermEditor(props: TermEditorProps) {
-  const { connectionId, terms, term, initialGroup, targets, onClose, onSaved, onReload, promotion } = props
+  const { connectionId, terms, term, initialDomainId, targets, onClose, onSaved, onReload, promotion } = props
   const revision = term?.current
 
   const [name, setName] = useState(term?.canonical_name ?? promotion?.seed.name ?? "")
-  const [group, setGroup] = useState<string | null>(term ? term.group_name : initialGroup)
+  const [domainIds, setDomainIds] = useState<string[]>(
+    term ? term.business_domains.map((domain) => domain.id) : initialDomainId ? [initialDomainId] : [],
+  )
   const [definition, setDefinition] = useState(revision?.definition ?? promotion?.seed.definition ?? "")
   const [synonyms, setSynonyms] = useState<string[]>(revision?.synonyms ?? [])
   const [links, setLinks] = useState<string[]>((revision?.links ?? promotion?.seed.links ?? []).map(linkKey))
@@ -60,10 +57,6 @@ export function TermEditor(props: TermEditorProps) {
   const [error, setError] = useState<ApiError | null>(null)
   const [showErrors, setShowErrors] = useState(false)
 
-  const groups = useMemo(
-    () => [...new Set(terms.flatMap((item) => (item.group_name ? [item.group_name] : [])))].sort((a, b) => a.localeCompare(b, "vi")),
-    [terms],
-  )
   const optionByKey = useMemo(() => new Map(targets.options.map((option) => [option.value, option])), [targets.options])
   // A column chosen earlier still shows while the column list loads.
   const selectedLinks = links.map(
@@ -99,7 +92,7 @@ export function TermEditor(props: TermEditorProps) {
       revision!.definition === content.definition &&
       sameSynonyms(revision!.synonyms, content.synonyms) &&
       sameLinks(revision!.links, content.links) &&
-      term.group_name === group
+      sameDomains(term.business_domains, domainIds)
     ) {
       toast.info("Không có thay đổi để lưu")
       onSaved(term)
@@ -109,12 +102,12 @@ export function TermEditor(props: TermEditorProps) {
     setError(null)
     try {
       const saved = term
-        ? await saveDraft(connectionId, term.id, { ...content, group_name: group, expected_revision: baseRevision })
+        ? await saveDraft(connectionId, term.id, { ...content, business_domain_ids: domainIds, expected_revision: baseRevision })
         : await (promotion?.create ?? createTerm)({
             ...content,
             connection_id: connectionId,
             canonical_name: normalizeName(name),
-            group_name: group,
+            business_domain_ids: domainIds,
           })
       if (!promotion) {
         toast.success(term ? "Đã lưu bản nháp" : "Đã tạo thuật ngữ", {
@@ -182,20 +175,9 @@ export function TermEditor(props: TermEditorProps) {
             )}
 
             <Field>
-              <FieldLabel>Nhóm</FieldLabel>
-              <Combobox
-                label="Nhóm"
-                placeholder="Không thuộc nhóm nào"
-                searchPlaceholder="Tìm hoặc tạo nhóm"
-                options={groups.map(groupOption)}
-                value={group ? groupOption(group) : null}
-                onValueChange={(option) => setGroup(option ? normalizeName(option.value) || null : null)}
-                onCreate={(query) => groupOption(normalizeName(query))}
-                createLabel={(query) => `Tạo nhóm “${normalizeName(query)}”`}
-                emptyMessage={() => "Chưa có nhóm nào"}
-                clearable
-              />
-              <FieldDescription>Gom các thuật ngữ cùng lĩnh vực, như Kinh doanh hay Kho vận.</FieldDescription>
+              <FieldLabel>Miền nghiệp vụ</FieldLabel>
+              <DomainPicker connectionId={connectionId} value={domainIds} onChange={setDomainIds} />
+              <FieldDescription>Một thuật ngữ có thể thuộc nhiều miền của semantic model.</FieldDescription>
             </Field>
 
             <Field data-invalid={(showErrors && !!issues.definition) || undefined}>

@@ -1,3 +1,5 @@
+import type { DomainRef } from "../business-model/domains"
+
 export type MetricOrigin = "manual" | "superset"
 
 export type Metric = {
@@ -22,6 +24,7 @@ export type Metric = {
   source_schema: string | null
   source_table: string | null
   source_sql: string | null
+  business_domains: DomainRef[]
   created_at: string
   updated_at: string
 }
@@ -36,6 +39,7 @@ export type MetricInput = {
   currency: string | null
   metric_type: string | null
   warning_text: string | null
+  business_domain_ids: string[]
 }
 
 export type SupersetDatabase = {

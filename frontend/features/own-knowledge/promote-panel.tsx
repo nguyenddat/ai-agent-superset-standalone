@@ -145,7 +145,7 @@ function GlossaryPromotion({
       connectionId={connectionId}
       terms={terms}
       term={null}
-      initialGroup={null}
+      initialDomainId={null}
       targets={targets}
       onClose={onClose}
       onSaved={onSaved}

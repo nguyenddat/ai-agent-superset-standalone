@@ -43,7 +43,11 @@ export function revokeTerm(connectionId: string, id: string, expectedRevision: n
 export async function approveContent(connectionId: string, term: GlossaryTerm, content: GlossaryContent) {
   const draft = await apiFetch<GlossaryTerm>(`${BASE}/${term.id}/draft`, {
     method: "PUT",
-    body: JSON.stringify({ ...content, group_name: term.group_name, expected_revision: term.current.number }),
+    body: JSON.stringify({
+      ...content,
+      business_domain_ids: term.business_domains.map((domain) => domain.id),
+      expected_revision: term.current.number,
+    }),
   })
   return approveTerm(connectionId, term.id, draft.current.number)
 }

@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
+import { domainNames } from "../business-model/domains"
 import { useConnectionId } from "../database-connections/detail/connection-layout"
 import { refreshRules, useRules } from "./api"
 import { describeCondition, ruleState, servingIsStale } from "./labels"
@@ -99,7 +100,7 @@ function RuleList({ connectionId, rules, refs }: { connectionId: string; rules: 
         text &&
         ![
           rule.name,
-          rule.group_name,
+          ...domainNames(rule.business_domains),
           rule.current.description,
           table?.displayName,
           table?.name,
@@ -350,7 +351,7 @@ function RuleRow({
           ) : null}
         </span>
         <span className="truncate text-xs text-muted-foreground">
-          {[rule.group_name, `${conditions.length} điều kiện`].filter(Boolean).join(" · ")}
+          {[...domainNames(rule.business_domains), `${conditions.length} điều kiện`].join(" · ")}
         </span>
       </span>
       <span className="hidden truncate text-sm text-muted-foreground md:block" title={summary}>
