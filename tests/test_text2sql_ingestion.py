@@ -87,18 +87,18 @@ class TopicDocumentTests(unittest.TestCase):
             connection, table, column, metric = seed_catalog(session)
             service = GlossaryService(session)
             approved = service.create_term({
-                "connection_id": connection.id, "canonical_name": "Doanh số", "group_name": None,
+                "connection_id": connection.id, "canonical_name": "Doanh số",
                 "definition": "Tổng tiền bán được", "synonyms": ["sales"],
                 "links": [{"kind": "table", "id": table.id}, {"kind": "metric", "id": metric.id}],
             })
             service.approve(approved["id"], 1)
             service.create_term({
-                "connection_id": connection.id, "canonical_name": "Nháp", "group_name": None,
+                "connection_id": connection.id, "canonical_name": "Nháp",
                 "definition": "Chưa duyệt", "synonyms": [], "links": [],
             })
             rules = ExpertRuleService(session)
             rule = rules.create_rule({
-                "connection_id": connection.id, "table_id": table.id, "name": "Miền Bắc", "group_name": "Vùng",
+                "connection_id": connection.id, "table_id": table.id, "name": "Miền Bắc",
                 "description": "Chỉ tính miền Bắc",
                 "conditions": [{"column_id": column.id, "operator": "equals", "value_type": "string",
                                 "value": "Bắc"}],
@@ -138,7 +138,7 @@ class TopicDocumentTests(unittest.TestCase):
             connection, table, _, _ = seed_catalog(session)
             service = GlossaryService(session)
             term = service.create_term({
-                "connection_id": connection.id, "canonical_name": "Ngày mưa", "group_name": None,
+                "connection_id": connection.id, "canonical_name": "Ngày mưa",
                 "definition": "Ngày có mưa", "synonyms": [], "links": [],
             })
             service.approve(term["id"], 1)
@@ -284,7 +284,7 @@ class TriggerTests(unittest.TestCase):
         self.session.execute(IngestionJob.__table__.update().values(status=SUCCEEDED))
         self.session.commit()
         GlossaryService(self.session).create_term({
-            "connection_id": connection.id, "canonical_name": "Doanh số", "group_name": None,
+            "connection_id": connection.id, "canonical_name": "Doanh số",
             "definition": "Tổng tiền", "synonyms": [], "links": [],
         })
         self.session.commit()

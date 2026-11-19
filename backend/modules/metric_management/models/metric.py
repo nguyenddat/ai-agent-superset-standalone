@@ -3,9 +3,11 @@ from uuid import UUID
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
+    Column,
     ForeignKey,
     Integer,
     String,
+    Table,
     Text,
     UniqueConstraint,
     Uuid,
@@ -13,7 +15,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
-from backend.common.base_model import AuditedModel
+from backend.common.base_model import AuditedModel, Base
 
 
 class Metric(AuditedModel):
@@ -65,3 +67,22 @@ class Metric(AuditedModel):
     source_schema: Mapped[str | None] = mapped_column(String(255))
     source_table: Mapped[str | None] = mapped_column(String(255))
     source_sql: Mapped[str | None] = mapped_column(Text)
+
+
+metric_domains = Table(
+    "metric_domains",
+    Base.metadata,
+    Column(
+        "metric_id",
+        Uuid(as_uuid=True),
+        ForeignKey("metrics.id", ondelete="CASCADE"),
+        primary_key=True,
+    ),
+    Column(
+        "domain_id",
+        Uuid(as_uuid=True),
+        ForeignKey("business_domains.id", ondelete="CASCADE"),
+        primary_key=True,
+        index=True,
+    ),
+)

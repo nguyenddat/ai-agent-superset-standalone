@@ -188,7 +188,7 @@ class DetailServiceTests(unittest.TestCase):
     def approved_term(self, name="Doanh số", links=None):
         service = GlossaryService(self.session)
         term = service.create_term({
-            "connection_id": self.connection.id, "canonical_name": name, "group_name": "Bán hàng",
+            "connection_id": self.connection.id, "canonical_name": name,
             "definition": "Tổng tiền bán", "synonyms": ["sales"],
             "links": links if links is not None else [
                 {"kind": "table", "id": self.table.id}, {"kind": "column", "id": self.amount.id},
@@ -241,7 +241,7 @@ class DetailServiceTests(unittest.TestCase):
             [("column", "amount"), ("metric", "Doanh thu"), ("table", "Bán hàng")],
         )
         draft = GlossaryService(self.session).create_term({
-            "connection_id": self.connection.id, "canonical_name": "Nháp", "group_name": None,
+            "connection_id": self.connection.id, "canonical_name": "Nháp",
             "definition": "x", "synonyms": [], "links": [],
         })
         with self.assertRaises(Text2SqlEntityNotFound):
@@ -253,7 +253,7 @@ class DetailServiceTests(unittest.TestCase):
         term_id = self.approved_term()
         rules = ExpertRuleService(self.session)
         rule = rules.create_rule({
-            "connection_id": self.connection.id, "table_id": self.table.id, "name": "Miền Bắc", "group_name": "Vùng",
+            "connection_id": self.connection.id, "table_id": self.table.id, "name": "Miền Bắc",
             "description": "Chỉ miền Bắc",
             "conditions": [{"column_id": self.region.id, "operator": "equals", "value_type": "string",
                             "value": "Bắc"}],
@@ -274,7 +274,7 @@ class DetailServiceTests(unittest.TestCase):
     def test_unapproved_expert_rule_is_not_visible(self) -> None:
         term_id = self.approved_term()
         rule = ExpertRuleService(self.session).create_rule({
-            "connection_id": self.connection.id, "table_id": self.table.id, "name": "Nháp", "group_name": None,
+            "connection_id": self.connection.id, "table_id": self.table.id, "name": "Nháp",
             "description": None,
             "conditions": [{"column_id": self.region.id, "operator": "equals", "value_type": "string",
                             "value": "Bắc"}],

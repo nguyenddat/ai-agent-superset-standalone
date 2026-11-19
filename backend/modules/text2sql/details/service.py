@@ -94,7 +94,9 @@ class DetailService:
             ) if link is not None
         ]
         return GlossaryTermDetail(
-            term_id=term.id, name=term.canonical_name, group_name=term.group_name, revision_number=serving.number,
+            term_id=term.id, name=term.canonical_name,
+            business_domains=[domain["name"] for domain in service.domains.read_one(term.id)],
+            revision_number=serving.number,
             definition=serving.definition, synonyms=list(serving.synonyms), links=links,
         )
 
@@ -111,7 +113,8 @@ class DetailService:
             for term in self.session.scalars(select(GlossaryTerm).where(GlossaryTerm.id.in_(term_ids)))
         } if term_ids else {}
         return ExpertRuleDetail(
-            rule_id=rule["id"], name=rule["name"], group_name=rule["group_name"],
+            rule_id=rule["id"], name=rule["name"],
+            business_domains=[domain["name"] for domain in rule["business_domains"]],
             table=self._table_ref(context, rule["table_id"]) if rule["table_id"] in context.tables else None,
             description=rule["description"],
             conditions=[

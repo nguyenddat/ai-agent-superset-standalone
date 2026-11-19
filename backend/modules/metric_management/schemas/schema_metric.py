@@ -3,6 +3,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from backend.modules.business_model.schemas.schema_business_model import DomainRef
+
 
 class MetricIn(BaseModel):
     table_id: UUID
@@ -14,6 +16,7 @@ class MetricIn(BaseModel):
     currency: str | None = Field(default=None, max_length=16)
     metric_type: str | None = Field(default=None, max_length=64)
     warning_text: str | None = None
+    business_domain_ids: list[UUID] = Field(default_factory=list, max_length=50)
 
 
 class MetricPatch(BaseModel):
@@ -26,6 +29,7 @@ class MetricPatch(BaseModel):
     currency: str | None = Field(default=None, max_length=16)
     metric_type: str | None = Field(default=None, max_length=64)
     warning_text: str | None = None
+    business_domain_ids: list[UUID] | None = Field(default=None, max_length=50)
 
 
 class MetricOut(BaseModel):
@@ -50,6 +54,7 @@ class MetricOut(BaseModel):
     source_schema: str | None
     source_table: str | None
     source_sql: str | None
+    business_domains: list[DomainRef]
     created_at: datetime
     updated_at: datetime
 

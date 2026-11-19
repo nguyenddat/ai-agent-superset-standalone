@@ -5,10 +5,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.common.base_model import utc_now
+from backend.modules.business_model.services import DomainAssignment
 from backend.modules.database_connection.models import DatabaseColumn, DatabaseConnection, DatabaseSchema, DatabaseTable
 from backend.modules.metric_management.models import Metric
 
-from ..models import GlossaryLink, GlossaryRevision, GlossaryTerm
+from ..models import GlossaryLink, GlossaryRevision, GlossaryTerm, glossary_term_domains
 from ..repositories import GlossaryRepository
 from ..utils.exceptions import GlossaryConflictError, GlossaryNotFoundError, GlossaryValidationError
 
@@ -17,6 +18,7 @@ class GlossaryService:
     def __init__(self, session: Session) -> None:
         self.session = session
         self.repository = GlossaryRepository(session)
+        self.domains = DomainAssignment(session, glossary_term_domains, "term_id")
 
     def list_terms(self, connection_id: UUID) -> list[dict[str, Any]]:
         self._connection(connection_id)
@@ -43,12 +45,11 @@ class GlossaryService:
         if not name or self.repository.find_name(connection_id, name.casefold()):
             raise GlossaryConflictError("Tên thuật ngữ đã tồn tại trong kết nối này.")
         content = self._content(values, connection_id, name)
-        term = GlossaryTerm(
-            connection_id=connection_id, canonical_name=name, normalized_name=name.casefold(),
-            group_name=self._group(values.get("group_name")),
-        )
+        domain_ids = self._domain_ids(values.get("business_domain_ids") or [])
+        term = GlossaryTerm(connection_id=connection_id, canonical_name=name, normalized_name=name.casefold())
         self.session.add(term)
         self.session.flush()
+        self.domains.replace(term.id, domain_ids)
         self._add_revision(term.id, 1, content)
         return self._serialize(term)
 
@@ -57,19 +58,19 @@ class GlossaryService:
         revisions = self.repository.revisions(term.id)
         self._expected(revisions[0], values["expected_revision"])
         content = self._content(values, term.connection_id, term.canonical_name)
-        group = self._group(values.get("group_name"))
+        domain_ids = self._domain_ids(values.get("business_domain_ids") or [])
         content_unchanged = (
             revisions[0].definition == content["definition"]
             and revisions[0].synonyms == content["synonyms"]
             and self._links(revisions[0].id) == content["links"]
         )
         if content_unchanged and revisions[0].status != "revoked":
-            if term.group_name != group:
-                term.group_name = group
+            if self.domains.ids(term.id) != set(domain_ids):
+                self.domains.replace(term.id, domain_ids)
                 term.updated_at = utc_now()
                 self.session.flush()
             return self._serialize(term)
-        term.group_name = group
+        self.domains.replace(term.id, domain_ids)
         term.updated_at = utc_now()
         self._add_revision(term.id, revisions[0].number + 1, content)
         return self._serialize(term)
@@ -113,6 +114,7 @@ class GlossaryService:
             if serving is not None:
                 result.append({
                     "id": term.id, "name": term.canonical_name, "definition": serving.definition,
+                    "business_domains": self.domains.read_one(term.id),
                     "synonyms": serving.synonyms, "links": self._live_links(term.connection_id, serving.id),
                 })
         return result
@@ -202,10 +204,10 @@ class GlossaryService:
             raise GlossaryNotFoundError()
         return term
 
-    @staticmethod
-    def _group(value: str | None) -> str | None:
-        group = " ".join(value.split()) if value else None
-        return group or None
+    def _domain_ids(self, domain_ids: list[UUID]) -> list[UUID]:
+        if self.domains.unknown(domain_ids):
+            raise GlossaryValidationError("Miền nghiệp vụ không tồn tại.")
+        return list(dict.fromkeys(domain_ids))
 
     @staticmethod
     def _expected(current: GlossaryRevision, expected: int) -> None:
@@ -225,7 +227,7 @@ class GlossaryService:
         revisions = self.repository.revisions(term.id)
         return {
             "id": term.id, "connection_id": term.connection_id,
-            "canonical_name": term.canonical_name, "group_name": term.group_name,
+            "canonical_name": term.canonical_name, "business_domains": self.domains.read_one(term.id),
             "current": self._revision(revisions[0]),
             "serving": self._revision(serving) if (serving := self._serving(revisions)) else None,
             "created_at": term.created_at, "updated_at": term.updated_at,

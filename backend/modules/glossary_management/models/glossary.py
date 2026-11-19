@@ -1,9 +1,9 @@
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, ForeignKey, Integer, JSON, String, Text, UniqueConstraint, Uuid
+from sqlalchemy import CheckConstraint, Column, ForeignKey, Integer, JSON, String, Table, Text, UniqueConstraint, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
-from backend.common.base_model import AuditedModel, BaseModel
+from backend.common.base_model import AuditedModel, Base, BaseModel
 
 
 class GlossaryTerm(AuditedModel):
@@ -15,7 +15,17 @@ class GlossaryTerm(AuditedModel):
     )
     canonical_name: Mapped[str] = mapped_column(String(255), nullable=False)
     normalized_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    group_name: Mapped[str | None] = mapped_column(String(255))
+
+
+glossary_term_domains = Table(
+    "glossary_term_domains",
+    Base.metadata,
+    Column("term_id", Uuid(as_uuid=True), ForeignKey("glossary_terms.id", ondelete="CASCADE"), primary_key=True),
+    Column(
+        "domain_id", Uuid(as_uuid=True), ForeignKey("business_domains.id", ondelete="CASCADE"),
+        primary_key=True, index=True,
+    ),
+)
 
 
 class GlossaryRevision(BaseModel):

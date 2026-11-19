@@ -4,6 +4,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from backend.modules.business_model.schemas.schema_business_model import DomainRef
+
 
 class GlossaryLink(BaseModel):
     kind: Literal["table", "column", "metric"]
@@ -19,12 +21,12 @@ class GlossaryContent(BaseModel):
 class GlossaryCreate(GlossaryContent):
     connection_id: UUID
     canonical_name: str = Field(min_length=1, max_length=255)
-    group_name: str | None = Field(default=None, max_length=255)
+    business_domain_ids: list[UUID] = Field(default_factory=list, max_length=50)
 
 
 class GlossaryUpdate(GlossaryContent):
     expected_revision: int = Field(ge=1)
-    group_name: str | None = Field(default=None, max_length=255)
+    business_domain_ids: list[UUID] = Field(default_factory=list, max_length=50)
 
 
 class RevisionOut(BaseModel):
@@ -40,7 +42,7 @@ class GlossaryOut(BaseModel):
     id: UUID
     connection_id: UUID
     canonical_name: str
-    group_name: str | None
+    business_domains: list[DomainRef]
     current: RevisionOut
     serving: RevisionOut | None
     created_at: datetime

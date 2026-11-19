@@ -38,6 +38,8 @@ def build_glossary_documents(session: Session, context: CatalogContext) -> list[
         synonyms = term["synonyms"]
         text = " | ".join(filter(None, [
             f"Thuật ngữ: {term['name']}", f"Định nghĩa: {term['definition']}",
+            f"Miền nghiệp vụ: {', '.join(domain['name'] for domain in term['business_domains'])}"
+            if term["business_domains"] else None,
             f"Đồng nghĩa: {', '.join(synonyms)}" if synonyms else None,
             f"Liên quan: {'; '.join(link_texts)}" if link_texts else None,
         ]))

@@ -7,12 +7,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.common.base_model import utc_now
+from backend.modules.business_model.services import DomainAssignment
 from backend.modules.database_connection.models import DatabaseColumn, DatabaseConnection, DatabaseSchema, DatabaseTable
 from backend.modules.glossary_management.models import GlossaryTerm
 from backend.modules.glossary_management.services import GlossaryService
 from backend.modules.metric_management.models import Metric
 
-from ..models import ExpertRule, ExpertRuleGlossaryLink, ExpertRuleMetricLink, ExpertRuleRevision
+from ..models import ExpertRule, ExpertRuleGlossaryLink, ExpertRuleMetricLink, ExpertRuleRevision, expert_rule_domains
 from ..repositories import ExpertRuleRepository
 from ..utils.exceptions import ExpertRuleConflictError, ExpertRuleNotFoundError, ExpertRuleValidationError
 
@@ -22,6 +23,7 @@ class ExpertRuleService:
         self.session = session
         self.repository = ExpertRuleRepository(session)
         self.glossary = GlossaryService(session)
+        self.domains = DomainAssignment(session, expert_rule_domains, "rule_id")
 
     def list_rules(self, connection_id: UUID) -> list[dict[str, Any]]:
         self._connection(connection_id)
@@ -43,12 +45,11 @@ class ExpertRuleService:
         if not name or self.repository.find_name(connection_id, name.casefold()):
             raise ExpertRuleConflictError("Tên expert rule đã tồn tại trong kết nối này.")
         content = self._content(values, connection_id, table_id)
-        rule = ExpertRule(
-            connection_id=connection_id, table_id=table_id, name=name,
-            normalized_name=name.casefold(), group_name=self._group(values.get("group_name")),
-        )
+        domain_ids = self._domain_ids(values.get("business_domain_ids") or [])
+        rule = ExpertRule(connection_id=connection_id, table_id=table_id, name=name, normalized_name=name.casefold())
         self.session.add(rule)
         self.session.flush()
+        self.domains.replace(rule.id, domain_ids)
         self._add_revision(rule.id, 1, content)
         return self._serialize(rule)
 
@@ -57,7 +58,7 @@ class ExpertRuleService:
         current = self.repository.revisions(rule.id)[0]
         self._expected(current, values["expected_revision"])
         content = self._content(values, rule.connection_id, rule.table_id)
-        group = self._group(values.get("group_name"))
+        domain_ids = self._domain_ids(values.get("business_domain_ids") or [])
         same = (
             current.description == content["description"]
             and current.conditions == content["conditions"]
@@ -67,12 +68,12 @@ class ExpertRuleService:
             and self._metric_targets(current.id) == content["metrics"]
         )
         if same and current.status != "revoked":
-            if rule.group_name != group:
-                rule.group_name = group
+            if self.domains.ids(rule.id) != set(domain_ids):
+                self.domains.replace(rule.id, domain_ids)
                 rule.updated_at = utc_now()
                 self.session.flush()
             return self._serialize(rule)
-        rule.group_name = group
+        self.domains.replace(rule.id, domain_ids)
         rule.updated_at = utc_now()
         self._add_revision(rule.id, current.number + 1, content)
         return self._serialize(rule)
@@ -121,7 +122,8 @@ class ExpertRuleService:
             if serving is None or not self._revision_is_live(rule, serving):
                 continue
             result.append({
-                "id": rule.id, "table_id": rule.table_id, "name": rule.name, "group_name": rule.group_name,
+                "id": rule.id, "table_id": rule.table_id, "name": rule.name,
+                "business_domains": self.domains.read_one(rule.id),
                 "description": serving.description, "conditions": serving.conditions,
                 "exceptions": serving.exceptions, "examples": serving.examples,
                 "glossary_term_ids": self._glossary_ids(serving.id), "metric_ids": self._metric_ids(serving.id),
@@ -290,9 +292,10 @@ class ExpertRuleService:
             raise ExpertRuleNotFoundError()
         return rule
 
-    @staticmethod
-    def _group(value: str | None) -> str | None:
-        return " ".join(value.split()) or None if value else None
+    def _domain_ids(self, domain_ids: list[UUID]) -> list[UUID]:
+        if self.domains.unknown(domain_ids):
+            raise ExpertRuleValidationError("Miền nghiệp vụ không tồn tại.")
+        return list(dict.fromkeys(domain_ids))
 
     @staticmethod
     def _expected(current: ExpertRuleRevision, expected: int) -> None:
@@ -322,7 +325,7 @@ class ExpertRuleService:
         serving = self._serving(revisions)
         return {
             "id": rule.id, "connection_id": rule.connection_id, "table_id": rule.table_id,
-            "name": rule.name, "group_name": rule.group_name,
+            "name": rule.name, "business_domains": self.domains.read_one(rule.id),
             "current": self._revision(revisions[0]), "serving": self._revision(serving) if serving else None,
             "is_discoverable": serving is not None and self._revision_is_live(rule, serving),
             "created_at": rule.created_at, "updated_at": rule.updated_at,

@@ -42,14 +42,14 @@ def metric_detail():
 
 def glossary_detail():
     return details.GlossaryTermDetail(
-        term_id=UUID(ENTITY_ID), name="Doanh số", group_name=None, revision_number=1, definition="x", synonyms=[],
+        term_id=UUID(ENTITY_ID), name="Doanh số", business_domains=[], revision_number=1, definition="x", synonyms=[],
         links=[],
     )
 
 
 def rule_detail():
     return details.ExpertRuleDetail(
-        rule_id=UUID(ENTITY_ID), name="Quy tắc", group_name=None, table=None, description=None, conditions=[],
+        rule_id=UUID(ENTITY_ID), name="Quy tắc", business_domains=[], table=None, description=None, conditions=[],
         exceptions=[], examples=[], glossary_terms=[], metrics=[],
     )
 

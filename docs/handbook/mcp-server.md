@@ -31,13 +31,15 @@ Thêm một khả năng mới: tạo một file trong thư mục tương ứng, 
 
 ## Chạy
 
-Từ gốc repository bằng stdio để MCP host khởi động như một tiến trình con:
+Khi stack chạy bằng `compose.yaml`, cho MCP host khởi động server bằng stdio bên trong container `backend`:
 
 ```powershell
-uv run superset-ai-mcp
+docker exec -i ai-agent-superset-standalone-backend-1 superset-ai-mcp
 ```
 
-Cấu hình MCP host với lệnh `uv`, các tham số `run`, `superset-ai-mcp` và thư mục làm việc là gốc repository. Không ghi thông tin thường ra stdout vì stdout là luồng giao thức.
+Cấu hình MCP host với lệnh `docker` và các tham số `exec`, `-i`, `ai-agent-superset-standalone-backend-1`, `superset-ai-mcp`; không cần truyền biến môi trường vì container đã có đủ cấu hình. Không chạy `uv run superset-ai-mcp` trên máy host cho stack này: connection nguồn đăng ký trong container dùng tên dịch vụ Docker (ví dụ `warehouse-db:5432`), máy host không phân giải được nên mọi truy vấn báo "Không thể thực hiện truy vấn trên database nguồn"; `.env` ở host cũng thiếu các biến mô hình (`OPENROUTER_MODEL`, `TEXT2SQL_EMBEDDING_MODEL`, `QDRANT_URL`...) mà compose cấp cho container.
+
+Chỉ dùng `uv run superset-ai-mcp` từ gốc repository khi backend và database nguồn đều chạy trực tiếp trên máy. Không ghi thông tin thường ra stdout vì stdout là luồng giao thức.
 
 Để thử Streamable HTTP trên cùng máy:
 

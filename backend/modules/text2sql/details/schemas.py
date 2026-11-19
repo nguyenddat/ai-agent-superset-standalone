@@ -59,7 +59,7 @@ class MetricDetail(BaseModel):
 class GlossaryTermDetail(BaseModel):
     term_id: UUID
     name: str
-    group_name: str | None
+    business_domains: list[str]
     revision_number: int
     definition: str
     synonyms: list[str]
@@ -88,7 +88,7 @@ class RuleExampleDetail(BaseModel):
 class ExpertRuleDetail(BaseModel):
     rule_id: UUID
     name: str
-    group_name: str | None
+    business_domains: list[str]
     table: TableRef | None
     description: str | None
     conditions: list[RuleConditionDetail]

@@ -11,6 +11,7 @@ from sqlalchemy.pool import StaticPool
 
 from backend.common.base_model import Base
 from backend.main import app
+from backend.modules.business_model.models import BusinessDomain
 from backend.modules.database_connection.models import DatabaseColumn, DatabaseConnection, DatabaseSchema, DatabaseTable
 from backend.modules.glossary_management.dependencies import get_glossary_service
 from backend.modules.glossary_management.services import GlossaryService
@@ -45,8 +46,10 @@ class GlossaryManagementApiTests(unittest.TestCase):
                 table_id=table.id, name="amount", data_type="numeric", ordinal_position=1, is_nullable=False
             )
             metric = Metric(table_id=table.id, name="revenue", expression="SUM(amount)")
-            session.add_all([column, metric])
+            sales, revenue = BusinessDomain(name="Kinh doanh"), BusinessDomain(name="Doanh số")
+            session.add_all([column, metric, sales, revenue])
             session.commit()
+            self.sales_id, self.revenue_id = sales.id, revenue.id
             self.connection_id, self.other_id = connection.id, other.id
             self.table_id, self.other_table_id = table.id, other_table.id
             self.column_id, self.metric_id = column.id, metric.id
@@ -68,7 +71,7 @@ class GlossaryManagementApiTests(unittest.TestCase):
             "connection_id": str(self.connection_id),
             "canonical_name": "Doanh thu",
             "definition": "Tổng giá trị đơn hàng",
-            "synonyms": ["Revenue"], "group_name": "Kinh doanh",
+            "synonyms": ["Revenue"], "business_domain_ids": [str(self.sales_id)],
             "links": [
                 {"kind": "table", "id": str(self.table_id)},
                 {"kind": "column", "id": str(self.column_id)},
@@ -94,7 +97,7 @@ class GlossaryManagementApiTests(unittest.TestCase):
         self.assertEqual(len(self.client.get(f"{BASE}/{term_id}/revisions").json()), 1)
         edit = self.client.put(f"{BASE}/{term_id}/draft", json={
             "expected_revision": 1, "definition": "Doanh thu thuần", "synonyms": ["Sales"],
-            "group_name": "Kinh doanh", "links": [{"kind": "metric", "id": str(self.metric_id)}],
+            "business_domain_ids": [str(self.sales_id)], "links": [{"kind": "metric", "id": str(self.metric_id)}],
         })
         self.assertEqual(edit.status_code, 200, edit.text)
         self.assertEqual(edit.json()["current"]["number"], 2)
@@ -122,6 +125,7 @@ class GlossaryManagementApiTests(unittest.TestCase):
         body["links"] = []
         body["synonyms"] = ["Doanh thu"]
         self.assertEqual(self.client.post(BASE, json=body).status_code, 400)
+        self.assertEqual(self.client.post(BASE, json={**self.body(), "business_domain_ids": [str(uuid4())]}).status_code, 400)
         self.assertEqual(self.client.get(BASE, params={"connection_id": str(self.other_id)}).json(), [])
 
     def test_metric_can_be_shared_and_discovery_filters_inactive_link(self) -> None:
@@ -136,10 +140,10 @@ class GlossaryManagementApiTests(unittest.TestCase):
         no_change = self.client.put(f"{BASE}/{first['id']}/draft", json={
             "expected_revision": 1, "definition": first["current"]["definition"],
             "synonyms": first["current"]["synonyms"], "links": first["current"]["links"],
-            "group_name": "Doanh số",
+            "business_domain_ids": [str(self.sales_id), str(self.revenue_id), str(self.sales_id)],
         })
         self.assertEqual(no_change.json()["current"]["number"], 1)
-        self.assertEqual(no_change.json()["group_name"], "Doanh số")
+        self.assertEqual([domain["name"] for domain in no_change.json()["business_domains"]], ["Doanh số", "Kinh doanh"])
         with Session(self.engine) as session:
             metric = session.get(Metric, self.metric_id)
             metric.is_active = False
@@ -171,6 +175,32 @@ class GlossaryManagementApiTests(unittest.TestCase):
                 migration.downgrade()
             self.assertFalse({"glossary_terms", "glossary_revisions", "glossary_links"} &
                              set(inspect(connection).get_table_names()))
+
+    def test_business_domain_migration_round_trip(self) -> None:
+        migration = import_module(
+            "backend.migrations.versions.init_glossary_management_module.e2a7c4d91f36_glossary_term_business_domains"
+        )
+        term_id = self.client.post(BASE, json={
+            **self.body(), "business_domain_ids": [str(self.sales_id), str(self.revenue_id)],
+        }).json()["id"]
+        with self.engine.connect() as connection:
+            # SQLite batch mode rebuilds glossary_terms; with foreign keys on, that would cascade to its revisions.
+            connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+            context = MigrationContext.configure(connection)
+            with Operations.context(context):
+                migration.downgrade()
+            self.assertNotIn("glossary_term_domains", inspect(connection).get_table_names())
+            self.assertEqual(
+                connection.exec_driver_sql("SELECT group_name FROM glossary_terms").scalar(), "Doanh số"
+            )
+            connection.exec_driver_sql("UPDATE glossary_terms SET group_name = ' kinh DOANH '")
+            with Operations.context(context):
+                migration.upgrade()
+            self.assertNotIn("group_name", {column["name"] for column in inspect(connection).get_columns("glossary_terms")})
+            connection.commit()
+            connection.exec_driver_sql("PRAGMA foreign_keys=ON")
+        domains = self.client.get(f"{BASE}/{term_id}").json()["business_domains"]
+        self.assertEqual([domain["name"] for domain in domains], ["Kinh doanh"])
 
 
 if __name__ == "__main__":

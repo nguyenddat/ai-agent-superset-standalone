@@ -12,6 +12,7 @@ from sqlalchemy.pool import StaticPool
 
 from backend.common.base_model import TECHNICAL_SCHEMA, Base
 from backend.main import app
+from backend.modules.business_model.models import BusinessDomain
 from backend.modules.database_connection.models import DatabaseColumn, DatabaseConnection, DatabaseSchema, DatabaseTable
 from backend.modules.expert_rule_management.dependencies import get_expert_rule_service
 from backend.modules.expert_rule_management.services import ExpertRuleService
@@ -52,8 +53,10 @@ class ExpertRuleManagementApiTests(unittest.TestCase):
                 table_id=other_table.id, name="rain_mm", data_type="numeric", ordinal_position=1, is_nullable=False,
             )
             metric = Metric(table_id=table.id, name="rain_total", expression="SUM(rain_mm)")
-            session.add_all([column, other_column, metric])
+            weather, warning = BusinessDomain(name="Thời tiết"), BusinessDomain(name="Cảnh báo")
+            session.add_all([column, other_column, metric, weather, warning])
             session.commit()
+            self.weather_id, self.warning_id = weather.id, warning.id
             self.connection_id, self.other_id = connection.id, other.id
             self.table_id, self.other_table_id = table.id, other_table.id
             self.column_id, self.other_column_id, self.metric_id = column.id, other_column.id, metric.id
@@ -93,7 +96,8 @@ class ExpertRuleManagementApiTests(unittest.TestCase):
     def body(self, term_ids: list[str]) -> dict:
         return {
             "connection_id": str(self.connection_id), "table_id": str(self.table_id),
-            "name": "Cảnh báo mưa lớn", "group_name": "Thời tiết", "description": "Xác định ngày mưa lớn",
+            "name": "Cảnh báo mưa lớn", "business_domain_ids": [str(self.weather_id), str(self.warning_id)],
+            "description": "Xác định ngày mưa lớn",
             "conditions": [{
                 "column_id": str(self.column_id), "operator": "greater_than",
                 "value_type": "number", "value": 50,
@@ -111,6 +115,7 @@ class ExpertRuleManagementApiTests(unittest.TestCase):
         self.assertEqual(created.status_code, 201, created.text)
         rule_id = created.json()["id"]
         self.assertEqual(set(created.json()["current"]["glossary_term_ids"]), {first, second})
+        self.assertEqual([domain["name"] for domain in created.json()["business_domains"]], ["Cảnh báo", "Thời tiết"])
         self.assertEqual(self.client.get(f"{BASE}/discovery", params={"connection_id": str(self.connection_id)})
                          .json(), {"rules": []})
         self.assertEqual(self.client.post(BASE, json=body).status_code, 409)
@@ -191,20 +196,25 @@ class ExpertRuleManagementApiTests(unittest.TestCase):
             "backend.migrations.versions.init_expert_rule_management_module."
             "b9f4d7a2c183_create_expert_rule_management"
         )
+        domains = import_module(
+            "backend.migrations.versions.init_expert_rule_management_module.9b3e6f2a8c51_expert_rule_business_domains"
+        )
         tables = (
             "expert_rule_metric_links", "expert_rule_glossary_links", "expert_rule_revisions", "expert_rules",
         )
         with self.engine.begin() as connection:
-            for table in tables:
+            for table in ("expert_rule_domains", *tables):
                 connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table}")
             context = MigrationContext.configure(connection, opts={
                 "include_object": lambda obj, name, type_, reflected, compare_to: getattr(obj, "schema", None) != TECHNICAL_SCHEMA
             })
             with Operations.context(context):
                 migration.upgrade()
+                domains.upgrade()
             self.assertTrue(set(tables) <= set(inspect(connection).get_table_names()))
             self.assertEqual(compare_metadata(context, Base.metadata), [])
             with Operations.context(context):
+                domains.downgrade()
                 migration.downgrade()
             self.assertFalse(set(tables) & set(inspect(connection).get_table_names()))
 

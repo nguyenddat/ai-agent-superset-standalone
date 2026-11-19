@@ -12,12 +12,14 @@ from sqlalchemy.pool import StaticPool
 
 from backend.common.base_model import Base
 from backend.main import app
+from backend.modules.business_model.models import BusinessDomain
 from backend.modules.database_connection.models import (
     DatabaseConnection,
     DatabaseSchema,
     DatabaseTable,
 )
 from backend.modules.metric_management.dependencies import get_metric_service
+from backend.modules.metric_management.models import Metric
 from backend.modules.metric_management.services import MetricService
 from backend.modules.metric_management.services.superset_client import (
     SupersetClient,
@@ -54,9 +56,11 @@ class MetricManagementApiTests(unittest.TestCase):
             table = DatabaseTable(
                 schema_id=schema.id, name="orders", table_type="TABLE"
             )
-            session.add(table)
+            weather, rain = BusinessDomain(name="Thời tiết"), BusinessDomain(name="Mưa")
+            session.add_all([table, weather, rain])
             session.commit()
             self.connection_id, self.table_id = connection.id, table.id
+            self.weather_id, self.rain_id = weather.id, rain.id
 
         def service_dependency():
             with Session(self.engine, expire_on_commit=False) as session:
@@ -97,6 +101,44 @@ class MetricManagementApiTests(unittest.TestCase):
         )
         self.assertEqual(self.client.delete(f"{BASE}/{metric_id}").status_code, 204)
         self.assertEqual(self.client.get(f"{BASE}/{metric_id}").status_code, 404)
+
+    def test_business_domains(self) -> None:
+        created = self.client.post(BASE, json={
+            "table_id": str(self.table_id), "name": "rain_total", "expression": "SUM(rain_mm)",
+            "business_domain_ids": [str(self.weather_id), str(self.rain_id)],
+        })
+        self.assertEqual(created.status_code, 201, created.text)
+        self.assertEqual([domain["name"] for domain in created.json()["business_domains"]], ["Mưa", "Thời tiết"])
+        patched = self.client.patch(f"{BASE}/{created.json()['id']}", json={"label": "Tổng mưa"})
+        self.assertEqual(len(patched.json()["business_domains"]), 2)
+        patched = self.client.patch(
+            f"{BASE}/{created.json()['id']}", json={"business_domain_ids": [str(self.rain_id)]}
+        )
+        self.assertEqual([domain["name"] for domain in patched.json()["business_domains"]], ["Mưa"])
+        unknown = self.client.patch(
+            f"{BASE}/{created.json()['id']}", json={"business_domain_ids": [str(self.table_id)]}
+        )
+        self.assertEqual(unknown.status_code, 400)
+        with Session(self.engine, expire_on_commit=False) as session:
+            synced = Metric(
+                origin="superset", table_id=self.table_id, name="synced", expression="COUNT(*)",
+                source_url="http://superset", source_metric_id=1,
+            )
+            session.add(synced)
+            session.commit()
+        self.assertEqual(
+            self.client.patch(f"{BASE}/{synced.id}", json={"business_domain_ids": [str(self.weather_id)]})
+            .json()["business_domains"][0]["name"],
+            "Thời tiết",
+        )
+        self.assertEqual(
+            self.client.patch(
+                f"{BASE}/{synced.id}", json={"label": "x", "business_domain_ids": []}
+            ).status_code,
+            409,
+        )
+        listed = {metric["name"]: metric for metric in self.client.get(BASE).json()}
+        self.assertEqual(len(listed["synced"]["business_domains"]), 1)
 
     def test_sync_idempotence_link_and_deactivation(self) -> None:
         snapshot = SupersetSnapshot(

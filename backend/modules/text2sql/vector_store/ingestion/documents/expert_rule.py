@@ -47,7 +47,8 @@ def build_expert_rule_documents(session: Session, context: CatalogContext) -> li
         metrics = [label for label in map(context.metric_label, rule["metric_ids"]) if label]
         text = " | ".join(filter(None, [
             f"Quy tắc: {rule['name']}",
-            f"Nhóm: {rule['group_name']}" if rule["group_name"] else None,
+            f"Miền nghiệp vụ: {', '.join(domain['name'] for domain in rule['business_domains'])}"
+            if rule["business_domains"] else None,
             f"Bảng: {table_label}" if table_label else None,
             f"Mô tả: {rule['description']}" if rule["description"] else None,
             f"Điều kiện: {'; '.join(conditions)}" if conditions else None,

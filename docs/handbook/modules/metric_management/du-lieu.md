@@ -5,6 +5,7 @@
 | Bảng | Vai trò |
 | --- | --- |
 | `metrics` | Metric tự tạo (`origin=manual`) hoặc bản sao Superset (`origin=superset`); lưu tên, expression và trường trình bày. Metric tự tạo gắn `table_id`; bản nhập lưu `source_url`, ID metric/dataset, database nguồn, người tạo metric và người tạo dataset nếu Superset cung cấp, schema, tên bảng và SQL dataset ảo. `(source_url, source_metric_id)` duy nhất. |
+| `metric_domains` | Quan hệ nhiều-nhiều `(metric_id, domain_id)` tới `business_domains` (revision `4d8a1c7e3b92`); xóa metric hoặc miền sẽ xóa bản ghi ghép. Đồng bộ Superset không đụng tới bảng này. |
 | `superset_users` | Bản sao username, họ tên, email theo `(source_url, source_id)`, không chứa mật khẩu hay quyền đăng nhập. |
 | `superset_databases` | Bản sao tên/backend theo `(source_url, source_id)` và `connection_id` tùy chọn đến connection standalone. Không lưu URI Superset. |
 

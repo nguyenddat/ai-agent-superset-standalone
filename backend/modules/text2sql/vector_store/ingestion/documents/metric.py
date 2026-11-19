@@ -2,6 +2,9 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from backend.modules.business_model.services import DomainAssignment
+from backend.modules.metric_management.models import metric_domains
+
 from ....common.sql_columns import referenced_columns
 from .base import IndexDocument, build_document
 from .context import CatalogContext
@@ -11,6 +14,7 @@ TOPIC = "metric"
 
 def build_metric_documents(session: Session, context: CatalogContext) -> list[IndexDocument]:
     documents: list[IndexDocument] = []
+    domains = DomainAssignment(session, metric_domains, "metric_id").read([metric.id for metric in context.metrics])
     for metric in context.metrics:
         if metric.table_id is None or metric.source_sql:
             continue
@@ -20,6 +24,8 @@ def build_metric_documents(session: Session, context: CatalogContext) -> list[In
         text = " | ".join(filter(None, [
             f"Metric: {metric.label or metric.name}", f"Tên kỹ thuật: {metric.name}",
             f"Mô tả: {metric.description}" if metric.description else None,
+            f"Miền nghiệp vụ: {', '.join(domain['name'] for domain in domains[metric.id])}"
+            if metric.id in domains else None,
             f"Bảng: {table.label} ({table.qualified_name})",
             f"Cột liên quan: {', '.join(filter(None, column_labels))}" if referenced else None,
         ]))

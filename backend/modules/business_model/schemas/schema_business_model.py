@@ -48,6 +48,12 @@ class DomainOut(BaseModel):
     table_ids: list[UUID]
 
 
+class DomainRef(BaseModel):
+    id: UUID
+    name: str
+    color: str | None
+
+
 class TableLayerIn(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

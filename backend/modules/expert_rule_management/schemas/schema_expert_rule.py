@@ -5,6 +5,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, model_validator
 
+from backend.modules.business_model.schemas.schema_business_model import DomainRef
+
 Operator = Literal[
     "equals", "not_equals", "contains", "not_contains", "greater_than", "greater_than_or_equal",
     "less_than", "less_than_or_equal", "in", "not_in", "is_null", "is_not_null",
@@ -73,12 +75,12 @@ class RuleCreate(RuleContent):
     connection_id: UUID
     table_id: UUID
     name: str = Field(min_length=1, max_length=255)
-    group_name: str | None = Field(default=None, max_length=255)
+    business_domain_ids: list[UUID] = Field(default_factory=list, max_length=50)
 
 
 class RuleUpdate(RuleContent):
     expected_revision: int = Field(ge=1)
-    group_name: str | None = Field(default=None, max_length=255)
+    business_domain_ids: list[UUID] = Field(default_factory=list, max_length=50)
 
 
 class ReviewIn(BaseModel):
@@ -96,7 +98,7 @@ class RuleOut(BaseModel):
     connection_id: UUID
     table_id: UUID
     name: str
-    group_name: str | None
+    business_domains: list[DomainRef]
     current: RevisionOut
     serving: RevisionOut | None
     is_discoverable: bool
@@ -108,7 +110,7 @@ class DiscoveryRule(BaseModel):
     id: UUID
     table_id: UUID
     name: str
-    group_name: str | None
+    business_domains: list[DomainRef]
     description: str | None
     conditions: list[RuleCondition]
     exceptions: list[RuleException]

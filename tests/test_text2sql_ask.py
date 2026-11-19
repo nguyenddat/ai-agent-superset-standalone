@@ -134,7 +134,7 @@ class AskFlowTests(unittest.TestCase):
         s.flush()
         glossary = GlossaryService(s)
         term = glossary.create_term({
-            "connection_id": self.connection.id, "canonical_name": "Lượt khám", "group_name": None,
+            "connection_id": self.connection.id, "canonical_name": "Lượt khám",
             "definition": "Một lần bệnh nhân được khám", "synonyms": ["khám bệnh"],
             "links": [{"kind": "metric", "id": self.visits.id}],
         })
@@ -143,7 +143,7 @@ class AskFlowTests(unittest.TestCase):
         rules = ExpertRuleService(s)
         rule = rules.create_rule({
             "connection_id": self.connection.id, "table_id": self.table.id, "name": "Chỉ tính lượt khám hoàn tất",
-            "group_name": None, "description": "Chỉ tính lượt khám đã hoàn tất",
+            "description": "Chỉ tính lượt khám đã hoàn tất",
             "conditions": [{"column_id": self.col["status"].id, "operator": "equals", "value_type": "string",
                             "value": "done"}],
             "exceptions": [], "examples": [], "glossary_term_ids": [self.term_id], "metric_ids": [self.visits.id],

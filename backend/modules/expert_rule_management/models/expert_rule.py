@@ -1,9 +1,9 @@
 from uuid import UUID
 
-from sqlalchemy import CheckConstraint, ForeignKey, Integer, JSON, String, Text, UniqueConstraint, Uuid
+from sqlalchemy import CheckConstraint, Column, ForeignKey, Integer, JSON, String, Table, Text, UniqueConstraint, Uuid
 from sqlalchemy.orm import Mapped, mapped_column
 
-from backend.common.base_model import AuditedModel, BaseModel
+from backend.common.base_model import AuditedModel, Base, BaseModel
 
 
 class ExpertRule(AuditedModel):
@@ -18,7 +18,17 @@ class ExpertRule(AuditedModel):
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     normalized_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    group_name: Mapped[str | None] = mapped_column(String(255))
+
+
+expert_rule_domains = Table(
+    "expert_rule_domains",
+    Base.metadata,
+    Column("rule_id", Uuid(as_uuid=True), ForeignKey("expert_rules.id", ondelete="CASCADE"), primary_key=True),
+    Column(
+        "domain_id", Uuid(as_uuid=True), ForeignKey("business_domains.id", ondelete="CASCADE"),
+        primary_key=True, index=True,
+    ),
+)
 
 
 class ExpertRuleRevision(BaseModel):

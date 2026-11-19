@@ -3,9 +3,11 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
+from backend.common.base_model import utc_now
+from backend.modules.business_model.services import DomainAssignment
 from backend.modules.database_connection.models import DatabaseConnection, DatabaseTable
 
-from ..models import Metric, SupersetDatabase, SupersetUser
+from ..models import Metric, SupersetDatabase, SupersetUser, metric_domains
 from ..repositories import MetricRepository
 from ..utils.exceptions import (
     InvalidMetricError,
@@ -21,15 +23,18 @@ class MetricService:
     def __init__(self, session: Session) -> None:
         self.session = session
         self.repository = MetricRepository(session)
+        self.domains = DomainAssignment(session, metric_domains, "metric_id")
 
     def list_metrics(self, connection_id: UUID | None = None) -> list[dict[str, Any]]:
-        return [self._metric(row) for row in self.repository.list(connection_id)]
+        rows = self.repository.list(connection_id)
+        domains = self.domains.read([row.id for row in rows])
+        return [self._metric(row, domains.get(row.id, [])) for row in rows]
 
     def get_metric(self, metric_id: UUID) -> dict[str, Any]:
         row = self.repository.get(metric_id)
         if row is None:
             raise MetricNotFoundError()
-        return self._metric(row)
+        return self._metric(row, self.domains.read_one(row.id))
 
     def create_metric(self, values: dict[str, Any]) -> dict[str, Any]:
         table_id = values["table_id"]
@@ -39,20 +44,30 @@ class MetricService:
         self._validate(name, expression)
         if self.repository.find_manual(table_id, name):
             raise MetricAlreadyExistsError()
+        domain_ids = self._domain_ids(values.get("business_domain_ids") or [])
         row = Metric(
             origin="manual", table_id=table_id, name=name, expression=expression
         )
         self._apply_editable(row, values)
         self.session.add(row)
         self.session.flush()
-        return self._metric(row)
+        self.domains.replace(row.id, domain_ids)
+        return self._metric(row, self.domains.read_one(row.id))
 
     def update_metric(self, metric_id: UUID, values: dict[str, Any]) -> dict[str, Any]:
         row = self.repository.get(metric_id)
         if row is None:
             raise MetricNotFoundError()
+        domain_ids = values.get("business_domain_ids")
+        if domain_ids is not None:
+            domain_ids = self._domain_ids(domain_ids)
+        # Domains are local classification, so they stay editable on metrics synced from Superset.
         if row.origin != "manual":
-            raise MetricReadOnlyError()
+            if set(values) - {"business_domain_ids"}:
+                raise MetricReadOnlyError()
+            self._replace_domains(row, domain_ids)
+            self.session.flush()
+            return self._metric(row, self.domains.read_one(row.id))
         table_id = values.get("table_id", row.table_id)
         self._require_table(table_id)
         name_value = values.get("name", row.name)
@@ -69,8 +84,9 @@ class MetricService:
         row.name = name
         row.expression = expression
         self._apply_editable(row, values)
+        self._replace_domains(row, domain_ids)
         self.session.flush()
-        return self._metric(row)
+        return self._metric(row, self.domains.read_one(row.id))
 
     def delete_metric(self, metric_id: UUID) -> None:
         row = self.repository.get(metric_id)
@@ -245,6 +261,18 @@ class MetricService:
                 "Bảng của metric không tồn tại trong metadata standalone."
             )
 
+    def _domain_ids(self, domain_ids: list[UUID]) -> list[UUID]:
+        if self.domains.unknown(domain_ids):
+            raise InvalidMetricError("Miền nghiệp vụ không tồn tại.")
+        return list(dict.fromkeys(domain_ids))
+
+    def _replace_domains(self, row: Metric, domain_ids: list[UUID] | None) -> None:
+        if domain_ids is None or self.domains.ids(row.id) == set(domain_ids):
+            return
+        self.domains.replace(row.id, domain_ids)
+        # The join table is not an ORM entity; touching the row lets the ingestion trigger see the change.
+        row.updated_at = utc_now()
+
     @staticmethod
     def _validate(name: str, expression: str) -> None:
         if (
@@ -296,7 +324,7 @@ class MetricService:
                 setattr(row, field, values[field])
 
     @staticmethod
-    def _metric(row: Metric) -> dict[str, Any]:
+    def _metric(row: Metric, domains: list[dict[str, Any]]) -> dict[str, Any]:
         return {
             key: getattr(row, key)
             for key in (
@@ -322,7 +350,7 @@ class MetricService:
                 "source_table",
                 "source_sql",
             )
-        } | {"created_at": row.created_at, "updated_at": row.updated_at}
+        } | {"business_domains": domains, "created_at": row.created_at, "updated_at": row.updated_at}
 
     @staticmethod
     def _database(row: SupersetDatabase) -> dict[str, Any]:
