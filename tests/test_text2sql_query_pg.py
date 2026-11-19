@@ -242,6 +242,17 @@ class QueryServiceIntegrationTests(unittest.TestCase):
             SCOPE_TOKEN.reset(reset)
         self.assertIn(run_read_only(self.source_url, sql, {}, frozenset(), 10, 5).rows, ([(None,)], [("",)]))
 
+    def test_time_zone_cuts_days_where_the_caller_lives(self) -> None:
+        from backend.modules.text2sql.query.executor import TIME_ZONE
+
+        sql = "SELECT date_trunc('day', timestamptz '2026-11-15 18:00+00')::text"
+        reset = TIME_ZONE.set("Asia/Ho_Chi_Minh")
+        try:
+            self.assertEqual(run_read_only(self.source_url, sql, {}, frozenset(), 10, 5).rows, [("2026-11-16 00:00:00+07",)])
+        finally:
+            TIME_ZONE.reset(reset)
+        self.assertEqual(run_read_only(self.source_url, sql, {}, frozenset(), 10, 5).rows, [("2026-11-15 00:00:00+00",)])
+
     def test_slow_queries_time_out_with_a_helpful_message(self) -> None:
         with patch.object(config, "text2sql_query_timeout_seconds", 1):
             compiled = self.service.prepare(self.connection.id, QueryPlan(metric_id=self.slow_metric.id))

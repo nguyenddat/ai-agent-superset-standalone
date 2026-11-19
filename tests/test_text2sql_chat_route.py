@@ -181,6 +181,8 @@ class ServiceCallTests(unittest.TestCase):
         tokens = [d["text"] for name, d in parse_sse(self.ask().text) if name == "token"]
         self.assertEqual(tokens, ["None"])
         self.assertEqual(self.ask(scope_token="not-a-uuid").status_code, 422)
+        self.assertEqual(self.ask(time_zone="UTC -c fsync=off").status_code, 422)  # no option injection
+        self.assertEqual(self.ask(time_zone="Asia/Ho_Chi_Minh").status_code, 200)
 
     def test_service_key_is_required_once_set(self) -> None:
         from pydantic import SecretStr

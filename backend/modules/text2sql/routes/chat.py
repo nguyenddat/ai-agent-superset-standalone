@@ -1,4 +1,5 @@
 import hmac
+import zoneinfo
 from collections.abc import Iterator
 from typing import Annotated
 from uuid import UUID
@@ -11,7 +12,7 @@ from backend.core.setting import config
 
 from ..chat.events import ChatEvent
 from ..chat.pipeline import ChatPipeline
-from ..query.executor import SCOPE_TOKEN
+from ..query.executor import SCOPE_TOKEN, TIME_ZONE
 
 router = APIRouter()
 
@@ -30,6 +31,14 @@ class ChatIn(BaseModel):
     join_signature: str | None = Field(default=None, min_length=1, max_length=64)
     # Wattprint copilot: limits the copilot_ro views to the home this token names.
     scope_token: UUID | None = None
+    time_zone: str = "UTC"
+
+    @field_validator("time_zone")
+    @classmethod
+    def _known_zone(cls, value: str) -> str:
+        if value not in zoneinfo.available_timezones():
+            raise ValueError("time_zone phải là một múi giờ IANA, ví dụ Asia/Ho_Chi_Minh.")
+        return value
 
     @field_validator("user_id")
     @classmethod
@@ -61,18 +70,19 @@ def require_service_key(x_service_key: Annotated[str | None, Header()] = None) -
         raise HTTPException(status_code=401, detail="Thiếu hoặc sai X-Service-Key.")
 
 
-def _sse(events: Iterator[ChatEvent], scope_token: UUID | None = None) -> Iterator[str]:
+def _sse(events: Iterator[ChatEvent], scope_token: UUID | None = None, time_zone: str = "UTC") -> Iterator[str]:
     # The pipeline runs its queries inside next(): the token is set around each step, in the thread
     # that runs it (the response iterates this generator from a thread pool).
     try:
         while True:
-            reset = SCOPE_TOKEN.set(str(scope_token) if scope_token else None)
+            reset = SCOPE_TOKEN.set(str(scope_token) if scope_token else None), TIME_ZONE.set(time_zone)
             try:
                 event = next(events)
             except StopIteration:
                 return
             finally:
-                SCOPE_TOKEN.reset(reset)
+                SCOPE_TOKEN.reset(reset[0])
+                TIME_ZONE.reset(reset[1])
             yield event.to_sse()
     finally:
         closer = getattr(events, "close", None)
@@ -92,6 +102,6 @@ def chat(body: ChatIn, pipeline: Annotated[ChatPipeline, Depends(get_chat_pipeli
     if question is None:
         question = turn_request.resume.question if turn_request and turn_request.resume else ""
     return StreamingResponse(
-        _sse(pipeline.run(body.connection_id, question, body.user_id, turn_request=turn_request), body.scope_token),
+        _sse(pipeline.run(body.connection_id, question, body.user_id, turn_request=turn_request), body.scope_token, body.time_zone),
         media_type="text/event-stream", headers=SSE_HEADERS,
     )

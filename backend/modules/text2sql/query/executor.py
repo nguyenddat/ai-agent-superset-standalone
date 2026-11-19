@@ -19,6 +19,9 @@ QUERY_CANCELED = "57014"
 # The Wattprint copilot's scope token: the one home its copilot_ro views may show (they read the
 # setting app.copilot_token). Set per request by the chat route; None leaves the setting unset.
 SCOPE_TOKEN: ContextVar[str | None] = ContextVar("scope_token", default=None)
+# The caller's IANA time zone: days and hours in the SQL are cut in it (default UTC). Validated by
+# the chat route before it is set, as it goes into the connection options.
+TIME_ZONE: ContextVar[str] = ContextVar("time_zone", default="UTC")
 
 
 @dataclass(frozen=True)
@@ -34,7 +37,7 @@ def run_read_only(
     timeout_ms = timeout_seconds * 1000
     options = (
         f"-c default_transaction_read_only=on -c statement_timeout={timeout_ms} -c lock_timeout={LOCK_TIMEOUT_MS} "
-        f"-c idle_in_transaction_session_timeout={timeout_ms} -c TimeZone=UTC"
+        f"-c idle_in_transaction_session_timeout={timeout_ms} -c TimeZone={TIME_ZONE.get()}"
     )
     statement = text(sql).bindparams(*(bindparam(name, expanding=True) for name in expanding))
     engine = create_engine(
