@@ -231,6 +231,17 @@ class QueryServiceIntegrationTests(unittest.TestCase):
         )
         self.assertEqual(raw.rows, [("on", "repeatable read", "7s", "superset-ai")])
 
+    def test_scope_token_is_set_for_the_transaction_only(self) -> None:
+        from backend.modules.text2sql.query.executor import SCOPE_TOKEN
+
+        sql = "SELECT current_setting('app.copilot_token', true)"
+        reset = SCOPE_TOKEN.set("0198-scope")
+        try:
+            self.assertEqual(run_read_only(self.source_url, sql, {}, frozenset(), 10, 5).rows, [("0198-scope",)])
+        finally:
+            SCOPE_TOKEN.reset(reset)
+        self.assertIn(run_read_only(self.source_url, sql, {}, frozenset(), 10, 5).rows, ([(None,)], [("",)]))
+
     def test_slow_queries_time_out_with_a_helpful_message(self) -> None:
         with patch.object(config, "text2sql_query_timeout_seconds", 1):
             compiled = self.service.prepare(self.connection.id, QueryPlan(metric_id=self.slow_metric.id))

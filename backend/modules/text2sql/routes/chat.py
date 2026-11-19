@@ -1,13 +1,17 @@
+import hmac
 from collections.abc import Iterator
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator, model_validator
 
+from backend.core.setting import config
+
 from ..chat.events import ChatEvent
 from ..chat.pipeline import ChatPipeline
+from ..query.executor import SCOPE_TOKEN
 
 router = APIRouter()
 
@@ -24,6 +28,8 @@ class ChatIn(BaseModel):
     conversation_id: UUID | None = None
     previous_turn_id: UUID | None = None
     join_signature: str | None = Field(default=None, min_length=1, max_length=64)
+    # Wattprint copilot: limits the copilot_ro views to the home this token names.
+    scope_token: UUID | None = None
 
     @field_validator("user_id")
     @classmethod
@@ -47,9 +53,26 @@ def get_chat_pipeline() -> ChatPipeline:
     return ChatPipeline()
 
 
-def _sse(events: Iterator[ChatEvent]) -> Iterator[str]:
+def require_service_key(x_service_key: Annotated[str | None, Header()] = None) -> None:
+    expected = config.text2sql_service_key
+    if expected is None or not expected.get_secret_value():  # unset (compose passes "")
+        return
+    if x_service_key is None or not hmac.compare_digest(x_service_key, expected.get_secret_value()):
+        raise HTTPException(status_code=401, detail="Thiếu hoặc sai X-Service-Key.")
+
+
+def _sse(events: Iterator[ChatEvent], scope_token: UUID | None = None) -> Iterator[str]:
+    # The pipeline runs its queries inside next(): the token is set around each step, in the thread
+    # that runs it (the response iterates this generator from a thread pool).
     try:
-        for event in events:
+        while True:
+            reset = SCOPE_TOKEN.set(str(scope_token) if scope_token else None)
+            try:
+                event = next(events)
+            except StopIteration:
+                return
+            finally:
+                SCOPE_TOKEN.reset(reset)
             yield event.to_sse()
     finally:
         closer = getattr(events, "close", None)
@@ -57,7 +80,7 @@ def _sse(events: Iterator[ChatEvent]) -> Iterator[str]:
             closer()
 
 
-@router.post("/chat", response_class=StreamingResponse)
+@router.post("/chat", response_class=StreamingResponse, dependencies=[Depends(require_service_key)])
 def chat(body: ChatIn, pipeline: Annotated[ChatPipeline, Depends(get_chat_pipeline)]) -> StreamingResponse:
     pipeline.check(body.connection_id)
     turn_request = None
@@ -69,6 +92,6 @@ def chat(body: ChatIn, pipeline: Annotated[ChatPipeline, Depends(get_chat_pipeli
     if question is None:
         question = turn_request.resume.question if turn_request and turn_request.resume else ""
     return StreamingResponse(
-        _sse(pipeline.run(body.connection_id, question, body.user_id, turn_request=turn_request)),
+        _sse(pipeline.run(body.connection_id, question, body.user_id, turn_request=turn_request), body.scope_token),
         media_type="text/event-stream", headers=SSE_HEADERS,
     )

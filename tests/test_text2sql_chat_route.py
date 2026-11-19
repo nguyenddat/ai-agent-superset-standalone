@@ -139,3 +139,58 @@ class ChatRouteTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ScopeTokenPipeline(ScriptedPipeline):
+    """Reports the scope token the executor would see while the pipeline runs."""
+
+    def run(self, connection_id, question, user_id=None, turn_request=None):
+        from backend.modules.text2sql.query.executor import SCOPE_TOKEN
+
+        yield token(str(SCOPE_TOKEN.get()))
+        yield done("answered", "dataset", None, assumptions=[], message="", clarification_question=None)
+
+
+class ServiceCallTests(unittest.TestCase):
+    def setUp(self) -> None:
+        from backend.core.setting import config
+
+        self.config = config
+        self.engine = create_engine("sqlite://", poolclass=StaticPool, connect_args={"check_same_thread": False})
+        Base.metadata.create_all(self.engine)
+        self.addCleanup(self.engine.dispose)
+        with Session(self.engine) as s:
+            c = DatabaseConnection(name=f"a-{uuid4()}", dialect="postgresql", uri_ciphertext="x")
+            s.add(c)
+            s.commit()
+            self.connection = str(c.id)
+        pipeline = ScopeTokenPipeline(self.engine, [])
+        app.dependency_overrides[get_chat_pipeline] = lambda: pipeline
+        self.addCleanup(app.dependency_overrides.clear)
+        self.client = TestClient(app)
+
+    def ask(self, headers=None, **extra):
+        return self.client.post(
+            URL, json={"connection_id": self.connection, "question": "kWh?", **extra}, headers=headers or {}
+        )
+
+    def test_scope_token_reaches_the_executor_only_for_its_request(self) -> None:
+        scope = str(uuid4())
+        tokens = [d["text"] for name, d in parse_sse(self.ask(scope_token=scope).text) if name == "token"]
+        self.assertEqual(tokens, [scope])
+        tokens = [d["text"] for name, d in parse_sse(self.ask().text) if name == "token"]
+        self.assertEqual(tokens, ["None"])
+        self.assertEqual(self.ask(scope_token="not-a-uuid").status_code, 422)
+
+    def test_service_key_is_required_once_set(self) -> None:
+        from pydantic import SecretStr
+
+        self.assertEqual(self.ask().status_code, 200)  # unset: open, as for the frontend
+        original = self.config.text2sql_service_key
+        self.config.text2sql_service_key = SecretStr("k" * 40)
+        self.addCleanup(setattr, self.config, "text2sql_service_key", original)
+        self.assertEqual(self.ask().status_code, 401)
+        self.assertEqual(self.ask({"X-Service-Key": "wrong"}).status_code, 401)
+        self.assertEqual(self.ask({"X-Service-Key": "k" * 40}).status_code, 200)
+        self.config.text2sql_service_key = SecretStr("")  # compose passes "" when unset
+        self.assertEqual(self.ask().status_code, 200)

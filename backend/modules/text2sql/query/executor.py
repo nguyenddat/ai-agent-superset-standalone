@@ -1,5 +1,6 @@
 import logging
 import time
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any
 
@@ -15,6 +16,9 @@ logger = logging.getLogger("text2sql.query")
 CONNECT_TIMEOUT_SECONDS = 5
 LOCK_TIMEOUT_MS = 3000
 QUERY_CANCELED = "57014"
+# The Wattprint copilot's scope token: the one home its copilot_ro views may show (they read the
+# setting app.copilot_token). Set per request by the chat route; None leaves the setting unset.
+SCOPE_TOKEN: ContextVar[str | None] = ContextVar("scope_token", default=None)
 
 
 @dataclass(frozen=True)
@@ -46,6 +50,8 @@ def run_read_only(
             transaction = connection.begin()
             try:
                 connection.execute(text(f"SET LOCAL statement_timeout = {int(timeout_ms)}"))
+                if (scope_token := SCOPE_TOKEN.get()) is not None:
+                    connection.execute(text("SELECT set_config('app.copilot_token', :t, true)"), {"t": scope_token})
                 result = connection.execute(statement, parameters)
                 columns = list(result.keys())
                 rows = [tuple(row) for row in result.fetchmany(max_rows)]

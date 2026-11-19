@@ -14,6 +14,7 @@ x-backend-environment: &backend-environment
   SUPERSET_PASSWORD: ${SUPERSET_PASSWORD:-}
   OWN_KNOWLEDGE_AGENT_KEY: ${OWN_KNOWLEDGE_AGENT_KEY:-}
   OWN_KNOWLEDGE_ADMIN_KEY: ${OWN_KNOWLEDGE_ADMIN_KEY:-}
+  TEXT2SQL_SERVICE_KEY: ${TEXT2SQL_SERVICE_KEY:-}
 
 services:
   postgres:
@@ -49,6 +50,9 @@ services:
     environment: *backend-environment
     ports:
       - "127.0.0.1:${BACKEND_PORT:-8000}:8000"
+      # Optional second address for other compose projects on this host (e.g. the docker0 gateway
+      # 172.17.0.1, which containers reach as host.docker.internal) without exposing it on the LAN.
+      - "${BACKEND_DOCKER_BIND:-127.0.0.1}:${BACKEND_DOCKER_PORT:-8001}:8000"
     depends_on:
       postgres:
         condition: service_healthy
