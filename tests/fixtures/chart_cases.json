@@ -1,0 +1,4198 @@
+[
+ {
+  "name": "bar_basic_empty_category",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 5,
+    "groups": 5,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "bar_null_measure_not_a_point",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "A",
+    1
+   ],
+   [
+    "B",
+    null
+   ],
+   [
+    "C",
+    3
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 2,
+    "groups": 2,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "bar_nan_string_is_null",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "A",
+    1
+   ],
+   [
+    "B",
+    "NaN"
+   ],
+   [
+    "C",
+    "Infinity"
+   ],
+   [
+    "D",
+    2
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 2,
+    "groups": 2,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "top_n_with_other",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "top_n": {
+     "n": 2,
+     "other": true
+    }
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 3,
+    "groups": 3,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "top_n_without_other",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "top_n": {
+     "n": 2,
+     "other": false
+    }
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 2,
+    "groups": 2,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "filter_eq_text",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "filter": [
+     {
+      "field": "ten_thanh_pho",
+      "op": "eq",
+      "value": "Hue"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 1,
+    "groups": 1,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "filter_ne_keeps_null",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "filter": [
+     {
+      "field": "ten_thanh_pho",
+      "op": "ne",
+      "value": "Hue"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 4,
+    "groups": 4,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "filter_in",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "filter": [
+     {
+      "field": "ten_thanh_pho",
+      "op": "in",
+      "value": [
+       "Hue",
+       "Ha Noi",
+       "Sa Pa"
+      ]
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 2,
+    "groups": 2,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "filter_not_in",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "filter": [
+     {
+      "field": "ten_thanh_pho",
+      "op": "not_in",
+      "value": [
+       "Hue"
+      ]
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 4,
+    "groups": 4,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "filter_gt_number",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "filter": [
+     {
+      "field": "luong_mua",
+      "op": "gt",
+      "value": 3.2
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 2,
+    "groups": 2,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "filter_gte_number",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "filter": [
+     {
+      "field": "luong_mua",
+      "op": "gte",
+      "value": 3.2
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 3,
+    "groups": 3,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "filter_lt_number",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "filter": [
+     {
+      "field": "luong_mua",
+      "op": "lt",
+      "value": 3.2
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 2,
+    "groups": 2,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "filter_lte_number",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "filter": [
+     {
+      "field": "luong_mua",
+      "op": "lte",
+      "value": 3.2
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 3,
+    "groups": 3,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "filter_gte_date",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "line",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ],
+    "series": {
+     "field": "thanh_pho"
+    }
+   },
+   "transform": {
+    "filter": [
+     {
+      "field": "ngay",
+      "op": "gte",
+      "value": "2026-11-14"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 4,
+    "groups": 2,
+    "series": 2,
+    "dropped_null": 1
+   }
+  }
+ },
+ {
+  "name": "aggregate_auto_sum_on_duplicates",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 3,
+    "groups": 3,
+    "series": 1,
+    "dropped_null": 1
+   }
+  }
+ },
+ {
+  "name": "aggregate_auto_avg_non_additive",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "line",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "nhiet_do"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 3,
+    "groups": 3,
+    "series": 1,
+    "dropped_null": 1
+   }
+  }
+ },
+ {
+  "name": "aggregate_none_with_duplicates",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "luong_mua",
+      "aggregate": "none"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": false,
+   "errors": [
+    "encoding.y[0].aggregate",
+    "lặp giá trị"
+   ]
+  }
+ },
+ {
+  "name": "temporal_x_null_dropped",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "line",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ],
+    "series": {
+     "field": "thanh_pho"
+    }
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 6,
+    "groups": 3,
+    "series": 2,
+    "dropped_null": 1
+   }
+  }
+ },
+ {
+  "name": "long_to_wide_series",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "bar_grouped",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ],
+    "series": {
+     "field": "thanh_pho"
+    }
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 6,
+    "groups": 3,
+    "series": 2,
+    "dropped_null": 1
+   }
+  }
+ },
+ {
+  "name": "index_to_first_ok",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "line",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "nhiet_do"
+     }
+    ],
+    "series": {
+     "field": "thanh_pho"
+    }
+   },
+   "transform": {
+    "index_to": "first"
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 6,
+    "groups": 3,
+    "series": 2,
+    "dropped_null": 1
+   }
+  }
+ },
+ {
+  "name": "index_to_first_zero",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "line",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ],
+    "series": {
+     "field": "thanh_pho"
+    }
+   },
+   "transform": {
+    "index_to": "first"
+   }
+  },
+  "expect": {
+   "valid": false,
+   "errors": [
+    "transform.index_to",
+    "bằng 0"
+   ]
+  }
+ },
+ {
+  "name": "cumulative_additive",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "line",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "cumulative": true
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 3,
+    "groups": 3,
+    "series": 1,
+    "dropped_null": 1
+   }
+  }
+ },
+ {
+  "name": "cumulative_non_additive",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "line",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "nhiet_do"
+     }
+    ]
+   },
+   "transform": {
+    "cumulative": true
+   }
+  },
+  "expect": {
+   "valid": false,
+   "errors": [
+    "transform.cumulative",
+    "không cộng dồn được"
+   ]
+  }
+ },
+ {
+  "name": "waterfall_sign_change",
+  "fields": [
+   {
+    "name": "buoc",
+    "label": "Bước",
+    "type": "text"
+   },
+   {
+    "name": "bien_dong",
+    "label": "Biến động",
+    "type": "number",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Đầu kỳ",
+    10
+   ],
+   [
+    "Giảm",
+    -25
+   ],
+   [
+    "Tăng",
+    8
+   ],
+   [
+    "Giảm thêm",
+    -3
+   ]
+  ],
+  "spec": {
+   "type": "waterfall",
+   "encoding": {
+    "x": {
+     "field": "buoc"
+    },
+    "y": [
+     {
+      "field": "bien_dong"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 4,
+    "groups": 4,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "histogram_bins",
+  "fields": [
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure"
+   },
+   {
+    "name": "do_am",
+    "label": "Độ ẩm",
+    "type": "number",
+    "unit": "%",
+    "role": "measure"
+   },
+   {
+    "name": "ten",
+    "label": "Tên",
+    "type": "text"
+   }
+  ],
+  "rows": [
+   [
+    0,
+    0,
+    "t0"
+   ],
+   [
+    1,
+    2,
+    "t1"
+   ],
+   [
+    2,
+    4,
+    "t2"
+   ],
+   [
+    3,
+    6,
+    "t3"
+   ],
+   [
+    4,
+    8,
+    "t4"
+   ],
+   [
+    5,
+    10,
+    "t5"
+   ],
+   [
+    6,
+    12,
+    "t6"
+   ],
+   [
+    7,
+    14,
+    "t7"
+   ],
+   [
+    8,
+    16,
+    "t8"
+   ],
+   [
+    9,
+    18,
+    "t9"
+   ],
+   [
+    10,
+    20,
+    "t10"
+   ],
+   [
+    11,
+    22,
+    "t11"
+   ]
+  ],
+  "spec": {
+   "type": "histogram",
+   "encoding": {
+    "x": {
+     "field": "nhiet_do"
+    }
+   },
+   "options": {
+    "bins": 5
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 12,
+    "groups": 0,
+    "series": 0,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "histogram_too_few",
+  "fields": [
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure"
+   },
+   {
+    "name": "do_am",
+    "label": "Độ ẩm",
+    "type": "number",
+    "unit": "%",
+    "role": "measure"
+   },
+   {
+    "name": "ten",
+    "label": "Tên",
+    "type": "text"
+   }
+  ],
+  "rows": [
+   [
+    20,
+    80,
+    "a"
+   ],
+   [
+    22,
+    75,
+    "b"
+   ],
+   [
+    25,
+    70,
+    "c"
+   ],
+   [
+    27,
+    66,
+    "d"
+   ],
+   [
+    30,
+    60,
+    "e"
+   ],
+   [
+    31,
+    "NaN",
+    "f"
+   ]
+  ],
+  "spec": {
+   "type": "histogram",
+   "encoding": {
+    "x": {
+     "field": "nhiet_do"
+    }
+   }
+  },
+  "expect": {
+   "valid": false,
+   "errors": [
+    "histogram: cần ít nhất 10 giá trị số"
+   ]
+  }
+ },
+ {
+  "name": "pie_too_many_slices",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "T0",
+    1
+   ],
+   [
+    "T1",
+    2
+   ],
+   [
+    "T2",
+    3
+   ],
+   [
+    "T3",
+    4
+   ],
+   [
+    "T4",
+    5
+   ],
+   [
+    "T5",
+    6
+   ],
+   [
+    "T6",
+    7
+   ],
+   [
+    "T7",
+    8
+   ]
+  ],
+  "spec": {
+   "type": "pie",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": false,
+   "errors": [
+    "tối đa 6 lát",
+    "transform.top_n"
+   ]
+  }
+ },
+ {
+  "name": "pie_top_n_other",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "T0",
+    1
+   ],
+   [
+    "T1",
+    2
+   ],
+   [
+    "T2",
+    3
+   ],
+   [
+    "T3",
+    4
+   ],
+   [
+    "T4",
+    5
+   ],
+   [
+    "T5",
+    6
+   ],
+   [
+    "T6",
+    7
+   ],
+   [
+    "T7",
+    8
+   ]
+  ],
+  "spec": {
+   "type": "pie",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "top_n": {
+     "n": 5,
+     "other": true
+    }
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 6,
+    "groups": 6,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "pie_negative",
+  "fields": [
+   {
+    "name": "buoc",
+    "label": "Bước",
+    "type": "text"
+   },
+   {
+    "name": "bien_dong",
+    "label": "Biến động",
+    "type": "number",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "A",
+    5
+   ],
+   [
+    "B",
+    -2
+   ],
+   [
+    "C",
+    4
+   ]
+  ],
+  "spec": {
+   "type": "pie",
+   "encoding": {
+    "x": {
+     "field": "buoc"
+    },
+    "y": [
+     {
+      "field": "bien_dong"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": false,
+   "errors": [
+    "có giá trị âm"
+   ]
+  }
+ },
+ {
+  "name": "scatter_drops_nan_row",
+  "fields": [
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure"
+   },
+   {
+    "name": "do_am",
+    "label": "Độ ẩm",
+    "type": "number",
+    "unit": "%",
+    "role": "measure"
+   },
+   {
+    "name": "ten",
+    "label": "Tên",
+    "type": "text"
+   }
+  ],
+  "rows": [
+   [
+    20,
+    80,
+    "a"
+   ],
+   [
+    22,
+    75,
+    "b"
+   ],
+   [
+    25,
+    70,
+    "c"
+   ],
+   [
+    27,
+    66,
+    "d"
+   ],
+   [
+    30,
+    60,
+    "e"
+   ],
+   [
+    31,
+    "NaN",
+    "f"
+   ]
+  ],
+  "spec": {
+   "type": "scatter",
+   "encoding": {
+    "x": {
+     "field": "nhiet_do"
+    },
+    "y": [
+     {
+      "field": "do_am"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 5,
+    "groups": 0,
+    "series": 0,
+    "dropped_null": 1
+   }
+  }
+ },
+ {
+  "name": "scatter_too_few_points",
+  "fields": [
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure"
+   },
+   {
+    "name": "do_am",
+    "label": "Độ ẩm",
+    "type": "number",
+    "unit": "%",
+    "role": "measure"
+   },
+   {
+    "name": "ten",
+    "label": "Tên",
+    "type": "text"
+   }
+  ],
+  "rows": [
+   [
+    20,
+    80,
+    "a"
+   ],
+   [
+    22,
+    75,
+    "b"
+   ],
+   [
+    25,
+    70,
+    "c"
+   ],
+   [
+    27,
+    66,
+    "d"
+   ]
+  ],
+  "spec": {
+   "type": "scatter",
+   "encoding": {
+    "x": {
+     "field": "nhiet_do"
+    },
+    "y": [
+     {
+      "field": "do_am"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": false,
+   "errors": [
+    "scatter: cần ít nhất 5 điểm"
+   ]
+  }
+ },
+ {
+  "name": "sankey_ok",
+  "fields": [
+   {
+    "name": "nguon",
+    "label": "Nguồn",
+    "type": "text"
+   },
+   {
+    "name": "dich",
+    "label": "Đích",
+    "type": "text"
+   },
+   {
+    "name": "so_luong",
+    "label": "Số lượng",
+    "type": "number",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "A",
+    "B",
+    3
+   ],
+   [
+    "A",
+    "C",
+    2
+   ],
+   [
+    "B",
+    "D",
+    1
+   ]
+  ],
+  "spec": {
+   "type": "sankey",
+   "encoding": {
+    "source": {
+     "field": "nguon"
+    },
+    "target": {
+     "field": "dich"
+    },
+    "y": [
+     {
+      "field": "so_luong"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 3,
+    "groups": 3,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "sankey_cycle",
+  "fields": [
+   {
+    "name": "nguon",
+    "label": "Nguồn",
+    "type": "text"
+   },
+   {
+    "name": "dich",
+    "label": "Đích",
+    "type": "text"
+   },
+   {
+    "name": "so_luong",
+    "label": "Số lượng",
+    "type": "number",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "A",
+    "B",
+    3
+   ],
+   [
+    "B",
+    "A",
+    2
+   ]
+  ],
+  "spec": {
+   "type": "sankey",
+   "encoding": {
+    "source": {
+     "field": "nguon"
+    },
+    "target": {
+     "field": "dich"
+    },
+    "y": [
+     {
+      "field": "so_luong"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": false,
+   "errors": [
+    "sankey: có vòng"
+   ]
+  }
+ },
+ {
+  "name": "heatmap_grid",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "heatmap",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "row": {
+     "field": "thanh_pho"
+    },
+    "color": {
+     "field": "nhiet_do"
+    }
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 6,
+    "groups": 3,
+    "series": 0,
+    "dropped_null": 1
+   }
+  }
+ },
+ {
+  "name": "kpi_single_row",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Hue",
+    8.6
+   ]
+  ],
+  "spec": {
+   "type": "kpi",
+   "encoding": {
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 1,
+    "groups": 0,
+    "series": 0,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "kpi_many_rows",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "kpi",
+   "encoding": {
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": false,
+   "errors": [
+    "kpi: cần đúng 1 dòng"
+   ]
+  }
+ },
+ {
+  "name": "limit_keeps_first_groups",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "limit": 2
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 2,
+    "groups": 2,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "sort_x_asc_then_limit",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "sort": {
+     "by": "x",
+     "order": "asc"
+    },
+    "limit": 3
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 3,
+    "groups": 3,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "sort_y_desc_top_n",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   },
+   "transform": {
+    "sort": {
+     "by": "y",
+     "order": "desc"
+    },
+    "top_n": {
+     "n": 3,
+     "other": true
+    }
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 4,
+    "groups": 4,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "time_unit_month_bucket",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ngay",
+     "time_unit": "month"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 1,
+    "groups": 1,
+    "series": 1,
+    "dropped_null": 1
+   }
+  }
+ },
+ {
+  "name": "combo_units_differ",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "combo",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "luong_mua",
+      "mark": "bar"
+     },
+     {
+      "field": "nhiet_do",
+      "mark": "line"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": false,
+   "errors": [
+    "combo: các số đo khác đơn vị"
+   ]
+  }
+ },
+ {
+  "name": "combo_index_to",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ]
+  ],
+  "spec": {
+   "type": "combo",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "luong_mua",
+      "mark": "bar"
+     },
+     {
+      "field": "nhiet_do",
+      "mark": "line"
+     }
+    ]
+   },
+   "transform": {
+    "index_to": "first"
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 3,
+    "groups": 3,
+    "series": 2,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "count_on_text",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "thanh_pho"
+    },
+    "y": [
+     {
+      "field": "ngay",
+      "aggregate": "count"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 2,
+    "groups": 2,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "count_distinct_on_text",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "thanh_pho",
+      "aggregate": "count_distinct"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 3,
+    "groups": 3,
+    "series": 1,
+    "dropped_null": 1
+   }
+  }
+ },
+ {
+  "name": "sum_on_text_rejected",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ],
+   [
+    null,
+    "Hue",
+    3,
+    22.0
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "thanh_pho",
+      "aggregate": "sum"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": false,
+   "errors": [
+    "encoding.y[0].aggregate: sum cần cột số"
+   ]
+  }
+ },
+ {
+  "name": "number_dimension_as_category",
+  "fields": [
+   {
+    "name": "nam",
+    "label": "Năm",
+    "type": "number",
+    "format_hint": "plain"
+   },
+   {
+    "name": "so_ngay_mua",
+    "label": "Số ngày mưa",
+    "type": "number",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    2025,
+    120
+   ],
+   [
+    2026,
+    98
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "nam"
+    },
+    "y": [
+     {
+      "field": "so_ngay_mua"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 2,
+    "groups": 2,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "boolean_category",
+  "fields": [
+   {
+    "name": "co_mua",
+    "label": "Có mưa",
+    "type": "boolean"
+   },
+   {
+    "name": "so_ngay",
+    "label": "Số ngày",
+    "type": "number",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    true,
+    4
+   ],
+   [
+    false,
+    3
+   ],
+   [
+    null,
+    1
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "co_mua"
+    },
+    "y": [
+     {
+      "field": "so_ngay"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 3,
+    "groups": 3,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "datetime_day_bucket",
+  "fields": [
+   {
+    "name": "thoi_diem",
+    "label": "Thời điểm",
+    "type": "datetime"
+   },
+   {
+    "name": "gio_giat",
+    "label": "Gió giật",
+    "type": "number",
+    "unit": "km/h",
+    "role": "measure"
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-19T01:00:00+07:00",
+    30
+   ],
+   [
+    "2026-11-19T13:00:00+07:00",
+    42
+   ],
+   [
+    "2026-11-20T02:00:00+07:00",
+    35
+   ]
+  ],
+  "spec": {
+   "type": "line",
+   "encoding": {
+    "x": {
+     "field": "thoi_diem",
+     "time_unit": "day"
+    },
+    "y": [
+     {
+      "field": "gio_giat",
+      "aggregate": "max"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 2,
+    "groups": 2,
+    "series": 1,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "table_always_valid",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "table"
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 5,
+    "groups": 0,
+    "series": 0,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "dumbbell_two_series",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    24.5
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    22.0
+   ],
+   [
+    "2026-11-14",
+    "Hue",
+    12.5,
+    23.0
+   ],
+   [
+    "2026-11-14",
+    "Vinh",
+    2,
+    21.5
+   ],
+   [
+    "2026-11-15",
+    "Hue",
+    0,
+    25.0
+   ],
+   [
+    "2026-11-15",
+    "Vinh",
+    7.5,
+    20.5
+   ]
+  ],
+  "spec": {
+   "type": "dumbbell",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ],
+    "series": {
+     "field": "thanh_pho"
+    }
+   }
+  },
+  "expect": {
+   "valid": false,
+   "errors": [
+    "encoding.x: dumbbell cần cột văn bản"
+   ]
+  }
+ },
+ {
+  "name": "bar_grouped_too_many_series",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "T0",
+    0,
+    20
+   ],
+   [
+    "2026-11-13",
+    "T1",
+    1,
+    20
+   ],
+   [
+    "2026-11-13",
+    "T2",
+    2,
+    20
+   ],
+   [
+    "2026-11-13",
+    "T3",
+    3,
+    20
+   ],
+   [
+    "2026-11-13",
+    "T4",
+    4,
+    20
+   ],
+   [
+    "2026-11-13",
+    "T5",
+    5,
+    20
+   ],
+   [
+    "2026-11-13",
+    "T6",
+    6,
+    20
+   ],
+   [
+    "2026-11-13",
+    "T7",
+    7,
+    20
+   ],
+   [
+    "2026-11-13",
+    "T8",
+    8,
+    20
+   ],
+   [
+    "2026-11-13",
+    "T9",
+    9,
+    20
+   ]
+  ],
+  "spec": {
+   "type": "bar_grouped",
+   "encoding": {
+    "x": {
+     "field": "ngay"
+    },
+    "y": [
+     {
+      "field": "luong_mua"
+     }
+    ],
+    "series": {
+     "field": "thanh_pho"
+    }
+   }
+  },
+  "expect": {
+   "valid": false,
+   "errors": [
+    "encoding.series có 10 giá trị, tối đa 8"
+   ]
+  }
+ },
+ {
+  "name": "box_plot_groups",
+  "fields": [
+   {
+    "name": "ngay",
+    "label": "Ngày",
+    "type": "date"
+   },
+   {
+    "name": "thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   },
+   {
+    "name": "nhiet_do",
+    "label": "Nhiệt độ",
+    "type": "number",
+    "unit": "°C",
+    "role": "measure",
+    "additive": false
+   }
+  ],
+  "rows": [
+   [
+    "2026-11-13",
+    "Vinh",
+    0,
+    20
+   ],
+   [
+    "2026-11-13",
+    "Hue",
+    1,
+    21
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    2,
+    22
+   ],
+   [
+    "2026-11-13",
+    "Hue",
+    3,
+    23
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    4,
+    24
+   ],
+   [
+    "2026-11-13",
+    "Hue",
+    5,
+    25
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    6,
+    26
+   ],
+   [
+    "2026-11-13",
+    "Hue",
+    7,
+    27
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    8,
+    28
+   ],
+   [
+    "2026-11-13",
+    "Hue",
+    9,
+    29
+   ],
+   [
+    "2026-11-13",
+    "Vinh",
+    10,
+    30
+   ],
+   [
+    "2026-11-13",
+    "Hue",
+    11,
+    31
+   ]
+  ],
+  "spec": {
+   "type": "box_plot",
+   "encoding": {
+    "x": {
+     "field": "thanh_pho"
+    },
+    "y": [
+     {
+      "field": "nhiet_do"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": true,
+   "errors": [],
+   "stats": {
+    "points": 12,
+    "groups": 2,
+    "series": 0,
+    "dropped_null": 0
+   }
+  }
+ },
+ {
+  "name": "unknown_column",
+  "fields": [
+   {
+    "name": "ten_thanh_pho",
+    "label": "Thành phố",
+    "type": "text"
+   },
+   {
+    "name": "luong_mua",
+    "label": "Lượng mưa",
+    "type": "number",
+    "unit": "mm",
+    "role": "measure",
+    "additive": true
+   }
+  ],
+  "rows": [
+   [
+    "Phu Quoc",
+    46.9
+   ],
+   [
+    "Hue",
+    8.6
+   ],
+   [
+    "Ha Noi",
+    3.2
+   ],
+   [
+    "Da Nang",
+    0
+   ],
+   [
+    null,
+    1.5
+   ]
+  ],
+  "spec": {
+   "type": "bar",
+   "encoding": {
+    "x": {
+     "field": "ten_thanh_pho"
+    },
+    "y": [
+     {
+      "field": "luong"
+     }
+    ]
+   }
+  },
+  "expect": {
+   "valid": false,
+   "errors": [
+    "encoding.y[0].field: không có cột 'luong'"
+   ]
+  }
+ }
+]
