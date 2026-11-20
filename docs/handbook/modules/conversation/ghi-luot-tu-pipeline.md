@@ -53,7 +53,7 @@ Từ khi gỡ presidio (2026-11-19), route chat **không che PII**: dòng trong 
 
 ## Lịch sử gần đây
 
-`recent_history` trả tối đa `limit` lượt gần nhất theo thứ tự thời gian, gồm lượt `answered`, `needs_clarification`, `cannot_answer`, `join_ambiguous`, `join_not_declared` (bỏ `running` và `error`); mỗi `HistoryTurn` có `question`, `rewritten_question`, `answer` cắt tối đa 500 ký tự (thêm `…`), `status` và `clarification_question`. Route chat đưa danh sách này (6 lượt) vào task `rewrite` thay cho `chat_history` client gửi.
+`recent_history` trả tối đa `limit` lượt gần nhất theo thứ tự thời gian, gồm lượt `answered`, `needs_clarification`, `cannot_answer`, `join_ambiguous`, `join_not_declared` (bỏ `running` và `error`); mỗi `HistoryTurn` chỉ có `question` và `answer` (câu trả lời cuối cùng, lượt `needs_clarification` là câu hỏi lại) cắt tối đa 500 ký tự (thêm `…`). Route chat đưa danh sách này (6 lượt) vào task `rewrite` thay cho `chat_history` client gửi.
 
 ## Trạng thái tiếp tục
 

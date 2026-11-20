@@ -93,10 +93,7 @@ class RetrieveOut(BaseModel):
 
 class ChatHistoryTurnIn(BaseModel):
     question: str = Field(min_length=1, max_length=10000)
-    rewritten_question: str | None = None
     answer: str | None = None
-    status: str = "answered"
-    clarification_question: str | None = None
 
 
 class ChatIn(BaseModel):

@@ -9,7 +9,7 @@ from sqlalchemy.pool import StaticPool
 
 from backend.common.base_model import Base
 from backend.modules.conversation.models import ConversationTurn, ConversationTurnFeedback
-from backend.modules.conversation.services import ConversationService, title_from_question
+from backend.modules.conversation.services import ConversationService, HistoryTurn, title_from_question
 from backend.modules.conversation.utils.exceptions import (
     ConversationConnectionNotFoundError,
     ConversationNotFoundError,
@@ -107,9 +107,7 @@ class ConversationServiceTests(unittest.TestCase):
                 self.finish(turn, status, ("chữ " * 400) if index == 6 else f"Đáp {index}")
         history = self.service.recent_history(conversation.id)
         self.assertEqual([item.question for item in history], ["Câu 1", "Câu 3", "Câu 4", "Câu 6"])
-        self.assertEqual([item.status for item in history],
-                         ["answered", "needs_clarification", "cannot_answer", "answered"])
-        self.assertEqual(history[0].rewritten_question, "Viết lại")
+        self.assertEqual(history[1], HistoryTurn(question="Câu 3", answer="Đáp 3"))
         self.assertLessEqual(len(history[-1].answer), 501)
         self.assertTrue(history[-1].answer.endswith("…"))
         self.assertEqual([item.question for item in self.service.recent_history(conversation.id, limit=2)],

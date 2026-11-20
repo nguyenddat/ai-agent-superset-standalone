@@ -46,20 +46,23 @@ hỏi đơn nếu cần. Không trả lời, không tính toán, không chọn c
 
 Đầu vào là JSON gồm:
 - question: câu hỏi hiện tại của người dùng.
-- chat_history: các lượt trước, cũ đến mới; mỗi lượt có question, rewritten_question, answer (có thể bị cắt ngắn),
-  status và clarification_question (câu hệ thống đã hỏi lại, nếu có). Có thể rỗng.
+- chat_history: các lượt trước, cũ đến mới; mỗi lượt có question (câu người dùng hỏi) và answer (câu trả lời cuối
+  cùng của hệ thống, có thể bị cắt ngắn; có thể là câu hệ thống hỏi lại người dùng). Có thể rỗng.
 
 # VIẾT LẠI (rewritten_question)
 1. Thay đại từ và phần bị lược ("ở đó", "còn Hải Phòng?", "thế còn độ ẩm?", "3 ngày qua thì sao?") bằng chỉ số, thực
-   thể, mốc thời gian cụ thể lấy từ lượt trước. Ưu tiên rewritten_question của lượt trước; thực thể chỉ có trong
-   câu trả lời ("thành phố đó") thì lấy từ answer.
-2. Lượt trước có status needs_clarification thì câu hiện tại thường là câu trả lời cho clarification_question: ghép
-   vào câu hỏi của lượt đó thành một câu hoàn chỉnh.
-3. Câu hiện tại đã đủ ý hoặc chuyển sang chủ đề mới thì giữ nguyên ý, không kéo thông tin từ lịch sử vào.
+   thể, mốc thời gian cụ thể lấy từ question và answer của lượt trước; thực thể chỉ có trong câu trả lời ("thành
+   phố đó") thì lấy từ answer.
+2. answer của lượt trước là câu hệ thống hỏi lại thì câu hiện tại thường là câu trả lời cho câu đó: ghép vào question
+   của lượt đó thành một câu hoàn chỉnh.
+3. Câu hiện tại hỏi tiếp mà không nêu thực thể hoặc mốc thời gian ("mưa lớn nhất lúc mấy giờ?", "nhiệt độ cao nhất
+   bao nhiêu?") thì vẫn là câu nối tiếp dù không có đại từ: lấy thực thể và mốc thời gian còn thiếu từ lượt gần nhất.
+   Câu đã tự nêu đủ thực thể và mốc thời gian, hoặc rõ ràng chuyển sang chủ đề khác, thì giữ nguyên ý, không kéo
+   thông tin từ lịch sử vào.
 4. Giữ nguyên tên riêng, con số, đơn vị và cách nói thời gian ("hôm qua", "tuần trước") như người dùng viết, hoặc như
    trong lịch sử nếu lấy từ đó. Không thêm hay bỏ dấu, không đổi "hôm qua" thành ngày cụ thể.
-5. Không thêm thông tin người dùng chưa nói: không tự chọn mốc thời gian, thực thể hay chỉ số mặc định. Câu thiếu
-   thông tin thì để thiếu.
+5. Không bịa thông tin không có trong câu hiện tại lẫn lịch sử: không tự chọn mốc thời gian, thực thể hay chỉ số
+   mặc định. Cả lịch sử cũng không có thì để thiếu.
 
 # TÁCH CÂU (sub_questions)
 1. Tách khi câu có từ hai yêu cầu độc lập trở lên:

@@ -20,12 +20,11 @@ const CONVERSATIONS = "/api/v1/conversations"
 // Without userId nothing is recorded; conversationId adds the turn to that conversation; resumeId continues the
 // turn that paused with a clarification question, and `question` is then the user's reply. chatHistory is only read
 // without userId, when the server has no recorded turns to rewrite a follow-up question from.
+// A past turn as the rewrite step sees it: the question and the bot's final reply (its clarification question
+// when it asked one back).
 export type ChatHistoryTurn = {
   question: string
-  rewritten_question: string | null
   answer: string | null
-  status: string
-  clarification_question: string | null
 }
 
 export type ChatRequest = {

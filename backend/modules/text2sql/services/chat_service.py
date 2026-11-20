@@ -455,9 +455,7 @@ class ChatService:
     def _history(self, chat_history: History) -> list[HistoryTurn]:
         return [
             turn if isinstance(turn, HistoryTurn) else HistoryTurn(
-                question=turn.question, rewritten_question=turn.rewritten_question,
-                answer=clip(turn.answer, HISTORY_ANSWER_LENGTH) if turn.answer else None,
-                status=turn.status, clarification_question=turn.clarification_question,
+                question=turn.question, answer=clip(turn.answer, HISTORY_ANSWER_LENGTH) if turn.answer else None,
             )
             for turn in list(chat_history)[-HISTORY_LIMIT:]
         ]

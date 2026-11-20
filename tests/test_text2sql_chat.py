@@ -400,7 +400,7 @@ class ChatPersistenceTests(unittest.TestCase):
 
     def test_existing_conversation_loads_history_from_stored_turns(self) -> None:
         owned = SimpleNamespace(id=uuid4(), connection_id=CONNECTION_ID, user_id="user-1")
-        stored = [HistoryTurn(question="câu đã lưu", rewritten_question=None, answer="đáp án cũ")]
+        stored = [HistoryTurn(question="câu đã lưu", answer="đáp án cũ")]
         completion = FakeCompletion(rewrite=SINGLE_REWRITE)
         service, _, conversations = persisted_service(completion, owned, stored)
         result = service.chat(

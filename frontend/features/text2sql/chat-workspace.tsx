@@ -142,7 +142,7 @@ export function ChatWorkspace() {
                   <MarkerIcon>
                     <InfoIcon />
                   </MarkerIcon>
-                  <MarkerContent>Chưa đặt người dùng nên AI không nhớ các câu trước và cuộc trò chuyện không được lưu</MarkerContent>
+                  <MarkerContent>Chưa đặt người dùng nên cuộc trò chuyện không được lưu; AI chỉ nhớ các câu đang hiện trên màn hình</MarkerContent>
                 </Marker>
               </MessageScrollerItem>
             )}

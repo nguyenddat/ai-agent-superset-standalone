@@ -49,10 +49,7 @@ FAILED_TURN_MESSAGE = "AI Agent không hoàn tất được câu trả lời."
 @dataclass(frozen=True)
 class HistoryTurn:
     question: str
-    rewritten_question: str | None
     answer: str | None
-    status: str = "answered"
-    clarification_question: str | None = None
 
 
 def shorten(text: str, limit: int) -> str:
@@ -299,9 +296,7 @@ class ConversationService:
             return []
         return [
             HistoryTurn(
-                question=turn.question, rewritten_question=turn.rewritten_question,
-                answer=clip(turn.answer, HISTORY_ANSWER_LENGTH) if turn.answer else None,
-                status=turn.status, clarification_question=turn.clarification_question,
+                question=turn.question, answer=clip(turn.answer, HISTORY_ANSWER_LENGTH) if turn.answer else None,
             )
             for turn in self.repository.recent_turns(conversation_id, HISTORY_STATUSES, limit)
         ]

@@ -21,7 +21,7 @@ Luồng thiết kế đầy đủ nằm ở mục 7 của [taxonomy câu hỏi](
 - `user_id`: tùy chọn. Có `user_id` thì tìm tri thức riêng của người dùng và **ghi lượt** vào `conversation` (mục dưới).
 - `conversation_id`: tùy chọn; chỉ hợp lệ khi có `user_id` (thiếu thì 422). Bỏ trống thì mỗi request có `user_id` mở một hội thoại mới; muốn hỏi tiếp trong cùng hội thoại thì gửi lại `conversation_id` của response trước.
 - `resume_id`: tùy chọn; gửi `resume_id` của response `needs_clarification` trước đó để **chạy tiếp** lượt đang chờ, khi đó `question` là câu trả lời của người dùng cho câu hỏi lại (mục [Hỏi lại và chạy tiếp](#hỏi-lại-và-chạy-tiếp)). Lượt thuộc hội thoại thì phải gửi kèm đúng `user_id` và `conversation_id`.
-- `chat_history`: tối đa 50 lượt, cũ đến mới, cùng năm trường như `HistoryTurn` của `conversation`. **Chỉ dùng khi không có `user_id`** (chế độ không lưu, ví dụ benchmark): service gửi 6 lượt cuối cho LLM và cắt `answer` còn 500 ký tự. Có `user_id` thì `chat_history` bị bỏ qua: lịch sử lấy từ các lượt đã lưu của hội thoại (`recent_history`, 6 lượt), hội thoại mới thì rỗng. Client không sửa được lịch sử mà LLM thấy.
+- `chat_history`: tối đa 50 lượt, cũ đến mới, mỗi lượt có `question` và `answer` (câu trả lời cuối cùng của bot, lượt hỏi lại thì là câu hỏi lại) như `HistoryTurn` của `conversation`; trường khác bị bỏ qua. **Chỉ dùng khi không có `user_id`** (chế độ không lưu, ví dụ benchmark): service gửi 6 lượt cuối cho LLM và cắt `answer` còn 500 ký tự. Có `user_id` thì `chat_history` bị bỏ qua: lịch sử lấy từ các lượt đã lưu của hội thoại (`recent_history`, 6 lượt), hội thoại mới thì rỗng. Client không sửa được lịch sử mà LLM thấy.
 
 ## Ghi lượt vào `conversation`
 
