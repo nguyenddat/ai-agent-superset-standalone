@@ -24,7 +24,7 @@ Mọi thao tác đều nhận `user_id`. Hội thoại của người khác đư
 
 ## Giới hạn
 
-- Dịch vụ không tự che PII; `results` lưu đúng dữ liệu route chat đã gửi cho client. Route chat hiện **không che PII** (presidio đã gỡ), nên dòng lưu là dữ liệu thô; xem [ghi lượt từ pipeline](ghi-luot-tu-pipeline.md#dữ-liệu-và-pii).
+- Dịch vụ không tự che PII; `results` lưu đúng dữ liệu route chat đã gửi cho client. route chat chỉ che dữ liệu cá nhân (Presidio) ở phần gửi LLM, nên dòng lưu là giá trị thật; xem [ghi lượt từ pipeline](ghi-luot-tu-pipeline.md#dữ-liệu-và-pii).
 - Mỗi truy vấn trong `results` chỉ giữ tối đa `CONVERSATION_MAX_STORED_ROWS` dòng (mặc định 200); khi cắt, mục đó có `stored_truncated: true`.
 - `error_message` và `continuation` là dữ liệu nội bộ; API không trả hai trường này (trả `error_code` và thông điệp chung `error`).
 - `recent_history` cung cấp lịch sử gọn (câu hỏi và câu trả lời cuối cùng rút gọn 500 ký tự; lượt hỏi lại thì là câu hỏi lại) cho bước viết lại câu hỏi của pipeline chat; không bao giờ chứa dòng dữ liệu.

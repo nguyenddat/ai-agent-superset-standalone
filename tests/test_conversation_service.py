@@ -114,6 +114,16 @@ class ConversationServiceTests(unittest.TestCase):
                          ["Câu 4", "Câu 6"])
         self.assertEqual(self.service.recent_history(conversation.id, limit=0), [])
 
+    def test_recent_history_uses_the_masked_answer_when_stored(self) -> None:
+        conversation = self.service.start(self.connection_id, "alice", "Câu 1")
+        turn = self.service.begin_turn(conversation, "Ai mua nhiều nhất?")
+        self.service.complete_turn(
+            turn, status="answered", answer="Nguyễn Văn An mua nhiều nhất",
+            pii={"history_answer": "<PII> mua nhiều nhất"},
+        )
+        history = self.service.recent_history(conversation.id)
+        self.assertEqual(history, [HistoryTurn(question="Ai mua nhiều nhất?", answer="<PII> mua nhiều nhất")])
+
     def test_ownership_and_missing_connection(self) -> None:
         conversation = self.service.start(self.connection_id, "alice", "Câu hỏi")
         with self.assertRaises(ConversationNotFoundError):

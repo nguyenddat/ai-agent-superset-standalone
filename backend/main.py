@@ -1,3 +1,7 @@
+import threading
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,11 +40,18 @@ from backend.modules.own_knowledge.routes.router_own_knowledge import (
     router as own_knowledge_router,
 )
 from backend.modules.text2sql.routes import router as text2sql_router
-from backend.modules.text2sql.services import register_triggers
+from backend.modules.text2sql.services import register_triggers, warm_up_masker
 
 register_triggers()
 
-app = FastAPI(title="AI Agent Superset Standalone API", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    threading.Thread(target=warm_up_masker, name="pii-warm-up", daemon=True).start()
+    yield
+
+
+app = FastAPI(title="AI Agent Superset Standalone API", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=config.frontend_origins,

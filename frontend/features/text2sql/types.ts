@@ -111,6 +111,9 @@ export type DoneEvent = {
   resume_expires_at: string | null
   conversation_id: string | null
   turn_id: string | null
+  // The answer with personal data still behind placeholders, for the next question's history; null when it is the
+  // same as answer.
+  history_answer?: string | null
 }
 
 export type ErrorEvent = { code: string; message: string }

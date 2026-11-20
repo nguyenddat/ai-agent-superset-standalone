@@ -127,7 +127,7 @@ export function ChatWorkspace() {
         <EmptyTitle>Hỏi dữ liệu bằng tiếng Việt</EmptyTitle>
         <EmptyDescription>
           AI tách câu hỏi thành các câu đơn, dùng metric, bảng và quy tắc đã mô tả để chạy truy vấn chỉ đọc rồi giải
-          thích kết quả. Thiếu thông tin thì AI hỏi lại. Dữ liệu trả về chưa được che thông tin cá nhân.
+          thích kết quả. Thiếu thông tin thì AI hỏi lại. Thông tin cá nhân được che trước khi gửi cho AI; bạn vẫn thấy giá trị thật.
         </EmptyDescription>
       </EmptyHeader>
     </Empty>

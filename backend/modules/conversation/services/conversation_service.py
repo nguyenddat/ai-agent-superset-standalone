@@ -294,12 +294,15 @@ class ConversationService:
     def recent_history(self, conversation_id: UUID, limit: int = 6) -> list[HistoryTurn]:
         if limit < 1:
             return []
-        return [
-            HistoryTurn(
-                question=turn.question, answer=clip(turn.answer, HISTORY_ANSWER_LENGTH) if turn.answer else None,
+        history = []
+        for turn in self.repository.recent_turns(conversation_id, HISTORY_STATUSES, limit):
+            # Câu trả lời có dữ liệu cá nhân thì đưa bản còn nhãn thay thế để giá trị thật không tới LLM.
+            hidden = turn.pii.get("history_answer") if isinstance(turn.pii, dict) else None
+            answer = hidden if isinstance(hidden, str) else turn.answer
+            history.append(
+                HistoryTurn(question=turn.question, answer=clip(answer, HISTORY_ANSWER_LENGTH) if answer else None)
             )
-            for turn in self.repository.recent_turns(conversation_id, HISTORY_STATUSES, limit)
-        ]
+        return history
 
     def continuable_turn(self, conversation: Conversation, turn_id: UUID) -> ConversationTurn:
         turn = self._owned_turn(conversation, turn_id)

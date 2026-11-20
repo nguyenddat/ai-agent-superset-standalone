@@ -4,7 +4,8 @@ from typing import Any
 
 from pydantic_core import to_jsonable_python
 
-from ..schemas import AgentStepOut, ChatOut, PreprocessOut, QuestionAnswerOut
+from ..schemas import AgentStepOut, ChatOut, ExplanationOut, PreprocessOut, QuestionAnswerOut
+from .pii_masker import PiiMasker, split_placeholder_tail
 
 Emit = Callable[[str, dict[str, Any]], None]
 Event = tuple[str, dict[str, Any]]
@@ -98,4 +99,51 @@ def done_event(out: ChatOut) -> dict[str, Any]:
         "status": out.status, "answer": out.answer, "clarification_question": out.clarification_question,
         "clarification_options": out.clarification_options, "resume_id": out.resume_id,
         "resume_expires_at": out.resume_expires_at, "conversation_id": out.conversation_id, "turn_id": out.turn_id,
+        "history_answer": out.history_answer,
     }
+
+
+# Trường gửi người dùng có thể chứa nhãn thay thế, được đổi về giá trị thật; sql và arguments giữ đúng thứ đã chạy.
+UNMASKED_FIELDS = {
+    "answer": ("answer",), "question_answered": ("answer",), "question_waiting": ("question", "options"),
+    "tool": ("rows", "chart", "explanations"),
+}
+
+
+class UnmaskingEmit:
+    def __init__(self, emit: Emit, masker: PiiMasker) -> None:
+        self.emit = emit
+        self.masker = masker
+        self.held: dict[tuple[int | None, int], str] = {}
+
+    def __call__(self, event: str, data: dict[str, Any]) -> None:
+        if event == ANSWER_DELTA:
+            key = (data["position"], data["round"])
+            text, self.held[key] = split_placeholder_tail(self.held.get(key, "") + data["text"])
+            if text:
+                self.emit(event, {**data, "text": self.masker.unmask(text)})
+            return
+        if event == ANSWER_RESET:
+            self.held.pop((data["position"], data["round"]), None)
+        fields = [name for name in UNMASKED_FIELDS.get(event, ()) if name in data]
+        if fields:
+            data = {**data, **{name: self.masker.unmask_value(data[name]) for name in fields}}
+        self.emit(event, data)
+
+
+def unmasked_step(step: AgentStepOut, masker: PiiMasker) -> AgentStepOut:
+    if not masker.values:
+        return step
+    return step.model_copy(update={
+        "rows": masker.unmask_value(step.rows),
+        "chart": masker.unmask_value(step.chart),
+        "explanations": [
+            ExplanationOut.model_validate(masker.unmask_value(item.model_dump())) for item in step.explanations
+        ],
+    })
+
+
+def unmasked_answer(answer: QuestionAnswerOut, masker: PiiMasker) -> QuestionAnswerOut:
+    return answer.model_copy(update={
+        "answer": masker.unmask(answer.answer), "steps": [unmasked_step(step, masker) for step in answer.steps],
+    })

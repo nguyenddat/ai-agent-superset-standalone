@@ -12,7 +12,8 @@ backend/modules/text2sql/
 ├── repositories/  QdrantRepository, IngestionJobRepository, ChatCheckpointRepository, truy vấn chỉ đọc nguồn
 ├── services/      ingestion, trigger, retrieve, topic search, rerank, chat (graph, event, stream SSE), agent text2sql,
 │                  display_format.py (định dạng số/ngày vi-VN, fields), explanations.py (mục "Cách tính"),
-│                  answer_stream.py (gom chữ stream thành answer_delta/answer_reset)
+│                  answer_stream.py (gom chữ stream thành answer_delta/answer_reset),
+│                  pii_masker.py (che dữ liệu cá nhân trong kết quả truy vấn bằng Presidio)
 ├── schemas/       schema của route ingestion, retrieve và chat
 ├── routes/        router_ingestion.py (ingestion, retrieve), router_chat.py (chat, chat/stream),
 │                  router_chart.py (danh mục và kiểm tra biểu đồ)
