@@ -1,0 +1,214 @@
+[
+  {
+    "id": "T1-1", "type": "T1", "question": "Nhiệt độ cao nhất ở Hà Nội hôm qua là bao nhiêu?",
+    "check": "numbers",
+    "gold": ["SELECT MAX(nhiet_do_cao_nhat_c) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Ha Noi' AND ngay_key = {today} - 1"]
+  },
+  {
+    "id": "T1-2", "type": "T1", "question": "Bây giờ ở Đà Nẵng bao nhiêu độ?",
+    "check": "numbers",
+    "gold": ["SELECT nhiet_do_c FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'HIEN_TAI' AND ten_thanh_pho = 'Da Nang' ORDER BY thoi_diem_quan_sat DESC LIMIT 1"]
+  },
+  {
+    "id": "T1-3", "type": "T1", "question": "Ngày mai Hải Phòng nhiệt độ thấp nhất bao nhiêu?",
+    "check": "numbers",
+    "gold": ["SELECT MIN(nhiet_do_thap_nhat_c) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Hai Phong' AND ngay_key = {today} + 1"]
+  },
+  {
+    "id": "T2-1", "type": "T2", "question": "Tổng lượng mưa ở Huế 7 ngày qua là bao nhiêu?",
+    "check": "numbers",
+    "gold": ["SELECT SUM(tong_luong_mua_mm) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Hue' AND ngay_key >= {today} - 7 AND ngay_key < {today}"]
+  },
+  {
+    "id": "T2-2", "type": "T2", "question": "Độ ẩm trung bình ở Hà Nội tuần trước là bao nhiêu?",
+    "check": "numbers",
+    "gold": ["SELECT AVG(do_am_pct) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_GIO' AND ten_thanh_pho = 'Ha Noi' AND ngay_key >= date_trunc('week', {today})::date - 7 AND ngay_key < date_trunc('week', {today})::date"]
+  },
+  {
+    "id": "T3-1", "type": "T3", "question": "Tuần trước Đà Nẵng có mấy ngày mưa?",
+    "check": "numbers",
+    "gold": ["SELECT COUNT(*) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Da Nang' AND tong_luong_mua_mm > 0 AND ngay_key >= date_trunc('week', {today})::date - 7 AND ngay_key < date_trunc('week', {today})::date"]
+  },
+  {
+    "id": "T3-2", "type": "T3", "question": "Hiện có bao nhiêu thành phố đang được theo dõi thời tiết?",
+    "check": "numbers",
+    "gold": ["SELECT COUNT(*) FROM public.dm_thanh_pho WHERE hoat_dong"]
+  },
+  {
+    "id": "T4-1", "type": "T4", "question": "Hôm qua Hà Nội có mưa không?",
+    "check": "bool",
+    "gold": ["SELECT COALESCE(SUM(tong_luong_mua_mm), 0) > 0 FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Ha Noi' AND ngay_key = {today} - 1"]
+  },
+  {
+    "id": "T4-2", "type": "T4", "question": "Hôm qua TP.HCM có nóng trên 33 độ không?",
+    "check": "bool",
+    "gold": ["SELECT MAX(nhiet_do_cao_nhat_c) > 33 FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Ho Chi Minh' AND ngay_key = {today} - 1"]
+  },
+  {
+    "id": "T5-1", "type": "T5", "question": "Những thành phố nào có mưa hôm qua?",
+    "check": "entities",
+    "gold": ["SELECT ten_thanh_pho FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ngay_key = {today} - 1 AND tong_luong_mua_mm > 0 ORDER BY 1"]
+  },
+  {
+    "id": "T5-2", "type": "T5", "question": "Thành phố miền Bắc nào không có mưa hôm qua?",
+    "check": "entities",
+    "gold": ["SELECT f.ten_thanh_pho FROM public.fact_tong_hop_thoi_tiet f JOIN public.dm_thanh_pho t ON t.ten_thanh_pho = f.ten_thanh_pho WHERE t.vung_khi_hau = 'Mien Bac' AND f.loai_quan_sat = 'DU_BAO_NGAY' AND f.ngay_key = {today} - 1 AND COALESCE(f.tong_luong_mua_mm, 0) = 0 ORDER BY 1"]
+  },
+  {
+    "id": "T6-1", "type": "T6", "question": "Tổng lượng mưa 7 ngày qua của từng thành phố?",
+    "check": "numbers",
+    "gold": ["SELECT ten_thanh_pho, SUM(tong_luong_mua_mm) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ngay_key >= {today} - 7 AND ngay_key < {today} GROUP BY 1 ORDER BY 1"]
+  },
+  {
+    "id": "T6-2", "type": "T6", "question": "Nhiệt độ trung bình hôm qua theo vùng khí hậu?",
+    "check": "numbers",
+    "gold": ["SELECT t.vung_khi_hau, AVG(f.nhiet_do_c) FROM public.fact_tong_hop_thoi_tiet f JOIN public.dm_thanh_pho t ON t.ten_thanh_pho = f.ten_thanh_pho WHERE f.loai_quan_sat = 'DU_BAO_GIO' AND f.ngay_key = {today} - 1 GROUP BY 1 ORDER BY 1"]
+  },
+  {
+    "id": "T7-1", "type": "T7", "question": "Thành phố nào nóng nhất hôm qua?",
+    "check": "first_entity",
+    "gold": ["SELECT ten_thanh_pho, nhiet_do_cao_nhat_c FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ngay_key = {today} - 1 ORDER BY nhiet_do_cao_nhat_c DESC LIMIT 1"]
+  },
+  {
+    "id": "T7-2", "type": "T7", "question": "3 thành phố mưa nhiều nhất 7 ngày qua là những nơi nào?",
+    "check": "entities",
+    "gold": ["SELECT ten_thanh_pho FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ngay_key >= {today} - 7 AND ngay_key < {today} GROUP BY 1 ORDER BY SUM(tong_luong_mua_mm) DESC LIMIT 3"]
+  },
+  {
+    "id": "T8-1", "type": "T8", "question": "Hôm qua Hà Nội hay TP.HCM nóng hơn, chênh bao nhiêu độ?",
+    "check": "numbers",
+    "gold": ["SELECT ABS(MAX(CASE WHEN ten_thanh_pho = 'Ha Noi' THEN nhiet_do_cao_nhat_c END) - MAX(CASE WHEN ten_thanh_pho = 'Ho Chi Minh' THEN nhiet_do_cao_nhat_c END)) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ngay_key = {today} - 1",
+             "SELECT ABS(AVG(CASE WHEN ten_thanh_pho = 'Ha Noi' THEN nhiet_do_c END) - AVG(CASE WHEN ten_thanh_pho = 'Ho Chi Minh' THEN nhiet_do_c END)) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_GIO' AND ngay_key = {today} - 1"]
+  },
+  {
+    "id": "T8-2", "type": "T8", "question": "Lượng mưa ở Huế hôm qua nhiều hơn hay ít hơn hôm kia, chênh bao nhiêu mm?",
+    "check": "numbers",
+    "gold": ["SELECT ABS(SUM(CASE WHEN ngay_key = {today} - 1 THEN tong_luong_mua_mm END) - SUM(CASE WHEN ngay_key = {today} - 2 THEN tong_luong_mua_mm END)) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Hue'"]
+  },
+  {
+    "id": "T9-1", "type": "T9", "question": "Biên độ nhiệt ở Hà Nội hôm qua là bao nhiêu?",
+    "check": "numbers",
+    "gold": ["SELECT MAX(nhiet_do_cao_nhat_c) - MIN(nhiet_do_thap_nhat_c) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Ha Noi' AND ngay_key = {today} - 1"]
+  },
+  {
+    "id": "T9-2", "type": "T9", "question": "Tỷ lệ nạp dữ liệu thành công là bao nhiêu phần trăm?",
+    "check": "numbers",
+    "gold": ["SELECT 100.0 * COUNT(*) FILTER (WHERE trang_thai = 'THANH_CONG') / NULLIF(COUNT(*) FILTER (WHERE trang_thai <> 'DANG_CHAY'), 0) FROM public.tb_lan_nap_du_lieu"]
+  },
+  {
+    "id": "T10-1", "type": "T10", "question": "Nhiệt độ cao nhất ở Hà Nội từng ngày trong 7 ngày qua?",
+    "check": "numbers",
+    "gold": ["SELECT ngay_key, nhiet_do_cao_nhat_c FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Ha Noi' AND ngay_key >= {today} - 7 AND ngay_key < {today} ORDER BY 1"]
+  },
+  {
+    "id": "T10-2", "type": "T10", "question": "Dự báo tổng lượng mưa từng ngày trong 5 ngày tới ở Đà Nẵng?",
+    "check": "numbers",
+    "gold": ["SELECT ngay_key, tong_luong_mua_mm FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Da Nang' AND ngay_key > {today} AND ngay_key <= {today} + 5 ORDER BY 1",
+             "SELECT ngay_key, tong_luong_mua_mm FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Da Nang' AND ngay_key >= {today} AND ngay_key < {today} + 5 ORDER BY 1"]
+  },
+  {
+    "id": "T11-1", "type": "T11", "question": "Nhiệt độ ở Buôn Ma Thuột hôm qua dao động trong khoảng nào?",
+    "check": "numbers",
+    "gold": ["SELECT MIN(nhiet_do_thap_nhat_c), MAX(nhiet_do_cao_nhat_c) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Buon Ma Thuot' AND ngay_key = {today} - 1",
+             "SELECT MIN(nhiet_do_c), MAX(nhiet_do_c) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_GIO' AND ten_thanh_pho = 'Buon Ma Thuot' AND ngay_key = {today} - 1"]
+  },
+  {
+    "id": "T11-2", "type": "T11", "question": "Loại thời tiết nào xuất hiện nhiều nhất ở Phú Quốc tuần trước?",
+    "check": "first_entity",
+    "gold": ["SELECT d.ten_dieu_kien FROM public.fact_tong_hop_thoi_tiet f JOIN public.dim_dieu_kien_thoi_tiet d ON d.dieu_kien_key = f.dieu_kien_key WHERE f.loai_quan_sat = 'DU_BAO_GIO' AND f.ten_thanh_pho = 'Phu Quoc' AND f.ngay_key >= date_trunc('week', {today})::date - 7 AND f.ngay_key < date_trunc('week', {today})::date GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1",
+             "SELECT d.ten_dieu_kien FROM public.fact_tong_hop_thoi_tiet f JOIN public.dim_dieu_kien_thoi_tiet d ON d.dieu_kien_key = f.dieu_kien_key WHERE f.loai_quan_sat = 'DU_BAO_NGAY' AND f.ten_thanh_pho = 'Phu Quoc' AND f.ngay_key >= date_trunc('week', {today})::date - 7 AND f.ngay_key < date_trunc('week', {today})::date GROUP BY 1 ORDER BY COUNT(*) DESC LIMIT 1"]
+  },
+  {
+    "id": "T12-1", "type": "T12", "question": "Thành phố nào có thời tiết xấu cần cảnh báo trong 7 ngày qua?",
+    "check": "entities",
+    "gold": ["SELECT DISTINCT f.ten_thanh_pho FROM public.fact_tong_hop_thoi_tiet f JOIN public.dim_dieu_kien_thoi_tiet d ON d.dieu_kien_key = f.dieu_kien_key WHERE d.nhom_muc_do IN ('Mua lon', 'Dong', 'Nguy hiem') AND f.loai_quan_sat = 'DU_BAO_NGAY' AND f.ngay_key >= {today} - 7 AND f.ngay_key < {today} ORDER BY 1",
+             "SELECT DISTINCT f.ten_thanh_pho FROM public.fact_tong_hop_thoi_tiet f JOIN public.dim_dieu_kien_thoi_tiet d ON d.dieu_kien_key = f.dieu_kien_key WHERE d.nhom_muc_do IN ('Mua lon', 'Dong', 'Nguy hiem') AND f.ngay_key >= {today} - 7 AND f.ngay_key < {today} ORDER BY 1"]
+  },
+  {
+    "id": "T12-2", "type": "T12", "question": "Tuần trước có nơi nào gió giật trên 40 km/h không, ở đâu?",
+    "check": "entities",
+    "gold": ["SELECT DISTINCT ten_thanh_pho FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND gio_giat_toi_da_kmh > 40 AND ngay_key >= date_trunc('week', {today})::date - 7 AND ngay_key < date_trunc('week', {today})::date ORDER BY 1",
+             "SELECT DISTINCT ten_thanh_pho FROM public.fact_tong_hop_thoi_tiet WHERE gio_giat_kmh > 40 AND ngay_key >= date_trunc('week', {today})::date - 7 AND ngay_key < date_trunc('week', {today})::date ORDER BY 1"]
+  },
+  {
+    "id": "T13-1", "type": "T13", "question": "Độ ẩm và xác suất mưa theo giờ ở Huế tuần trước tương quan thế nào?",
+    "check": "numbers", "tolerance": 0.02,
+    "gold": ["SELECT CORR(do_am_pct, xac_suat_mua_pct) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_GIO' AND ten_thanh_pho = 'Hue' AND ngay_key >= date_trunc('week', {today})::date - 7 AND ngay_key < date_trunc('week', {today})::date"]
+  },
+  {
+    "id": "T13-2", "type": "T13", "question": "Trong 14 ngày qua, ngày có mưa ở Hà Nội có mát hơn ngày không mưa không, nhiệt độ cao nhất trung bình chênh bao nhiêu độ?",
+    "check": "numbers",
+    "gold": ["SELECT ABS(AVG(nhiet_do_cao_nhat_c) FILTER (WHERE tong_luong_mua_mm > 0) - AVG(nhiet_do_cao_nhat_c) FILTER (WHERE COALESCE(tong_luong_mua_mm, 0) = 0)) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Ha Noi' AND ngay_key >= {today} - 14 AND ngay_key < {today}"]
+  },
+  {
+    "id": "T15-1", "type": "T15", "question": "Ngày 17/11 hệ thống nạp dữ liệu mấy lần, có lần nào lỗi không?",
+    "check": "numbers",
+    "gold": ["SELECT COUNT(*) FROM public.tb_lan_nap_du_lieu WHERE (bat_dau_luc AT TIME ZONE 'Asia/Ho_Chi_Minh')::date = DATE '2026-11-17'"]
+  },
+  {
+    "id": "T15-2", "type": "T15", "question": "Thời gian nạp dữ liệu trung bình mỗi lần là bao nhiêu giây?",
+    "check": "numbers",
+    "gold": ["SELECT AVG(EXTRACT(EPOCH FROM (ket_thuc_luc - bat_dau_luc))) FROM public.tb_lan_nap_du_lieu"]
+  },
+  {
+    "id": "T15-3", "type": "T15", "question": "Đang theo dõi thời tiết những thành phố nào?",
+    "check": "entities",
+    "gold": ["SELECT ten_thanh_pho FROM public.dm_thanh_pho WHERE hoat_dong ORDER BY 1"]
+  },
+  {
+    "id": "T22-1", "type": "T22", "question": "Thế nào thì được tính là ngày có mưa?",
+    "check": "keywords", "no_query": true,
+    "keywords": [["tong luong mua", "tong_luong_mua"], ["> 0", "lon hon 0", "lon hon 0 mm", "tren 0"]]
+  },
+  {
+    "id": "T22-2", "type": "T22", "question": "Thời tiết xấu cần cảnh báo gồm những loại nào?",
+    "check": "keywords", "no_query": true,
+    "keywords": [["mua lon"], ["dong"], ["nguy hiem"]]
+  },
+  {
+    "id": "S-1", "type": "split", "question": "Nhiệt độ cao nhất và tổng lượng mưa ở Vinh hôm qua?",
+    "check": "numbers", "expect_split": true,
+    "gold": ["SELECT MAX(nhiet_do_cao_nhat_c), SUM(tong_luong_mua_mm) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Vinh' AND ngay_key = {today} - 1"]
+  },
+  {
+    "id": "S-2", "type": "split", "question": "Ngày có mưa là gì, tuần trước Huế có mấy ngày như vậy?",
+    "check": "numbers", "expect_split": true,
+    "gold": ["SELECT COUNT(*) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Hue' AND tong_luong_mua_mm > 0 AND ngay_key >= date_trunc('week', {today})::date - 7 AND ngay_key < date_trunc('week', {today})::date"]
+  },
+  {
+    "id": "S-3", "type": "split", "question": "Tổng lượng mưa hôm qua ở Hà Nội và Hải Phòng là bao nhiêu?",
+    "check": "numbers", "expect_split": true,
+    "gold": ["SELECT ten_thanh_pho, tong_luong_mua_mm FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho IN ('Ha Noi', 'Hai Phong') AND ngay_key = {today} - 1 ORDER BY 1"]
+  },
+  {
+    "id": "D-1", "type": "dependent", "question": "Thành phố nào mưa nhiều nhất 7 ngày qua, nhiệt độ cao nhất ở đó hôm qua là bao nhiêu?",
+    "check": "numbers", "expect_dependent": true,
+    "gold": ["WITH top AS (SELECT ten_thanh_pho FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ngay_key >= {today} - 7 AND ngay_key < {today} GROUP BY 1 ORDER BY SUM(tong_luong_mua_mm) DESC LIMIT 1) SELECT f.ten_thanh_pho, f.nhiet_do_cao_nhat_c FROM public.fact_tong_hop_thoi_tiet f JOIN top USING (ten_thanh_pho) WHERE f.loai_quan_sat = 'DU_BAO_NGAY' AND f.ngay_key = {today} - 1"]
+  },
+  {
+    "id": "D-2", "type": "dependent", "question": "Thành phố nào nóng nhất hôm qua, độ ẩm trung bình ở đó hôm qua bao nhiêu?",
+    "check": "numbers", "expect_dependent": true,
+    "gold": ["WITH top AS (SELECT ten_thanh_pho FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ngay_key = {today} - 1 ORDER BY nhiet_do_cao_nhat_c DESC LIMIT 1) SELECT f.ten_thanh_pho, AVG(f.do_am_pct) FROM public.fact_tong_hop_thoi_tiet f JOIN top USING (ten_thanh_pho) WHERE f.loai_quan_sat = 'DU_BAO_GIO' AND f.ngay_key = {today} - 1 GROUP BY 1"]
+  },
+  {
+    "id": "M-1", "type": "missing", "question": "Thành phố nào mưa nhiều nhất?",
+    "check": "clarify_or_assume"
+  },
+  {
+    "id": "M-2", "type": "missing", "question": "Nhiệt độ hôm qua là bao nhiêu?",
+    "check": "clarify_or_assume", "breakdown": 12
+  },
+  {
+    "id": "M-3", "type": "missing", "question": "Ở đó dạo này thế nào?",
+    "check": "clarify", "no_query": true
+  },
+  {"id": "C-1", "type": "conversation", "turns": [{"question": "Nhiệt độ cao nhất ở Hà Nội hôm qua là bao nhiêu?", "check": "numbers", "gold": ["SELECT MAX(nhiet_do_cao_nhat_c) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Ha Noi' AND ngay_key = {today} - 1"]}, {"question": "Còn ở Hải Phòng thì sao?", "check": "numbers", "gold": ["SELECT MAX(nhiet_do_cao_nhat_c) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Hai Phong' AND ngay_key = {today} - 1"]}, {"question": "Hôm kia thì sao?", "check": "numbers", "gold": ["SELECT MAX(nhiet_do_cao_nhat_c) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Hai Phong' AND ngay_key = {today} - 2"]}]},
+  {"id": "C-2", "type": "conversation", "turns": [{"question": "Thành phố nào nóng nhất hôm qua?", "check": "first_entity", "gold": ["SELECT ten_thanh_pho, nhiet_do_cao_nhat_c FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ngay_key = {today} - 1 ORDER BY nhiet_do_cao_nhat_c DESC LIMIT 1"]}, {"question": "Độ ẩm trung bình ở đó hôm qua là bao nhiêu?", "check": "numbers", "gold": ["WITH top AS (SELECT ten_thanh_pho FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ngay_key = {today} - 1 ORDER BY nhiet_do_cao_nhat_c DESC LIMIT 1) SELECT AVG(f.do_am_pct) FROM public.fact_tong_hop_thoi_tiet f JOIN top USING (ten_thanh_pho) WHERE f.loai_quan_sat = 'DU_BAO_GIO' AND f.ngay_key = {today} - 1"]}]},
+  {"id": "C-3", "type": "conversation", "turns": [{"question": "Tổng lượng mưa ở Huế 7 ngày qua là bao nhiêu?", "check": "numbers", "gold": ["SELECT SUM(tong_luong_mua_mm) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Hue' AND ngay_key >= {today} - 7 AND ngay_key < {today}"]}, {"question": "Trong đó có mấy ngày mưa?", "check": "numbers", "gold": ["SELECT COUNT(*) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Hue' AND ngay_key >= {today} - 7 AND ngay_key < {today} AND tong_luong_mua_mm > 0"]}]},
+  {"id": "R-1", "type": "clarification", "question": "Cho tôi xem số liệu tháng này", "check": "numbers", "expect_pause": true, "replies": ["Số thành phố đang hoạt động"], "gold": ["SELECT COUNT(*) FROM public.dm_thanh_pho WHERE hoat_dong"]},
+  {"id": "R-2", "type": "clarification", "question": "Thành phố nào mưa nhiều nhất?", "check": "first_entity", "replies": ["Trong 7 ngày qua"], "gold": ["SELECT ten_thanh_pho FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ngay_key >= {today} - 7 AND ngay_key < {today} GROUP BY 1 ORDER BY SUM(tong_luong_mua_mm) DESC LIMIT 1"]},
+  {"id": "R-3", "type": "clarification", "question": "Lượng mưa dự báo ở Huế là bao nhiêu?", "check": "numbers", "replies": ["Ngày mai"], "gold": ["SELECT SUM(tong_luong_mua_mm) FROM public.fact_tong_hop_thoi_tiet WHERE loai_quan_sat = 'DU_BAO_NGAY' AND ten_thanh_pho = 'Hue' AND ngay_key = {today} + 1"]},
+  {"id": "E-1", "type": "error", "question": "Nhiệt độ ở Hà Nội hôm qua?", "connection": "unknown", "check": "numbers", "expect_http_status": 404},
+  {"id": "E-2", "type": "error", "question": "Nhiệt độ ở Hà Nội hôm qua?", "connection": "paused", "check": "numbers", "expect_http_status": 400},
+  {"id": "E-3", "type": "error", "question": "Hôm qua", "bogus_resume": true, "check": "numbers", "expect_http_status": 404}
+]
