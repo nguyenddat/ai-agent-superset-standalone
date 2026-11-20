@@ -6,7 +6,7 @@ import remarkGfm from "remark-gfm"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-// AnalysisAgent answers in short Markdown: paragraphs, bold figures, lists and small tables.
+// The agent answers in short Markdown: paragraphs, bold figures, lists and small tables.
 const components: Components = {
   p: ({ children }) => <p className="leading-relaxed">{children}</p>,
   strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
@@ -33,10 +33,37 @@ const components: Components = {
   td: ({ children, style }) => <TableCell style={style}>{children}</TableCell>,
 }
 
-export const AnswerMarkdown = memo(function AnswerMarkdown({ text }: { text: string }) {
+const Block = memo(function Block({ text }: { text: string }) {
   return (
     <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
       {text}
     </ReactMarkdown>
   )
 })
+
+// Text that is still arriving can end mid-way through Markdown: a half table row is held back until its line ends,
+// and an unclosed ** or ` in the last block is closed for now so the rest does not flash as raw syntax.
+export function closeOpenMarkdown(text: string): string {
+  const lines = text.split("\n")
+  if (lines.length && lines.at(-1)!.trimStart().startsWith("|")) lines.pop()
+  let tail = lines.join("\n")
+  if ((tail.match(/```/g) ?? []).length % 2 === 1) return `${tail}\n\`\`\``
+  const inline = tail.replace(/```[\s\S]*?```/g, "")
+  if ((inline.match(/`/g) ?? []).length % 2 === 1) tail += "`"
+  if ((inline.match(/\*\*/g) ?? []).length % 2 === 1) tail = `${tail.replace(/\s+$/, "")}**`
+  return tail
+}
+
+// Finished blocks (split at blank lines) render once; only the block still growing re-renders as text arrives.
+export function AnswerMarkdown({ text, streaming = false }: { text: string; streaming?: boolean }) {
+  if (!streaming) return <Block text={text} />
+  const blocks = text.split(/\n{2,}/)
+  const last = blocks.length - 1
+  return (
+    <>
+      {blocks.map((block, index) => (
+        <Block key={index} text={index === last ? closeOpenMarkdown(block) : block} />
+      ))}
+    </>
+  )
+}

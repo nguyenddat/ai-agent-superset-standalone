@@ -3,30 +3,48 @@ import useSWR, { mutate } from "swr"
 import { API_URL, ApiError, apiFetch } from "@/lib/api"
 import { readServerSentEvents } from "@/lib/sse"
 
-import type { ChatEvent, Conversation, ConversationDetail, ConversationListItem, Feedback, Rating, Suggestion } from "./types"
+import type { ChartField, ChartSpec } from "./charts/spec"
+import type {
+  ChatEvent,
+  Conversation,
+  ConversationDetail,
+  ConversationListItem,
+  Feedback,
+  Rating,
+  ResultValue,
+} from "./types"
 
-const CHAT = "/api/v1/text2sql/chat"
+const CHAT = "/api/v1/text2sql/chat/stream"
 const CONVERSATIONS = "/api/v1/conversations"
 
-// Without userId nothing is recorded; conversationId adds the turn to that conversation; previousTurnId with
-// joinSignature continues a join_ambiguous turn with the chosen option.
+// Without userId nothing is recorded; conversationId adds the turn to that conversation; resumeId continues the
+// turn that paused with a clarification question, and `question` is then the user's reply. chatHistory is only read
+// without userId, when the server has no recorded turns to rewrite a follow-up question from.
+export type ChatHistoryTurn = {
+  question: string
+  rewritten_question: string | null
+  answer: string | null
+  status: string
+  clarification_question: string | null
+}
+
 export type ChatRequest = {
   connectionId: string
-  question?: string
+  question: string
   userId?: string
   conversationId?: string
-  previousTurnId?: string
-  joinSignature?: string
+  resumeId?: string
+  chatHistory?: ChatHistoryTurn[]
 }
 
 export async function* streamChat(request: ChatRequest, signal: AbortSignal): AsyncGenerator<ChatEvent> {
   const body = {
     connection_id: request.connectionId,
-    question: request.question || null,
+    question: request.question,
     user_id: request.userId || null,
     conversation_id: request.conversationId ?? null,
-    previous_turn_id: request.previousTurnId ?? null,
-    join_signature: request.joinSignature ?? null,
+    resume_id: request.resumeId ?? null,
+    chat_history: request.chatHistory ?? [],
   }
   let response: Response
   try {
@@ -43,21 +61,22 @@ export async function* streamChat(request: ChatRequest, signal: AbortSignal): As
   if (!response.ok) {
     const body = await response.json().catch(() => null)
     const detail = body?.detail
-    // 422 from FastAPI carries a list of field errors rather than a sentence.
+    // The backend answers errors with a sentence in `detail`; anything else (a proxy page) gets a generic one.
     throw new ApiError(response.status, typeof detail === "string" ? detail : "Không thể gửi câu hỏi.")
   }
   for await (const message of readServerSentEvents(response)) {
-    yield { event: message.event, data: JSON.parse(message.data) } as ChatEvent
+    let data: unknown
+    try {
+      data = JSON.parse(message.data)
+    } catch {
+      throw new ApiError(0, "Không đọc được dữ liệu server gửi về.")
+    }
+    yield { event: message.event, data } as ChatEvent
   }
 }
 
 const fetcher = <T,>(path: string) => apiFetch<T>(path)
 const query = (params: Record<string, string | number>) => new URLSearchParams(Object.entries(params).map(([key, value]) => [key, String(value)]))
-
-export function useSuggestions(connectionId: string, userId: string, limit: number) {
-  const params = query({ connection_id: connectionId, limit, ...(userId ? { user_id: userId } : {}) })
-  return useSWR<Suggestion[]>(`/api/v1/text2sql/suggestions?${params}`, fetcher, { revalidateOnFocus: false })
-}
 
 const conversationsKey = (connectionId: string, userId: string) =>
   `${CONVERSATIONS}?${query({ user_id: userId, connection_id: connectionId, limit: 200 })}`
@@ -93,4 +112,43 @@ export function saveFeedback(userId: string, conversationId: string, turnId: str
   const path = `${CONVERSATIONS}/${conversationId}/turns/${turnId}/feedback`
   if (rating === null) return apiFetch<void>(`${path}?${query({ user_id: userId })}`, { method: "DELETE" })
   return apiFetch<Feedback>(path, { method: "PUT", body: JSON.stringify({ user_id: userId, rating }) })
+}
+
+export type CheckedChart = { chart: ChartSpec; warnings: string[] }
+
+// Checks a chart against a result that was not recorded (no user name); 400 carries the problems, one per line.
+export function validateChart(chart: ChartSpec, fields: ChartField[], rows: ResultValue[][], rowsComplete: boolean) {
+  return apiFetch<CheckedChart & { chart_types: string[] }>("/api/v1/text2sql/charts/validate", {
+    method: "POST",
+    body: JSON.stringify({
+      chart,
+      fields,
+      rows: rows.slice(0, 1000),
+      rows_complete: rowsComplete && rows.length <= 1000,
+    }),
+  })
+}
+
+const viewPath = (conversationId: string, turnId: string, resultId: string) =>
+  `${CONVERSATIONS}/${conversationId}/turns/${turnId}/views/${encodeURIComponent(resultId)}`
+
+// Saves the user's chart for one result of a recorded turn; the backend checks it against the stored rows.
+export type SavedView = CheckedChart & { result_id: string; updated_at: string }
+
+export function saveChartView(
+  userId: string,
+  conversationId: string,
+  turnId: string,
+  resultId: string,
+  chart: ChartSpec,
+) {
+  return apiFetch<SavedView>(viewPath(conversationId, turnId, resultId), {
+    method: "PUT",
+    body: JSON.stringify({ user_id: userId, chart }),
+  })
+}
+
+export function deleteChartView(userId: string, conversationId: string, turnId: string, resultId: string) {
+  const path = `${viewPath(conversationId, turnId, resultId)}?${query({ user_id: userId })}`
+  return apiFetch<void>(path, { method: "DELETE" })
 }

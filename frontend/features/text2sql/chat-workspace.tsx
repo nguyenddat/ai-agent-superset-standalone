@@ -1,12 +1,12 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { HistoryIcon, InfoIcon, MessageSquareTextIcon, SquarePenIcon, UserIcon } from "lucide-react"
+import { useState } from "react"
+import { CornerDownRightIcon, HistoryIcon, InfoIcon, MessageSquareTextIcon, SquarePenIcon, UserIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { PromptComposer } from "@/components/prompt-composer"
 import { Button } from "@/components/ui/button"
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/components/ui/empty"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Marker, MarkerContent, MarkerIcon } from "@/components/ui/marker"
@@ -26,27 +26,14 @@ import { useConnection } from "@/features/database-connections/api"
 import { FILL_SCREEN_ALWAYS, useConnectionId } from "@/features/database-connections/detail/connection-layout"
 import { cn } from "@/lib/utils"
 
-import { useSuggestions } from "./api"
 import { AssistantTurn, UserTurn } from "./chat-turn"
 import { ConversationHistory } from "./conversation-history"
-import { useChat, type Turn } from "./use-chat"
+import { useChat } from "./use-chat"
 import { useChatUserId } from "./user-id"
 
 const MAX_LENGTH = 2000
-const SUGGESTIONS = 4
-const NONE = new Set<string>()
 
 const errorText = (error: unknown, fallback: string) => (error instanceof Error ? error.message : fallback)
-
-// Signatures already picked for each join_ambiguous turn, read from the turns that continued it.
-function chosenJoins(turns: Turn[]) {
-  const chosen = new Map<string, Set<string>>()
-  for (const turn of turns) {
-    const choice = turn.request.choice
-    if (choice) chosen.set(choice.turnId, new Set(chosen.get(choice.turnId)).add(choice.signature))
-  }
-  return chosen
-}
 
 function UserPicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
   return (
@@ -69,7 +56,7 @@ function UserPicker({ value, onChange }: { value: string; onChange: (value: stri
           <Input
             id="chat-user-id"
             value={value}
-            maxLength={255}
+            maxLength={200}
             placeholder="vd. alice"
             autoComplete="off"
             onChange={(event) => onChange(event.target.value)}
@@ -87,16 +74,20 @@ export function ChatWorkspace() {
   const [userId, setUserId] = useChatUserId()
   const user = userId.trim()
   const chat = useChat(connectionId, user)
-  const { turns, status, busy, loading, conversationId } = chat
+  const { turns, status, busy, loading, conversationId, pending } = chat
   const [draft, setDraft] = useState("")
   const [historyOpen, setHistoryOpen] = useState(false)
-  const { data: suggestions } = useSuggestions(connectionId, user, SUGGESTIONS)
-  const chosen = useMemo(() => chosenJoins(turns), [turns])
   const paused = connection?.is_active === false
 
   const ask = (question: string) => {
     setDraft("")
     chat.send(question)
+  }
+
+  // Editing a question that was asked back means asking it anew rather than answering the AI.
+  const edit = (question: string) => {
+    chat.dismiss()
+    setDraft(question)
   }
 
   const openConversation = (id: string) => {
@@ -135,28 +126,10 @@ export function ChatWorkspace() {
         </EmptyMedia>
         <EmptyTitle>Hỏi dữ liệu bằng tiếng Việt</EmptyTitle>
         <EmptyDescription>
-          AI tìm metric hoặc trường dữ liệu đã mô tả, tự dựng truy vấn chỉ đọc rồi giải thích kết quả. Dữ liệu cá nhân
-          luôn được che trước khi hiển thị.
+          AI tách câu hỏi thành các câu đơn, dùng metric, bảng và quy tắc đã mô tả để chạy truy vấn chỉ đọc rồi giải
+          thích kết quả. Thiếu thông tin thì AI hỏi lại. Dữ liệu trả về chưa được che thông tin cá nhân.
         </EmptyDescription>
       </EmptyHeader>
-      {!!suggestions?.length && (
-        <EmptyContent className="max-w-xl">
-          <div className="flex flex-wrap justify-center gap-2">
-            {suggestions.map(({ question }) => (
-              <Button
-                key={question}
-                variant="outline"
-                size="sm"
-                className="h-auto max-w-full py-1.5 whitespace-normal"
-                disabled={paused}
-                onClick={() => ask(question)}
-              >
-                {question}
-              </Button>
-            ))}
-          </div>
-        </EmptyContent>
-      )}
     </Empty>
   ) : (
     <MessageScrollerProvider autoScroll>
@@ -180,17 +153,14 @@ export function ChatWorkspace() {
               <MessageScrollerItem key={`${turn.id}:a`} messageId={`${turn.id}:a`}>
                 <AssistantTurn
                   turn={turn}
-                  connectionId={connectionId}
                   busy={busy || paused}
-                  chosen={(turn.turnId && chosen.get(turn.turnId)) || NONE}
-                  canChoose={!!user && !!turn.turnId && turn.conversationId === conversationId}
-                  onAsk={ask}
+                  onReply={chat.reply}
                   onRetry={chat.retry}
-                  onEdit={setDraft}
-                  onChoose={chat.choose}
+                  onEdit={edit}
                   onRate={(target, rating) =>
                     chat.rate(target, rating).catch((error) => toast.error(errorText(error, "Không lưu được đánh giá.")))
                   }
+                  actions={chat}
                 />
               </MessageScrollerItem>,
             ])}
@@ -209,6 +179,15 @@ export function ChatWorkspace() {
       <div className="flex min-w-0 flex-1 flex-col">
         {content}
         <div className="mx-auto flex w-full max-w-4xl flex-col gap-1.5 pt-2">
+          {pending && !busy && (
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-1 text-xs text-muted-foreground">
+              <CornerDownRightIcon className="size-3.5 shrink-0" />
+              <span>Tin nhắn tiếp theo sẽ trả lời câu hỏi lại của AI.</span>
+              <Button variant="link" size="sm" className="h-auto p-0 text-xs" onClick={chat.dismiss}>
+                Hỏi câu khác
+              </Button>
+            </div>
+          )}
           <PromptComposer
             value={draft}
             onValueChange={setDraft}
@@ -217,7 +196,7 @@ export function ChatWorkspace() {
             status={status}
             maxLength={MAX_LENGTH}
             autoFocus
-            placeholder="Hỏi về dữ liệu, vd. doanh thu theo vùng năm nay"
+            placeholder={pending ? "Trả lời câu hỏi của AI" : "Hỏi về dữ liệu, vd. doanh thu theo vùng năm nay"}
             disabled={paused}
             disabledReason="Kết nối đang tạm dừng nên chưa thể hỏi dữ liệu."
             toolbar={

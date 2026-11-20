@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:charts": "node --test \"features/text2sql/charts/*.test.ts\""
   },
   "dependencies": {
     "@shadcn/react": "^0.3.1",
