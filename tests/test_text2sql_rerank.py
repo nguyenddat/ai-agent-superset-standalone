@@ -6,9 +6,12 @@ from unittest.mock import patch
 import httpx
 
 from backend.core.setting import config
-from backend.modules.text2sql.common.errors import Text2SqlRerankUnavailable
-from backend.modules.text2sql.vector_store.ingestion.registry import TOPICS
-from backend.modules.text2sql.vector_store.rerank.jev_reranker import SUBJECTS, JevReranker
+from backend.modules.text2sql.services.reranker import (
+    SUBJECTS,
+    JevReranker,
+)
+from backend.modules.text2sql.utils.exceptions import Text2SqlRerankUnavailable
+from backend.modules.text2sql.utils.topics import TOPICS
 
 SCORES = {"a": 2.0, "b": 1.0, "c": 0.0}
 

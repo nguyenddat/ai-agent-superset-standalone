@@ -16,12 +16,11 @@ from backend.modules.database_connection.models import (
 )
 from backend.modules.metric_management.models import Metric
 
-from ...common.errors import Text2SqlConnectionNotFound, Text2SqlRerankUnavailable
-from ...common.sql_columns import referenced_columns
-from ..ingestion.documents.context import load_context
-from ..ingestion.documents.metric import build_metric_documents
-from ..qdrant_db_service import QdrantDbService
-from ..rerank.base import Reranker
+from ..repositories.qdrant_repository import QdrantRepository
+from ..utils.exceptions import Text2SqlConnectionNotFound, Text2SqlRerankUnavailable
+from .catalog_context import load_context
+from .index_documents import build_metric_documents, referenced_columns
+from .reranker import Reranker
 
 logger = logging.getLogger("text2sql.retrieve")
 
@@ -51,7 +50,7 @@ def _normalized(value: str) -> str:
 
 
 class RetrievalService:
-    def __init__(self, session: Session, index: QdrantDbService, embedding: OpenRouterEmbedding) -> None:
+    def __init__(self, session: Session, index: QdrantRepository, embedding: OpenRouterEmbedding) -> None:
         self.session = session
         self.index = index
         self.embedding = embedding
@@ -62,9 +61,10 @@ class RetrievalService:
         return self.search(connection_id, question, k, reranker).candidates
 
     def search(
-        self, connection_id: UUID, question: str, k: int = 5, reranker: Reranker | None = None
+        self, connection_id: UUID, question: str, k: int = 5, reranker: Reranker | None = None,
+        vector: list[float] | None = None,
     ) -> RetrievalOutcome:
-        ranked = self._ranked_candidates(connection_id, question, k)
+        ranked = self._ranked_candidates(connection_id, question, k, vector)
         pool = ranked[:max(k, config.text2sql_rerank_pool)]
         if reranker is None or not pool:
             return RetrievalOutcome(candidates=ranked[:k])
@@ -92,10 +92,12 @@ class RetrievalService:
             for candidate in candidates
         ]
 
-    def _ranked_candidates(self, connection_id: UUID, question: str, k: int) -> list[MetricCandidate]:
+    def _ranked_candidates(
+        self, connection_id: UUID, question: str, k: int, vector: list[float] | None = None
+    ) -> list[MetricCandidate]:
         if self.session.get(DatabaseConnection, connection_id) is None:
             raise Text2SqlConnectionNotFound()
-        vector = self.embedding.embed([question])[0]
+        vector = vector or self.embedding.embed([question])[0]
         hits = {
             topic: self.index.search(question, vector, str(connection_id), topic, limit)
             for topic, limit in (("metric", max(30, k * 6)), ("table", 15), ("column", 30))

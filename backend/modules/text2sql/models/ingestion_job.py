@@ -2,7 +2,19 @@ import sqlite3
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import JSON, CheckConstraint, DateTime, ForeignKey, Index, Integer, String, Text, Uuid, event, text
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    Uuid,
+    event,
+    text,
+)
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Mapped, mapped_column
 

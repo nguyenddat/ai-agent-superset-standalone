@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session, aliased
 from backend.common.base_model import utc_now
 from backend.modules.database_connection.models import DatabaseConnection
 
-from ...models.ingestion_job import (
+from ..models.ingestion_job import (
     EVENT,
     FAILED,
     FINISHED_STATUSES,
@@ -59,7 +59,7 @@ def retry_delay_seconds(attempts: int) -> int:
     return min(RETRY_BASE_SECONDS * 2 ** max(attempts - 1, 0), RETRY_MAX_SECONDS)
 
 
-class IngestionJobQueue:
+class IngestionJobRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
 

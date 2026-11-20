@@ -5,7 +5,7 @@ import httpx
 
 from backend.core.setting import config
 
-from ..common.errors import Text2SqlIndexUnavailable
+from ..utils.exceptions import Text2SqlIndexUnavailable
 
 TEXT_INDEX_SCHEMA: dict[str, Any] = {
     "type": "text", "tokenizer": "word", "lowercase": True, "ascii_folding": True, "scoring": {"type": "bm25"},
@@ -17,7 +17,7 @@ def text_index_is_current(index_info: dict[str, Any]) -> bool:
     return bool(params.get("ascii_folding")) and params.get("scoring", {}).get("type") == "bm25"
 
 
-class QdrantDbService:
+class QdrantRepository:
     def __init__(self, client: httpx.Client | None = None) -> None:
         self.client = client or httpx.Client(base_url=config.qdrant_url.rstrip("/"), timeout=30)
         self.collection = config.text2sql_collection

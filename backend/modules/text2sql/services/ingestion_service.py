@@ -7,11 +7,11 @@ from sqlalchemy.orm import Session
 from backend.agent_package.get_embedding_models import OpenRouterEmbedding
 from backend.modules.database_connection.models import DatabaseConnection
 
-from ...common.errors import Text2SqlConnectionNotFound
-from ..qdrant_db_service import QdrantDbService
-from .documents.base import IndexDocument
-from .documents.context import load_context
-from .registry import TOPIC_BUILDERS, TOPICS
+from ..repositories.qdrant_repository import QdrantRepository
+from ..utils.exceptions import Text2SqlConnectionNotFound
+from ..utils.topics import TOPICS
+from .catalog_context import load_context
+from .index_documents import TOPIC_BUILDERS, IndexDocument
 
 EMBED_BATCH_SIZE = 32
 DELETE_BATCH_SIZE = 256
@@ -28,7 +28,7 @@ class SyncResult:
 
 
 class IngestionService:
-    def __init__(self, session: Session, index: QdrantDbService, embedding: OpenRouterEmbedding) -> None:
+    def __init__(self, session: Session, index: QdrantRepository, embedding: OpenRouterEmbedding) -> None:
         self.session = session
         self.index = index
         self.embedding = embedding

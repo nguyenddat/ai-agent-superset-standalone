@@ -21,7 +21,6 @@ from backend.modules.expert_rule_management.services import ExpertRuleService
 from backend.modules.glossary_management.services import GlossaryService
 from backend.modules.metric_management.models import Metric
 from backend.modules.own_knowledge.models import OwnKnowledgeEntry
-from backend.modules.text2sql.common.errors import Text2SqlIndexUnavailable
 from backend.modules.text2sql.models.ingestion_job import (
     EVENT,
     FAILED,
@@ -33,10 +32,17 @@ from backend.modules.text2sql.models.ingestion_job import (
     SUPERSEDED,
     IngestionJob,
 )
-from backend.modules.text2sql.vector_store.ingestion.documents.context import load_context
-from backend.modules.text2sql.vector_store.ingestion.jobs import IngestionJobQueue, retry_delay_seconds
-from backend.modules.text2sql.vector_store.ingestion.registry import TOPIC_BUILDERS, TOPICS, validate_topics
-from backend.modules.text2sql.vector_store.ingestion.triggers import enqueue_for_changes
+from backend.modules.text2sql.repositories.ingestion_job_repository import (
+    IngestionJobRepository,
+    retry_delay_seconds,
+)
+from backend.modules.text2sql.services.catalog_context import (
+    load_context,
+)
+from backend.modules.text2sql.services.index_documents import TOPIC_BUILDERS
+from backend.modules.text2sql.services.ingestion_triggers import enqueue_for_changes
+from backend.modules.text2sql.utils.exceptions import Text2SqlIndexUnavailable
+from backend.modules.text2sql.utils.topics import TOPICS, validate_topics
 from backend.modules.text2sql.worker import IngestionWorker, parse_topic_intervals
 
 
@@ -160,7 +166,7 @@ class JobQueueTests(unittest.TestCase):
         self.session = Session(self.engine)
         self.addCleanup(self.session.close)
         self.connection, *_ = seed_catalog(self.session)
-        self.queue = IngestionJobQueue(self.session)
+        self.queue = IngestionJobRepository(self.session)
 
     def jobs(self, **filters):
         return list(self.session.scalars(select(IngestionJob).filter_by(**filters)))
@@ -360,12 +366,12 @@ class WorkerTests(unittest.TestCase):
         with self.factory() as session:
             self.connection, *_ = seed_catalog(session)
             session.execute(IngestionJob.__table__.delete())
-            IngestionJobQueue(session).enqueue([self.connection.id], ["metric"], EVENT)
+            IngestionJobRepository(session).enqueue([self.connection.id], ["metric"], EVENT)
             session.commit()
         FakeSync.calls, FakeSync.error = [], None
         patches = [
             patch("backend.modules.text2sql.worker.IngestionService", FakeSync),
-            patch("backend.modules.text2sql.worker.QdrantDbService", FakeClient),
+            patch("backend.modules.text2sql.worker.QdrantRepository", FakeClient),
             patch("backend.modules.text2sql.worker.OpenRouterEmbedding", FakeClient),
         ]
         for item in patches:

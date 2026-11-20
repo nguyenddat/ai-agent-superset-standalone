@@ -36,7 +36,7 @@ from backend.modules.own_knowledge.routes.router_own_knowledge import (
     router as own_knowledge_router,
 )
 from backend.modules.text2sql.routes import router as text2sql_router
-from backend.modules.text2sql.vector_store.ingestion.triggers import register_triggers
+from backend.modules.text2sql.services import register_triggers
 
 register_triggers()
 

@@ -9,14 +9,16 @@ from backend.agent_package.get_embedding_models import OpenRouterEmbedding
 from backend.core.setting import config
 from backend.modules.database_connection.models import DatabaseConnection
 
-from ...common.errors import Text2SqlConnectionNotFound, Text2SqlInvalidRequest, Text2SqlRerankUnavailable
-from ..ingestion.registry import TOPICS
-from ..qdrant_db_service import QdrantDbService
-from ..rerank.base import Reranker
+from ..repositories.qdrant_repository import QdrantRepository
+from ..utils.exceptions import (
+    Text2SqlConnectionNotFound,
+    Text2SqlInvalidRequest,
+    Text2SqlRerankUnavailable,
+)
+from ..utils.topics import OWN_KNOWLEDGE, TOPICS
+from .reranker import Reranker
 
 logger = logging.getLogger("text2sql.topic_search")
-
-OWN_KNOWLEDGE = "own_knowledge"
 
 
 @dataclass(frozen=True)
@@ -49,7 +51,7 @@ def _hit(point: dict[str, Any]) -> TopicHit:
 
 
 class TopicSearchService:
-    def __init__(self, session: Session, index: QdrantDbService, embedding: OpenRouterEmbedding) -> None:
+    def __init__(self, session: Session, index: QdrantRepository, embedding: OpenRouterEmbedding) -> None:
         self.session = session
         self.index = index
         self.embedding = embedding

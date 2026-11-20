@@ -20,14 +20,20 @@ from backend.modules.database_connection.models import (
     DatabaseTable,
 )
 from backend.modules.metric_management.models import Metric
-from backend.modules.text2sql.common.errors import Text2SqlRerankUnavailable
-from backend.modules.text2sql.common.sql_columns import referenced_columns as _referenced_columns
-from backend.modules.text2sql.vector_store.ingestion.documents.base import build_document as _document
-from backend.modules.text2sql.vector_store.ingestion.documents.context import load_context
-from backend.modules.text2sql.vector_store.ingestion.registry import TOPIC_BUILDERS
-from backend.modules.text2sql.vector_store.ingestion.service import IngestionService
-from backend.modules.text2sql.vector_store.qdrant_db_service import QdrantDbService
-from backend.modules.text2sql.vector_store.retrieve.service import RetrievalService
+from backend.modules.text2sql.repositories.qdrant_repository import QdrantRepository
+from backend.modules.text2sql.services.catalog_context import (
+    load_context,
+)
+from backend.modules.text2sql.services.index_documents import TOPIC_BUILDERS
+from backend.modules.text2sql.services.index_documents import (
+    build_document as _document,
+)
+from backend.modules.text2sql.services.index_documents import (
+    referenced_columns as _referenced_columns,
+)
+from backend.modules.text2sql.services.ingestion_service import IngestionService
+from backend.modules.text2sql.services.retrieval_service import RetrievalService
+from backend.modules.text2sql.utils.exceptions import Text2SqlRerankUnavailable
 
 
 class EmbeddingTests(unittest.TestCase):
@@ -158,8 +164,8 @@ class ServiceTests(unittest.TestCase):
         })
         builders = {"table": lambda session, context: [first], "metric": lambda session, context: [second]}
         with (
-            patch("backend.modules.text2sql.vector_store.ingestion.service.load_context", return_value=None),
-            patch.dict("backend.modules.text2sql.vector_store.ingestion.service.TOPIC_BUILDERS", builders),
+            patch("backend.modules.text2sql.services.ingestion_service.load_context", return_value=None),
+            patch.dict("backend.modules.text2sql.services.ingestion_service.TOPIC_BUILDERS", builders),
         ):
             result = IngestionService(FakeSession(), index, FakeEmbedding()).sync(connection_id, ["table", "metric"])
         self.assertEqual((result.total, result.indexed, result.unchanged, result.deleted), (2, 1, 1, 1))
@@ -240,7 +246,7 @@ class RerankRetrievalTests(unittest.TestCase):
         ]
         for target, value in (("load_context", None), ("build_metric_documents", documents)):
             patcher = patch(
-                f"backend.modules.text2sql.vector_store.retrieve.service.{target}",
+                f"backend.modules.text2sql.services.retrieval_service.{target}",
                 **({"return_value": value} if target == "build_metric_documents" else {"return_value": value}),
             )
             patcher.start()
@@ -305,7 +311,7 @@ class IndexTests(unittest.TestCase):
             return httpx.Response(200, json={"result": {"points": []}})
 
         client = httpx.Client(base_url="http://qdrant:6333", transport=httpx.MockTransport(respond))
-        QdrantDbService(client).search("doanh thu", [0.1] * 1536, "connection-id", "metric", 5)
+        QdrantRepository(client).search("doanh thu", [0.1] * 1536, "connection-id", "metric", 5)
         body = requests[0].content.decode()
         self.assertIn('"rrf"', body)
         self.assertIn('"connection-id"', body)

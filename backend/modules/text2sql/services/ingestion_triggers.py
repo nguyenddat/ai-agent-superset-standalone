@@ -5,21 +5,33 @@ from uuid import UUID
 from sqlalchemy import Connection, Select, event, select
 from sqlalchemy.orm import Session
 
-from backend.modules.data_dictionary.models import ColumnDictionary, ColumnSynonym, TableDictionary
-from backend.modules.database_connection.models import DatabaseColumn, DatabaseSchema, DatabaseTable
+from backend.modules.data_dictionary.models import (
+    ColumnDictionary,
+    ColumnSynonym,
+    TableDictionary,
+)
+from backend.modules.database_connection.models import (
+    DatabaseColumn,
+    DatabaseSchema,
+    DatabaseTable,
+)
 from backend.modules.expert_rule_management.models import (
     ExpertRule,
     ExpertRuleGlossaryLink,
     ExpertRuleMetricLink,
     ExpertRuleRevision,
 )
-from backend.modules.glossary_management.models import GlossaryLink, GlossaryRevision, GlossaryTerm
+from backend.modules.glossary_management.models import (
+    GlossaryLink,
+    GlossaryRevision,
+    GlossaryTerm,
+)
 from backend.modules.metric_management.models import Metric
 from backend.modules.own_knowledge.models import OwnKnowledgeEntry
 
-from ...models.ingestion_job import EVENT
-from .jobs import enqueue_jobs
-from .registry import TOPICS
+from ..models.ingestion_job import EVENT
+from ..repositories.ingestion_job_repository import enqueue_jobs
+from ..utils.topics import TOPICS
 
 ConnectionResolver = Callable[["ConnectionLookup", Any], UUID | None]
 

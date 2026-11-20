@@ -15,10 +15,10 @@ from backend.core.database import get_session_factory
 from backend.core.setting import config
 from backend.modules.model_registry import register_all_models
 
-from .vector_store.ingestion.jobs import IngestionJobQueue
-from .vector_store.ingestion.registry import DEFAULT_INTERVAL_SECONDS, TOPICS
-from .vector_store.ingestion.service import IngestionService
-from .vector_store.qdrant_db_service import QdrantDbService
+from .repositories.ingestion_job_repository import IngestionJobRepository
+from .repositories.qdrant_repository import QdrantRepository
+from .services.ingestion_service import IngestionService
+from .utils.topics import DEFAULT_INTERVAL_SECONDS, TOPICS
 
 register_all_models()
 
@@ -84,7 +84,7 @@ class IngestionWorker:
         if not due:
             return
         with self.session_factory() as session:
-            queue = IngestionJobQueue(session)
+            queue = IngestionJobRepository(session)
             for topic in due:
                 queue.enqueue_scheduled(topic, self.intervals[topic])
                 self._next_schedule[topic] = now + self.intervals[topic] / 2
@@ -92,7 +92,7 @@ class IngestionWorker:
 
     def maintain(self) -> None:
         with self.session_factory() as session:
-            queue = IngestionJobQueue(session)
+            queue = IngestionJobRepository(session)
             recovered = queue.recover_stale(config.text2sql_job_timeout_seconds, config.text2sql_job_max_attempts)
             if recovered:
                 logger.warning("Đã đưa %d job quá hạn về hàng đợi.", recovered)
@@ -104,7 +104,7 @@ class IngestionWorker:
 
     def claim(self) -> tuple[UUID, UUID, str] | None:
         with self.session_factory() as session:
-            job = IngestionJobQueue(session).claim_next()
+            job = IngestionJobRepository(session).claim_next()
             if job is None:
                 return None
             claimed = (job.id, job.connection_id, job.topic)
@@ -112,7 +112,7 @@ class IngestionWorker:
             return claimed
 
     def execute(self, job_id: UUID, connection_id: UUID, topic: str) -> None:
-        index = QdrantDbService()
+        index = QdrantRepository()
         embedding = OpenRouterEmbedding()
         started = time.monotonic()
         try:
@@ -137,7 +137,7 @@ class IngestionWorker:
 
     def finish(self, job_id: UUID, outcome: dict[str, object] | None, error: str | None) -> None:
         with self.session_factory() as session:
-            queue = IngestionJobQueue(session)
+            queue = IngestionJobRepository(session)
             job = queue.get(job_id)
             if job is None:
                 return

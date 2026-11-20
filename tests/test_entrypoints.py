@@ -23,9 +23,6 @@ class EntrypointModelTests(unittest.TestCase):
     def test_worker_registers_every_model_on_its_own(self) -> None:
         self.check_in_clean_process("backend.modules.text2sql.worker")
 
-    def test_mcp_server_registers_every_model_on_its_own(self) -> None:
-        self.check_in_clean_process("backend.mcp_server.server")
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,11 +1,17 @@
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
+from typing import Protocol
 
 import httpx
 
 from backend.core.setting import config
 
-from ...common.errors import Text2SqlRerankUnavailable
+from ..utils.exceptions import Text2SqlRerankUnavailable
+
+
+class Reranker(Protocol):
+    def rerank(self, question: str, passages: Sequence[str], subject: str = "metric") -> list[float]: ...
+
 
 QUESTION_NAME = "relevance"
 INSTRUCTIONS = (

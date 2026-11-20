@@ -5,9 +5,9 @@ from uuid import uuid4
 
 import httpx
 
-from backend.modules.text2sql.vector_store.qdrant_db_service import (
+from backend.modules.text2sql.repositories.qdrant_repository import (
     TEXT_INDEX_SCHEMA,
-    QdrantDbService,
+    QdrantRepository,
     text_index_is_current,
 )
 
@@ -22,7 +22,7 @@ def collection_info(text_params: dict | None) -> dict:
     return {"result": {"config": {"params": {"vectors": {"size": 1536}}}, "payload_schema": schema}}
 
 
-def service_with(info: dict) -> tuple[QdrantDbService, list[httpx.Request]]:
+def service_with(info: dict) -> tuple[QdrantRepository, list[httpx.Request]]:
     requests: list[httpx.Request] = []
 
     def respond(request: httpx.Request) -> httpx.Response:
@@ -32,7 +32,7 @@ def service_with(info: dict) -> tuple[QdrantDbService, list[httpx.Request]]:
         return httpx.Response(200, json={"result": True})
 
     client = httpx.Client(base_url="http://qdrant:6333", transport=httpx.MockTransport(respond))
-    return QdrantDbService(client), requests
+    return QdrantRepository(client), requests
 
 
 class TextIndexTests(unittest.TestCase):
@@ -78,7 +78,7 @@ class SearchFilterTests(unittest.TestCase):
             return httpx.Response(200, json={"result": {"points": []}})
 
         client = httpx.Client(base_url="http://qdrant:6333", transport=httpx.MockTransport(respond))
-        QdrantDbService(client).search("q", [0.1] * 4, "connection-id", "own_knowledge", 5, filters)
+        QdrantRepository(client).search("q", [0.1] * 4, "connection-id", "own_knowledge", 5, filters)
         return json.loads(requests[0].content)
 
     def test_extra_filters_apply_to_both_dense_and_keyword_branches(self) -> None:
@@ -95,7 +95,7 @@ class SearchFilterTests(unittest.TestCase):
 class HybridSearchIntegrationTests(unittest.TestCase):
     def setUp(self) -> None:
         url = os.environ["QDRANT_TEST_URL"].rstrip("/")
-        self.service = QdrantDbService(httpx.Client(base_url=url, timeout=30))
+        self.service = QdrantRepository(httpx.Client(base_url=url, timeout=30))
         self.service.collection = f"text2sql_test_{uuid4().hex}"
         self.addCleanup(lambda: (self.service.client.delete(f"/collections/{self.service.collection}"),
                                  self.service.close()))
