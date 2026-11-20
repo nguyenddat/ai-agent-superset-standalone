@@ -10,7 +10,6 @@ Route → kiểm tra dữ liệu vào → service → repository → commit → 
 
 Route sở hữu session của request qua `get_database()`. Service và repository không tự commit. Một thao tác ghi commit một lần sau khi mọi bước đã thành công; khi phát sinh exception, `get_database()` rollback và đóng session. Repository có thể flush để lấy ID hoặc phát hiện ràng buộc sớm. Không trả URI hoặc secret đã giải mã trong response.
 
-Ngoại lệ: route streaming `POST /api/v1/text2sql/chat` trả `text/event-stream` và không dùng `get_database()` vì vòng đời dependency không khớp với stream. Route kiểm tra đầu vào, connection và hội thoại (khi có `user_id`) bằng một session ngắn trước khi stream; generator tự mở session và client rồi đóng trong `finally` (kể cả khi client ngắt kết nối), chỉ commit dataset sau khi truy vấn chạy thành công, và ghi lượt hội thoại bằng một session riêng (commit khi mở và khi kết thúc lượt; ngắt kết nối thì lượt được đóng với `error_code=client_disconnected`). Xem [luồng chat](modules/text2sql/chat-flow.md).
 
 ## Lỗi
 

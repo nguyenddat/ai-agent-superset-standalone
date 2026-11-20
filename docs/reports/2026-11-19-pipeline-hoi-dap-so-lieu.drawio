@@ -1,0 +1,254 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="pipeline-hoi-dap" name="Pipeline hỏi đáp số liệu">
+    <mxGraphModel dx="1800" dy="1900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1900" math="0" shadow="0" background="#ffffff">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="&lt;b&gt;Pipeline hỏi đáp số liệu&lt;/b&gt;" style="fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;fontSize=32;" vertex="1" parent="1">
+          <mxGeometry x="560" y="10" width="600" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="par1" value="song song" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fillColor=none;dashed=1;dashPattern=8 6;strokeColor=#868e96;fontSize=15;fontColor=#868e96;align=left;verticalAlign=top;spacingLeft=12;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="490" y="230" width="740" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="par2" value="song song" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fillColor=none;dashed=1;dashPattern=8 6;strokeColor=#868e96;fontSize=15;fontColor=#868e96;align=left;verticalAlign=top;spacingLeft=12;spacingTop=4;" vertex="1" parent="1">
+          <mxGeometry x="490" y="420" width="740" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="user" value="Người dùng" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=17;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="420" y="95" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="req" value="&lt;b&gt;Yêu cầu&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px'&gt;câu hỏi + lịch sử hội thoại&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fontSize=16;fillColor=#f1f3f5;" vertex="1" parent="1">
+          <mxGeometry x="760" y="90" width="200" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="fork1" value="tách nhánh" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;arcSize=50;html=1;fontSize=14;labelPosition=right;align=left;spacingLeft=12;fillColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="560" y="205" width="600" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="s1a" value="&lt;b&gt;[1a] Ghép ngữ cảnh &amp;amp; viết lại câu hỏi&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;LLM · theo thuật ngữ nghiệp vụ&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#e5dbff;" vertex="1" parent="1">
+          <mxGeometry x="520" y="260" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="s1b" value="&lt;b&gt;[1b] Phân loại câu hỏi / intent&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;LLM · loại câu T1–T22&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#e5dbff;" vertex="1" parent="1">
+          <mxGeometry x="900" y="260" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="join1" value="gộp" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;arcSize=50;html=1;fontSize=14;labelPosition=right;align=left;spacingLeft=12;fillColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="560" y="385" width="600" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="s2a" value="&lt;b&gt;[2a] Retrieve top-k tri thức&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;RETRIEVAL&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#b2f2bb;" vertex="1" parent="1">
+          <mxGeometry x="520" y="450" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="s2b" value="&lt;b&gt;[2b] Chuẩn hóa &amp;amp; trích thực thể&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;CODE · entity linking · quy đổi thời gian&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#a5d8ff;" vertex="1" parent="1">
+          <mxGeometry x="900" y="450" width="300" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="join2" value="gộp" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;arcSize=50;html=1;fontSize=14;labelPosition=right;align=left;spacingLeft=12;fillColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="560" y="575" width="600" height="10" as="geometry" />
+        </mxCell>
+        <mxCell id="kb" value="Kho tri thức&lt;br&gt;thuật ngữ · quy tắc · metric" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;size=12;fontSize=15;fillColor=#ffd8a8;" vertex="1" parent="1">
+          <mxGeometry x="170" y="435" width="230" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="kb_values" value="Danh mục giá trị&lt;br&gt;+ bí danh" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;size=12;fontSize=15;fillColor=#ffd8a8;" vertex="1" parent="1">
+          <mxGeometry x="1340" y="435" width="190" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="s3" value="&lt;b&gt;[3] Định tuyến&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;CODE · intent + kết quả 2a, 2b&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#a5d8ff;" vertex="1" parent="1">
+          <mxGeometry x="700" y="620" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="router" value="&lt;b&gt;Loại câu → nhánh&lt;/b&gt;&lt;br&gt;R1: T22, T15 danh mục&lt;br&gt;R2: T1–T7, T9, T10–T14, T15 ETL&lt;br&gt;R3: T8, T9 cần ghép, T21&lt;br&gt;R4: T19 · R5: T20&lt;br&gt;&lt;i&gt;T16–T18 xử lý xong ở bước 1a và 2b&lt;/i&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=14;align=left;verticalAlign=top;spacingLeft=10;dashed=1;fillColor=#ffffff;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1720" width="330" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="e_user_req" value="gửi" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;verticalAlign=bottom;spacingBottom=6;" edge="1" parent="1" source="user" target="req">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_req_fork1" value="" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;" edge="1" parent="1" source="req" target="fork1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fork1_1a" value="" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;exitX=0.1833;exitY=1;" edge="1" parent="1" source="fork1" target="s1a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_fork1_1b" value="" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;exitX=0.8167;exitY=1;" edge="1" parent="1" source="fork1" target="s1b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_1a_join1" value="câu hỏi viết lại" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=right;spacingRight=10;entryX=0.1833;entryY=0;" edge="1" parent="1" source="s1a" target="join1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_1b_join1" value="loại câu · intent" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;entryX=0.8167;entryY=0;" edge="1" parent="1" source="s1b" target="join1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_join1_2a" value="" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;exitX=0.1833;exitY=1;" edge="1" parent="1" source="join1" target="s2a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_join1_2b" value="" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;exitX=0.8167;exitY=1;" edge="1" parent="1" source="join1" target="s2b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_kb_2a" value="top-k" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;verticalAlign=bottom;spacingBottom=6;" edge="1" parent="1" source="kb" target="s2a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_val_2b" value="giá trị, today" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;verticalAlign=bottom;spacingBottom=6;" edge="1" parent="1" source="kb_values" target="s2b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_2a_join2" value="tri thức top-k" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=right;spacingRight=10;entryX=0.1833;entryY=0;" edge="1" parent="1" source="s2a" target="join2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_2b_join2" value="thực thể · thời gian · cờ" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;entryX=0.8167;entryY=0;" edge="1" parent="1" source="s2b" target="join2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_join2_s3" value="" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;" edge="1" parent="1" source="join2" target="s3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r1" value="&lt;b&gt;Trả lời từ tri thức&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;LLM · không query DB&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#e5dbff;" vertex="1" parent="1">
+          <mxGeometry x="40" y="820" width="240" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e_s3_r1" value="R1 · hỏi định nghĩa" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;verticalAlign=bottom;spacingBottom=6;exitX=0;exitY=0.5;entryX=0.5;entryY=0;" edge="1" parent="1" source="s3" target="r1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d4" value="&lt;b&gt;Metric top-k&lt;br&gt;dùng được?&lt;/b&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rhombus;whiteSpace=wrap;html=1;fontSize=16;fillColor=#ffec99;" vertex="1" parent="1">
+          <mxGeometry x="450" y="795" width="260" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="s4a" value="&lt;b&gt;[4a] Dùng metric&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;LLM lập plan · quy tắc áp bằng code&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#e5dbff;" vertex="1" parent="1">
+          <mxGeometry x="300" y="980" width="250" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="s4b" value="&lt;b&gt;[4b] Top-k cột / bảng&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;RETRIEVAL + LLM · nối bảng đã khai báo&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#b2f2bb;" vertex="1" parent="1">
+          <mxGeometry x="610" y="980" width="250" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="db" value="Kho dữ liệu&lt;br&gt;data_wh" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;size=12;fontSize=15;fillColor=#ffd8a8;" vertex="1" parent="1">
+          <mxGeometry x="480" y="1120" width="200" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="s5" value="&lt;b&gt;[5] Tính sau truy vấn&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;CODE · so sánh, tỷ lệ, thứ hạng, xu hướng&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#a5d8ff;" vertex="1" parent="1">
+          <mxGeometry x="420" y="1290" width="320" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="s6" value="&lt;b&gt;[6] Kiểm tra kết quả&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;CODE · rỗng, NULL, hòa, cắt bớt&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#a5d8ff;" vertex="1" parent="1">
+          <mxGeometry x="420" y="1430" width="320" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e_s3_d4" value="R2 · số liệu" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;verticalAlign=bottom;spacingBottom=6;exitX=0.25;exitY=1;" edge="1" parent="1" source="s3" target="d4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_d4_4a" value="Có" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=right;spacingRight=10;exitX=0;exitY=0.5;entryX=0.5;entryY=0;" edge="1" parent="1" source="d4" target="s4a">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_d4_4b" value="Không" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;exitX=1;exitY=0.5;entryX=0.5;entryY=0;" edge="1" parent="1" source="d4" target="s4b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_4a_db" value="truy vấn metric" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=right;spacingRight=10;entryX=0.25;entryY=0;" edge="1" parent="1" source="s4a" target="db">
+          <mxGeometry relative="1" as="geometry" x="-0.7" />
+        </mxCell>
+        <mxCell id="e_4b_db" value="truy vấn nhiều bảng" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;entryX=0.75;entryY=0;" edge="1" parent="1" source="s4b" target="db">
+          <mxGeometry relative="1" as="geometry" x="-0.7" />
+        </mxCell>
+        <mxCell id="e_db_s5" value="rows" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;" edge="1" parent="1" source="db" target="s5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_s5_s6" value="giá trị + công thức" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;" edge="1" parent="1" source="s5" target="s6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="r3a" value="&lt;b&gt;Tách câu con&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;LLM · mỗi câu con giữ quy tắc riêng&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#e5dbff;" vertex="1" parent="1">
+          <mxGeometry x="900" y="820" width="240" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="r3b" value="&lt;b&gt;Ghép kết quả&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;CODE&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#a5d8ff;" vertex="1" parent="1">
+          <mxGeometry x="900" y="980" width="240" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e_s3_r3a" value="R3 · câu ghép" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=right;spacingRight=10;exitX=0.75;exitY=1;" edge="1" parent="1" source="s3" target="r3a">
+          <mxGeometry relative="1" as="geometry" x="-0.6" />
+        </mxCell>
+        <mxCell id="e_r3a_r3b" value="kết quả từng câu con" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;" edge="1" parent="1" source="r3a" target="r3b">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_r3a_s3" value="từng câu con&lt;br&gt;định tuyến lại" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;verticalAlign=bottom;spacingBottom=6;dashed=1;exitX=1;exitY=0.3;entryX=0.9;entryY=1;" edge="1" parent="1" source="r3a" target="s3">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1160" y="844" />
+              <mxPoint x="1160" y="743" />
+              <mxPoint x="988" y="743" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="d_r4" value="&lt;b&gt;Có mặc định&lt;br&gt;đã khai báo?&lt;/b&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rhombus;whiteSpace=wrap;html=1;fontSize=16;fillColor=#ffec99;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="795" width="240" height="130" as="geometry" />
+        </mxCell>
+        <mxCell id="r4_default" value="&lt;b&gt;Dùng mặc định + ghi giả định&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;CODE · rồi chạy như R2&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#a5d8ff;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="980" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="r4_ask" value="&lt;b&gt;Hỏi lại, tối đa 4 lựa chọn&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;LLM · người dùng trả lời → lượt mới&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#e5dbff;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="1120" width="260" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e_s3_r4" value="R4 · mơ hồ" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;verticalAlign=bottom;spacingBottom=6;exitX=1;exitY=0.85;entryX=0.5;entryY=0;" edge="1" parent="1" source="s3" target="d_r4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1300" y="680" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_r4_default" value="Có" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;" edge="1" parent="1" source="d_r4" target="r4_default">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_r4_ask" value="Không" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;verticalAlign=bottom;spacingBottom=6;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" edge="1" parent="1" source="d_r4" target="r4_ask">
+          <mxGeometry relative="1" as="geometry" x="-0.9">
+            <Array as="points">
+              <mxPoint x="1450" y="860" />
+              <mxPoint x="1450" y="1160" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="r5" value="&lt;b&gt;Từ chối có lý do&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;không có con số nào&lt;/font&gt;&lt;br&gt;&lt;font style='font-size:13px'&gt;• thiếu giá trị / ngoài vùng (bước 2b)&lt;br&gt;• không có tri thức (bước 2a)&lt;br&gt;• không có cột (4b)&lt;br&gt;• câu vì sao, có nên (bước 1b)&lt;br&gt;• tiền đề sai → kiểm chứng qua R2&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;align=left;verticalAlign=top;spacingLeft=10;spacingTop=6;fillColor=#ffc9c9;" vertex="1" parent="1">
+          <mxGeometry x="1490" y="820" width="250" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="e_s3_r5" value="R5 · ngoài phạm vi" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;verticalAlign=bottom;spacingBottom=6;exitX=1;exitY=0.2;entryX=0.5;entryY=0;" edge="1" parent="1" source="s3" target="r5">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1615" y="634" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="s7" value="&lt;b&gt;[7] Viết câu trả lời&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px;color:#555555'&gt;LLM · số chỉ lấy từ kết quả&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fillColor=#e5dbff;" vertex="1" parent="1">
+          <mxGeometry x="700" y="1580" width="320" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="answer" value="&lt;b&gt;Câu trả lời&lt;/b&gt;&lt;br&gt;&lt;font style='font-size:13px'&gt;+ trace cho benchmark&lt;/font&gt;" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fontSize=16;fillColor=#f1f3f5;" vertex="1" parent="1">
+          <mxGeometry x="760" y="1730" width="200" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="user_end" value="Người dùng" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fontSize=17;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1180" y="1745" width="40" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="e_s6_s7" value="kết quả đã kiểm" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;verticalAlign=bottom;spacingBottom=6;exitX=0.5;exitY=1;entryX=0.25;entryY=0;" edge="1" parent="1" source="s6" target="s7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_r1_s7" value="định nghĩa + nguồn" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" edge="1" parent="1" source="r1" target="s7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_r3b_s7" value="kết quả gộp" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;exitX=0.5;exitY=1;entryX=0.75;entryY=0;" edge="1" parent="1" source="r3b" target="s7">
+          <mxGeometry relative="1" as="geometry" x="-0.5" />
+        </mxCell>
+        <mxCell id="e_ask_s7" value="câu hỏi làm rõ" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;exitX=0.5;exitY=1;entryX=1;entryY=0.3;" edge="1" parent="1" source="r4_ask" target="s7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_r5_s7" value="thông điệp + gợi ý" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;exitX=0.5;exitY=1;entryX=1;entryY=0.7;" edge="1" parent="1" source="r5" target="s7">
+          <mxGeometry relative="1" as="geometry" x="-0.3" />
+        </mxCell>
+        <mxCell id="e_s7_answer" value="kết luận · số liệu · giả định" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;align=left;spacingLeft=10;" edge="1" parent="1" source="s7" target="answer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_answer_user" value="trả lời" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;html=1;endArrow=open;endSize=12;fontSize=14;labelBackgroundColor=none;edgeStyle=orthogonalEdgeStyle;rounded=1;verticalAlign=bottom;spacingBottom=6;" edge="1" parent="1" source="answer" target="user_end">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_title" value="&lt;b&gt;Chú thích&lt;/b&gt;" style="fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;text;html=1;align=center;verticalAlign=middle;strokeColor=none;fillColor=none;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry x="40" y="90" width="160" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_llm" value="LLM" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fontSize=15;fillColor=#e5dbff;" vertex="1" parent="1">
+          <mxGeometry x="40" y="128" width="160" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_code" value="CODE" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fontSize=15;fillColor=#a5d8ff;" vertex="1" parent="1">
+          <mxGeometry x="40" y="172" width="160" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_retrieval" value="RETRIEVAL" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fontSize=15;fillColor=#b2f2bb;" vertex="1" parent="1">
+          <mxGeometry x="40" y="216" width="160" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_db" value="Kho dữ liệu" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fontSize=15;fillColor=#ffd8a8;" vertex="1" parent="1">
+          <mxGeometry x="40" y="260" width="160" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_decision" value="Quyết định" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fontSize=15;fillColor=#ffec99;" vertex="1" parent="1">
+          <mxGeometry x="40" y="304" width="160" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_refuse" value="Từ chối" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;whiteSpace=wrap;html=1;fontSize=17;arcSize=18;fontSize=15;fillColor=#ffc9c9;" vertex="1" parent="1">
+          <mxGeometry x="40" y="348" width="160" height="34" as="geometry" />
+        </mxCell>
+        <mxCell id="legend_bar" value="tách / gộp nhánh" style="sketch=1;curveFitting=1;jiggle=2;hachureGap=4;fillStyle=solid;strokeWidth=2;strokeColor=#1e1e1e;fontFamily=Patrick Hand;fontSource=https%3A%2F%2Ffonts.googleapis.com%2Fcss%3Ffamily%3DPatrick%2BHand;rounded=1;arcSize=50;html=1;fontSize=14;labelPosition=right;align=left;spacingLeft=12;fillColor=#1e1e1e;" vertex="1" parent="1">
+          <mxGeometry x="40" y="404" width="60" height="10" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,8 +1,8 @@
 # Dữ liệu của text2sql
 
-**Trạng thái:** migration `d3b7f19a5e24` (thư mục `init_text2sql_module`) đã triển khai sau `own_knowledge`.
+**Trạng thái:** migration `d3b7f19a5e24` (thư mục `init_text2sql_module`) đã triển khai sau `own_knowledge`; migration `e8b2c6d4f170` (sau `4d8a1c7e3b92`) tạo `technical.text2sql_chat_checkpoints` ngày 2026-11-20.
 
-Qdrant chứa chỉ mục tìm kiếm có thể tạo lại; nguồn dữ liệu gốc vẫn là các module khác. PostgreSQL có hai bảng kỹ thuật của module này: hàng đợi ingestion (mô tả dưới đây) và `technical.text2sql_query_datasets` (migration `7e4c1a9b5d32`, định nghĩa join dùng lại của `query_dataset`, xem [dataset truy vấn](query-datasets.md)).
+Qdrant chứa chỉ mục tìm kiếm có thể tạo lại; nguồn dữ liệu gốc vẫn là các module khác. PostgreSQL có hai bảng kỹ thuật đang dùng của module này: hàng đợi ingestion và checkpoint của lượt chat đang chờ hỏi lại (mô tả dưới đây). Bảng `technical.text2sql_query_datasets` (migration `7e4c1a9b5d32`, định nghĩa join dùng lại của `query_dataset` cũ) vẫn còn trong database nhưng không còn model hay code dùng, vì phần hỏi đáp đã gỡ ngày 2026-11-19.
 
 ## Schema `technical`
 
@@ -28,3 +28,20 @@ SQLite chỉ dùng cho test không có schema; `ingestion_job.py` gắn một da
 | `result` | JSON `total`, `indexed`, `unchanged`, `deleted`, `seconds` khi thành công. |
 
 Chỉ mục: `uq_text2sql_ingestion_jobs_pending` unique trên `(connection_id, topic)` với điều kiện `status = 'pending'` (gộp job chờ); `ix_text2sql_ingestion_jobs_claim` trên `(status, run_after)` cho việc lấy job; `ix_technical_text2sql_ingestion_jobs_connection_id`. Cơ chế vận hành ở [worker và hàng đợi](worker-ingestion.md).
+
+## `technical.text2sql_chat_checkpoints`
+
+Checkpoint LangGraph của một lượt chat đang dừng chờ người dùng trả lời câu hỏi lại; cách dùng ở [hỏi lại và chạy tiếp](api-chat.md#hỏi-lại-và-chạy-tiếp). Model `ChatCheckpoint`, repository `ChatCheckpointRepository`.
+
+| Cột | Ý nghĩa |
+| --- | --- |
+| `id` | `resume_id` trả cho client, cũng là `thread_id` của graph. UUID v4 sinh ngẫu nhiên (không dùng UUID v7 mặc định) vì ở chế độ không có `user_id` đây là khóa duy nhất để chạy tiếp. |
+| `created_at`, `updated_at` | Từ `BaseModel`. |
+| `connection_id` | Khóa ngoại tới `database_connections`, `ON DELETE CASCADE`. |
+| `user_id` | Người hỏi; `null` khi request không có `user_id`. |
+| `conversation_id` | Khóa ngoại tới `conversations`, `ON DELETE CASCADE`; `null` khi không lưu hội thoại. |
+| `turn_id` | Khóa ngoại tới `conversation_turns` (lượt `needs_clarification` đang chờ), `ON DELETE CASCADE`. |
+| `snapshot` | `bytea`: checkpoint, writes và blobs của thread do `SnapshotSaver.export_thread` đóng gói bằng msgpack của LangGraph. Chứa state của graph: kết quả tiền xử lý, câu trả lời và dòng dữ liệu của các câu đã xong, messages của agent đang chờ (chưa che PII, giống response). Không chứa bản nháp hay delta của stream chữ; cờ `streaming` và các callback stream nằm trong context của graph (`ChatGraphContext`, `ToolAgentContext`), không nằm trong state, nên snapshot tạo trước khi có stream chữ vẫn chạy tiếp được. |
+| `expires_at` | Hết hạn sau `TEXT2SQL_CLARIFICATION_TTL_MINUTES`; dòng hết hạn bị coi như không có và bị xóa mỗi khi lưu checkpoint mới. |
+
+Chỉ mục: `ix_technical_text2sql_chat_checkpoints_connection_id`, `..._conversation_id`, `..._expires_at`. Dòng bị xóa khi lượt được chạy tiếp (transaction cùng `begin_turn`) và ghi lại nếu lần chạy tiếp lỗi. Không có job dọn riêng: dòng hết hạn chỉ bị xóa khi có lượt mới dừng; có thể xóa tay `DELETE FROM technical.text2sql_chat_checkpoints WHERE expires_at <= now()` bất cứ lúc nào.

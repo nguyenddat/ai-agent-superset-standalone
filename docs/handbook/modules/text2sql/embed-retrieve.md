@@ -1,28 +1,41 @@
 # Embed và retrieve metric cho Text2SQL
 
-**Trạng thái:** ingestion sáu topic, hàng đợi job, worker và trigger tự động đã triển khai ở backend. Truy hồi hybrid, ranking cơ bản và rerank tùy chọn bằng Jev (qua MCP tool) cho metric đã có; luồng chọn metric/chạy SQL chưa triển khai. PostgreSQL metadata là nguồn dữ liệu gốc; Qdrant là chỉ mục có thể tạo lại.
+**Trạng thái:** ingestion sáu topic, hàng đợi job, worker và trigger tự động đã triển khai ở backend. Truy hồi hybrid, ranking cơ bản và rerank tùy chọn bằng Jev cho metric đã có. Luồng hỏi đáp dùng chỉ mục này đã gỡ ngày 2026-11-19 để làm lại. PostgreSQL metadata là nguồn dữ liệu gốc; Qdrant là chỉ mục có thể tạo lại.
 
 ## 1. Cấu trúc module
 
 ```text
 backend/modules/text2sql/
-├── common/              errors.py, sql_columns.py (cột được biểu thức SQL tham chiếu)
-├── models/              IngestionJob (bảng hàng đợi, schema technical)
-├── details/             DetailService: mô tả bảng, cột và chi tiết metric, thuật ngữ, quy tắc, tri thức riêng
-├── vector_store/
-│   ├── qdrant_db_service.py   QdrantDbService, mọi lời gọi Qdrant
-│   ├── ingestion/
-│   │   ├── documents/   base.py, context.py và một builder cho mỗi topic
-│   │   ├── registry.py  danh sách topic, chu kỳ mặc định; thêm topic chỉ cần đăng ký ở đây
-│   │   ├── service.py   IngestionService.sync(connection_id, topics)
-│   │   ├── jobs.py      IngestionJobQueue: enqueue, claim, retry, dọn job cũ
-│   │   └── triggers.py  ghi job vào hàng đợi khi dữ liệu đổi
-│   ├── retrieve/        service.py (xếp hạng metric), topic_search.py (tìm theo từng topic)
-│   └── rerank/          Reranker (giao diện) và JevReranker (Jev qua OpenRouter)
-├── worker.py            tiến trình chạy job và phát lịch
-├── routes/              __init__.py (router cha), ingestion.py (ingestion, retrieve)
-├── schemas.py
+├── models/            IngestionJob (bảng hàng đợi, schema technical)
+├── repositories/
+│   ├── qdrant_repository.py          QdrantRepository, mọi lời gọi Qdrant
+│   ├── ingestion_job_repository.py   IngestionJobRepository: enqueue, claim, retry, dọn job cũ; enqueue_jobs cho trigger
+│   └── source_query_repository.py    source_url (giải mã URI connection), run_read_only (truy vấn chỉ đọc trên database nguồn)
+├── services/
+│   ├── catalog_context.py      load_context: đọc bảng, cột, metric của connection một lần cho mọi builder
+│   ├── index_documents.py      IndexDocument, build_document, một builder cho mỗi topic, TOPIC_BUILDERS; referenced_columns (cột được biểu thức SQL của metric tham chiếu)
+│   ├── ingestion_service.py    IngestionService.sync(connection_id, topics)
+│   ├── ingestion_triggers.py   ghi job vào hàng đợi khi dữ liệu đổi
+│   ├── retrieval_service.py    RetrievalService (xếp hạng metric)
+│   ├── topic_search_service.py TopicSearchService (tìm theo từng topic)
+│   ├── reranker.py             Reranker (giao diện) và JevReranker (Jev qua OpenRouter)
+│   ├── chat_service.py         ChatService.preprocess (viết lại, tách câu, song song phân loại và truy hồi top K), ChatService.chat
+│   ├── chat_graph.py           graph LangGraph của một lượt chat: tiền xử lý, chia câu theo depends_on, tổng hợp
+│   ├── text2sql_agent_service.py  Text2SqlAgentService.start, AgentRun.answer (agent trả lời một câu đơn)
+│   ├── agent_catalog.py        AgentCatalog: bản chụp bảng, cột, metric, quy tắc chuyên gia cho agent
+│   ├── agent_tools.py          Text2SqlToolkit (sáu công cụ của agent), QueryCache
+│   ├── sql_builder.py          build_metric_query: dựng SQL cho query_metric, áp quy tắc gắn với metric
+│   └── sql_guard.py            validate_select: kiểm SQL do LLM viết trước khi chạy
+├── schemas/schema_text2sql.py  schema của route ingestion, retrieve và chat
+├── routes/              __init__.py (router cha /api/v1/text2sql), router_ingestion.py (ingestion, retrieve), router_chat.py (chat)
+├── utils/
+│   ├── exceptions.py   lỗi của module (connection không có, chỉ mục, rerank hoặc LLM không dùng được, yêu cầu sai)
+│   └── topics.py       tên topic, TOPICS, chu kỳ mặc định, validate_topics
+├── dependencies.py     get_index_services, get_chat_service
+└── worker.py           tiến trình chạy job và phát lịch
 ```
+
+Thêm topic: thêm tên vào `utils/topics.py` (cùng chu kỳ mặc định) và builder vào `TOPIC_BUILDERS` ở `services/index_documents.py`; hai danh sách phải cùng thứ tự.
 
 `OpenRouterEmbedding` nằm ở `backend/agent_package/get_embedding_models.py`, cùng chỗ với `get_chat_models.py`, vì là phần dùng chung cho tính năng AI. Lỗi của nó là `EmbeddingUnavailable` (503).
 
@@ -63,14 +76,14 @@ ingestion-worker lấy job bằng SELECT … FOR UPDATE SKIP LOCKED, chạy song
 
 `backend/modules/text2sql/retrieve/` nhận `(question, connection_id, k)` và trả `MetricCandidate[]`, không sinh SQL. `k` mặc định 5 và là **số metric cuối cùng**, không phải số point lấy từ Qdrant.
 
-1. **Candidate recall.** Embed câu hỏi một lần. Truy vấn Qdrant với filter `connection_id` và `topic`. Lấy pool rộng hơn top K, ví dụ 30 point `metric`, 15 `table`, 30 `column`. Mỗi truy vấn là **hybrid**: một nhánh dense (cosine trên vector embedding) và một nhánh BM25 trên payload `text`, gộp bằng RRF trong cùng một lời gọi `points/query` (`QdrantDbService.search`). Nhánh BM25 dùng full-text index của Qdrant (`scoring: bm25`) nên không cần tự tính vector thưa; điểm BM25 phụ thuộc tần suất từ và độ hiếm của từ trong collection, từ hiếm như `doanh thu` điểm cao hơn từ phổ biến như `bảng`. Nhánh BM25 khớp theo từ (OR giữa các từ của câu hỏi) nên bổ trợ cho dense ở tên riêng, mã và thuật ngữ đúng chữ; dense bổ trợ lại khi câu hỏi diễn đạt khác. [Hybrid queries](https://qdrant.tech/documentation/hybrid-queries/), [Full-text index](https://qdrant.tech/documentation/manage-data/indexing/).
+1. **Candidate recall.** Embed câu hỏi một lần. Truy vấn Qdrant với filter `connection_id` và `topic`. Lấy pool rộng hơn top K, ví dụ 30 point `metric`, 15 `table`, 30 `column`. Mỗi truy vấn là **hybrid**: một nhánh dense (cosine trên vector embedding) và một nhánh BM25 trên payload `text`, gộp bằng RRF trong cùng một lời gọi `points/query` (`QdrantRepository.search`). Nhánh BM25 dùng full-text index của Qdrant (`scoring: bm25`) nên không cần tự tính vector thưa; điểm BM25 phụ thuộc tần suất từ và độ hiếm của từ trong collection, từ hiếm như `doanh thu` điểm cao hơn từ phổ biến như `bảng`. Nhánh BM25 khớp theo từ (OR giữa các từ của câu hỏi) nên bổ trợ cho dense ở tên riêng, mã và thuật ngữ đúng chữ; dense bổ trợ lại khi câu hỏi diễn đạt khác. [Hybrid queries](https://qdrant.tech/documentation/hybrid-queries/), [Full-text index](https://qdrant.tech/documentation/manage-data/indexing/).
 
    **Khớp không dấu.** Chỉ mục `text` bật `ascii_folding` và `lowercase`, nên `nhiet do`, `NHIỆT ĐỘ` và `Nhiệt độ` khớp nhau, kể cả chữ `đ`. Người dùng thường gõ không dấu, và nếu thiếu bước này nhánh BM25 trả rỗng với các câu hỏi đó. `ensure_collection` tự dựng lại chỉ mục `text` nếu collection đã có chỉ mục theo cấu hình cũ (xóa rồi tạo lại, không cần đổi tên collection hay embed lại), nên lần chạy ingestion đầu tiên sau khi nâng cấp sẽ sửa collection đang dùng. Dựng lại chỉ mục trên collection lớn tốn thời gian trong lúc đó.
 2. **Quy về metric.** Metric hit là ứng viên trực tiếp. Table hit chỉ cộng tín hiệu cho metric cùng `table_id`. Column hit chỉ cộng tín hiệu cho metric cùng bảng **và** có tham chiếu cột đó trong biểu thức; quan hệ này được parse từ SQL metric khi lập index hoặc tra lại metadata. Giới hạn tổng điểm ngữ cảnh để một bảng có nhiều cột không áp đảo metric hit. Loại metric inactive/mất bảng và nạp lại thông tin gốc từ PostgreSQL trước khi trả.
 3. **Ranking cơ sở.** Xếp hạng từ vị trí metric trong kết quả RRF, cộng điểm ngữ cảnh bảng/cột có giới hạn và khớp chính xác tên/nhãn. Chỉ gồm metric còn hoạt động và gắn bảng vật lý trong PostgreSQL. Trọng số hiện là baseline; chưa có tập đánh giá để hiệu chỉnh.
-4. **Xếp hạng lại bằng Jev (tùy chọn).** `RetrievalService.search(..., reranker)` nhận một `Reranker`; không truyền thì giữ nguyên thứ tự của bước 3. Chỉ các MCP tool tìm kiếm (xem [MCP server](../../mcp-server.md)) bật bước này, qua tham số `rerank` (mặc định `false`); API REST `/text2sql/retrieve` không rerank.
+4. **Xếp hạng lại bằng Jev (tùy chọn).** `RetrievalService.search(..., reranker)` nhận một `Reranker`; không truyền thì giữ nguyên thứ tự của bước 3. Hiện không caller nào truyền `Reranker`: API REST `/text2sql/retrieve` không rerank (trước đây chỉ các MCP tool tìm kiếm bật bước này).
    - **Đầu vào:** tối đa `TEXT2SQL_RERANK_POOL` ứng viên đầu (mặc định 20, không nhỏ hơn `k`). Với metric, đó là các metric đầu của bước 3, diễn đạt bằng văn bản đã lập index (tên, nhãn, mô tả, bảng, cột liên quan). Với các loại còn lại (`table`, `column`, `glossary`, `expert_rule`, `own_knowledge`), `TopicSearchService` lấy các point đầu của topic đó từ Qdrant (hybrid dense + BM25 + RRF) và dùng văn bản của point; riêng `own_knowledge` chỉ gồm point của đúng `user_id`.
-   - **Jev:** `JevReranker` gọi `POST {OPENROUTER_BASE_URL}/systemone` với model `TEXT2SQL_RERANK_MODEL` (mặc định `typesafe/jev-1.14`), mỗi ứng viên một lời gọi, tối đa `TEXT2SQL_RERANK_CONCURRENCY` lời gọi song song (mặc định 8). Mỗi lời gọi hỏi một câu kiểu `score` ba mức (không liên quan, liên quan một phần, trả lời trực tiếp), với cách diễn đạt riêng cho từng loại (`SUBJECTS` trong `jev_reranker.py`); điểm `score` Jev trả về (từ 0 đến 2, tương ứng ba mức) được chia cho 2 thành `rerank_score` trong [0, 1]. Dùng cùng khóa `OPENROUTER_API_KEY`. [OpenRouter System One](https://openrouter.ai/docs/api/api-reference/systemone/submit-a-system-one-request).
+   - **Jev:** `JevReranker` gọi `POST {OPENROUTER_BASE_URL}/systemone` với model `TEXT2SQL_RERANK_MODEL` (mặc định `typesafe/jev-1.14`), mỗi ứng viên một lời gọi, tối đa `TEXT2SQL_RERANK_CONCURRENCY` lời gọi song song (mặc định 8). Mỗi lời gọi hỏi một câu kiểu `score` ba mức (không liên quan, liên quan một phần, trả lời trực tiếp), với cách diễn đạt riêng cho từng loại (`SUBJECTS` trong `services/reranker.py`); điểm `score` Jev trả về (từ 0 đến 2, tương ứng ba mức) được chia cho 2 thành `rerank_score` trong [0, 1]. Dùng cùng khóa `OPENROUTER_API_KEY`. [OpenRouter System One](https://openrouter.ai/docs/api/api-reference/systemone/submit-a-system-one-request).
    - **Thứ tự cuối:** theo `rerank_score` giảm dần, đồng điểm thì theo điểm ở bước 3, rồi cắt lấy `k`.
    - **Khi Jev lỗi** (HTTP lỗi, bị từ chối, quá `TEXT2SQL_RERANK_TIMEOUT_SECONDS`, thiếu khóa): trả đúng thứ tự bước 3, `reranked=false` và `rerank_warning` mô tả; yêu cầu không thất bại. Một lời gọi lỗi là bỏ cả lượt rerank, không trộn điểm của một phần ứng viên.
    - **Chi phí và độ trễ:** thêm tối đa `TEXT2SQL_RERANK_POOL` lời gọi cho mỗi truy vấn. Thử với ba ứng viên mất khoảng một giây; giá công bố khoảng 0,042 USD cho một triệu token đầu vào, nhưng chưa kiểm chứng chất lượng trên tiếng Việt, xem mục 5.
@@ -90,7 +103,7 @@ Hợp đồng hiện có:
 }
 ```
 
-`score` là điểm ranking nội bộ để so thứ tự trong một request, không diễn giải là xác suất đúng. Khi MCP tool `search_metrics` chạy với `rerank=true`, mỗi ứng viên có thêm `rerank_score` (0 đến 1); REST không trả trường này. Có thể trả thêm các điểm thành phần trong trace kỹ thuật để đánh giá chất lượng.
+`score` là điểm ranking nội bộ để so thứ tự trong một request, không diễn giải là xác suất đúng. Khi có rerank, mỗi ứng viên có thêm `rerank_score` (0 đến 1); REST không trả trường này. Có thể trả thêm các điểm thành phần trong trace kỹ thuật để đánh giá chất lượng.
 
 ## 5. Đo chất lượng trước khi nối với executor
 
@@ -98,5 +111,5 @@ Tạo tập câu hỏi tiếng Việt gắn `connection_id`, metric đúng (ho�
 
 ## 6. Thứ tự triển khai
 
-1. **Đã có:** Qdrant, `QdrantDbService`, embedding ở `agent_package`, ingestion sáu topic, hàng đợi job với worker song song, trigger tự động, API sync/job/retrieve, hybrid search và ranking cơ bản.
+1. **Đã có:** Qdrant, `QdrantRepository`, embedding ở `agent_package`, ingestion sáu topic, hàng đợi job với worker song song, trigger tự động, API sync/job/retrieve, hybrid search và ranking cơ bản.
 2. **Tiếp theo:** nút "Ingest lại" và màn hình trạng thái job ở frontend, bộ đánh giá tiếng Việt, tối ưu ranking/rerank, chọn metric rồi nối với planner và executor Text2SQL.
