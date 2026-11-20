@@ -48,24 +48,29 @@ class Config(BaseSettings):
         default=15, ge=1, le=300, validation_alias="TEXT2SQL_QUERY_TIMEOUT_SECONDS"
     )
     text2sql_query_max_rows: int = Field(default=200, ge=1, le=5000, validation_alias="TEXT2SQL_QUERY_MAX_ROWS")
-    text2sql_chat_max_rows_to_llm: int = Field(
-        default=50, ge=1, le=1000, validation_alias="TEXT2SQL_CHAT_MAX_ROWS_TO_LLM"
+    text2sql_agent_max_rows_to_llm: int = Field(
+        default=50, ge=1, le=1000, validation_alias="TEXT2SQL_AGENT_MAX_ROWS_TO_LLM"
     )
+    text2sql_agent_max_steps: int = Field(default=12, ge=1, le=50, validation_alias="TEXT2SQL_AGENT_MAX_STEPS")
+    text2sql_timezone: str = Field(default="Asia/Ho_Chi_Minh", validation_alias="TEXT2SQL_TIMEZONE")
+    text2sql_clarification_ttl_minutes: int = Field(
+        default=1440, ge=5, le=43200, validation_alias="TEXT2SQL_CLARIFICATION_TTL_MINUTES"
+    )
+    text2sql_chart_types_enabled: str = Field(default="", validation_alias="TEXT2SQL_CHART_TYPES_ENABLED")
     conversation_max_stored_rows: int = Field(
         default=200, ge=1, le=5000, validation_alias="CONVERSATION_MAX_STORED_ROWS"
     )
     text2sql_rerank_model: str = Field(default="typesafe/jev-1.14", validation_alias="TEXT2SQL_RERANK_MODEL")
     text2sql_rerank_pool: int = Field(default=20, ge=1, le=50, validation_alias="TEXT2SQL_RERANK_POOL")
-    text2sql_field_min_score: float = Field(
-        default=0.6, ge=0, le=1, validation_alias="TEXT2SQL_FIELD_MIN_SCORE"
-    )
-    text2sql_ask_metric_min_score: float = Field(
-        default=0.6, ge=0, le=1, validation_alias="TEXT2SQL_ASK_METRIC_MIN_SCORE"
-    )
     text2sql_rerank_concurrency: int = Field(default=8, ge=1, le=16, validation_alias="TEXT2SQL_RERANK_CONCURRENCY")
     text2sql_rerank_timeout_seconds: float = Field(
         default=20.0, gt=0, validation_alias="TEXT2SQL_RERANK_TIMEOUT_SECONDS"
     )
+
+    @property
+    def text2sql_chart_types(self) -> frozenset[str] | None:
+        names = {name.strip() for name in self.text2sql_chart_types_enabled.split(",") if name.strip()}
+        return frozenset(names | {"table"}) if names else None
 
     @property
     def frontend_origins(self) -> list[str]:

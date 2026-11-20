@@ -37,6 +37,18 @@ class FeedbackOut(BaseModel):
     updated_at: datetime
 
 
+class ViewIn(BaseModel):
+    user_id: str = Field(min_length=1, max_length=255)
+    chart: dict[str, Any]
+
+
+class ViewOut(BaseModel):
+    result_id: str
+    chart: dict[str, Any]
+    warnings: list[str]
+    updated_at: str
+
+
 class TurnOut(BaseModel):
     id: UUID
     conversation_id: UUID
@@ -56,11 +68,14 @@ class TurnOut(BaseModel):
     continued_from: UUID | None
     clarification_question: str | None
     clarification_options: list[str]
+    resume_id: UUID | None = None
+    resume_expires_at: datetime | None = None
     error_code: str | None
     error: str | None
     duration_ms: int | None
     model: str | None
     feedback: FeedbackOut | None
+    views: dict[str, Any] | None = None
     created_at: datetime
     updated_at: datetime
 

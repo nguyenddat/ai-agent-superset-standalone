@@ -1,7 +1,7 @@
 from typing import Annotated, Any
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, Response
+from fastapi import APIRouter, Depends, Path, Query, Response
 
 from ..dependencies import get_conversation_service
 from ..schemas.schema_conversation import (
@@ -13,6 +13,8 @@ from ..schemas.schema_conversation import (
     FeedbackIn,
     FeedbackOut,
     TurnOut,
+    ViewIn,
+    ViewOut,
 )
 from ..services import ConversationService
 
@@ -22,6 +24,7 @@ UserQuery = Annotated[str, Query(min_length=1, max_length=255)]
 LimitQuery = Annotated[int, Query(ge=1, le=200)]
 OffsetQuery = Annotated[int, Query(ge=0)]
 TurnsLimitQuery = Annotated[int, Query(ge=1, le=500)]
+ResultIdPath = Annotated[str, Path(max_length=32, pattern=r"^\d+-\d+$")]
 
 
 @router.post("", response_model=ConversationOut, status_code=201)
@@ -91,5 +94,23 @@ def put_feedback(conversation_id: UUID, turn_id: UUID, body: FeedbackIn, service
 @router.delete("/{conversation_id}/turns/{turn_id}/feedback", status_code=204)
 def delete_feedback(conversation_id: UUID, turn_id: UUID, user_id: UserQuery, service: ServiceDep) -> Response:
     service.delete_feedback(conversation_id, turn_id, user_id)
+    service.session.commit()
+    return Response(status_code=204)
+
+
+@router.put("/{conversation_id}/turns/{turn_id}/views/{result_id}", response_model=ViewOut)
+def put_view(
+    conversation_id: UUID, turn_id: UUID, result_id: ResultIdPath, body: ViewIn, service: ServiceDep,
+) -> dict[str, Any]:
+    result = service.put_view(conversation_id, turn_id, result_id, body.user_id, body.chart)
+    service.session.commit()
+    return result
+
+
+@router.delete("/{conversation_id}/turns/{turn_id}/views/{result_id}", status_code=204)
+def delete_view(
+    conversation_id: UUID, turn_id: UUID, result_id: ResultIdPath, user_id: UserQuery, service: ServiceDep,
+) -> Response:
+    service.delete_view(conversation_id, turn_id, result_id, user_id)
     service.session.commit()
     return Response(status_code=204)

@@ -83,6 +83,7 @@ class ConversationTurn(BaseModel):
         Uuid(as_uuid=True), ForeignKey("conversation_turns.id", ondelete="SET NULL"), index=True
     )
     continuation: Mapped[dict[str, Any] | None] = mapped_column(JSON)
+    views: Mapped[dict[str, Any] | None] = mapped_column(JSON)
 
 
 class ConversationTurnFeedback(BaseModel):

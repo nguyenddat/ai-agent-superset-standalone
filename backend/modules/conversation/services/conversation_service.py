@@ -1,6 +1,7 @@
 import json
 from collections import Counter
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
@@ -8,18 +9,29 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from backend.common.base_model import utc_now
+from backend.common.charts import ChartSpecError, validate_chart
+from backend.common.utils.type_formatters import iso_datetime
 from backend.core.setting import config
 from backend.modules.database_connection.models import DatabaseConnection
 
-from ..models import TURN_FLOWS, TURN_STATUSES, Conversation, ConversationTurn, ConversationTurnFeedback
+from ..models import (
+    TURN_FLOWS,
+    TURN_STATUSES,
+    Conversation,
+    ConversationTurn,
+    ConversationTurnFeedback,
+)
 from ..repositories import ConversationRepository
 from ..utils.exceptions import (
+    ConversationChartInvalidError,
     ConversationConnectionNotFoundError,
     ConversationNotFoundError,
+    ConversationResultNotFoundError,
     ConversationTurnNotContinuableError,
     ConversationTurnNotFoundError,
     ConversationValidationError,
 )
+from .result_views import normalize_results, result_fields, rows_complete
 
 TITLE_LENGTH = 80
 TITLE_MAX_LENGTH = 200
@@ -28,7 +40,7 @@ HISTORY_ANSWER_LENGTH = 500
 QUESTION_MAX_LENGTH = 10000
 COMMENT_MAX_LENGTH = 2000
 HISTORY_STATUSES = ("answered", "needs_clarification", "cannot_answer", "join_ambiguous", "join_not_declared")
-CONTINUABLE_STATUSES = ("join_ambiguous",)
+CONTINUABLE_STATUSES = ("join_ambiguous", "needs_clarification")
 SUGGESTION_STATUSES = ("answered",)
 REJECTED_RATINGS = ("down",)
 FAILED_TURN_MESSAGE = "AI Agent không hoàn tất được câu trả lời."
@@ -172,6 +184,37 @@ class ConversationService:
         feedback = self.repository.feedback(turn.id, conversation.user_id)
         if feedback is not None:
             self.session.delete(feedback)
+            self.session.flush()
+
+    def put_view(
+        self, conversation_id: UUID, turn_id: UUID, result_id: str, user_id: str, chart: dict[str, Any],
+    ) -> dict[str, Any]:
+        conversation = self.get_owned(conversation_id, user_id, lock=True)
+        turn = self._owned_turn(conversation, turn_id)
+        item = next((
+            entry for entry in normalize_results(turn.results) or []
+            if isinstance(entry, dict) and entry.get("result_id") == result_id
+        ), None)
+        if item is None:
+            raise ConversationResultNotFoundError()
+        rows = item.get("rows") if isinstance(item.get("rows"), list) else []
+        try:
+            checked = validate_chart(
+                chart, result_fields(item), rows, result_id, rows_complete(item), config.text2sql_chart_types,
+            )
+        except ChartSpecError as error:
+            raise ConversationChartInvalidError("\n".join(error.errors)) from None
+        updated_at = iso_datetime(utc_now())
+        spec = checked.json()
+        turn.views = {**(turn.views or {}), result_id: {"chart": spec, "updated_at": updated_at}}
+        self.session.flush()
+        return {"result_id": result_id, "chart": spec, "warnings": checked.warnings, "updated_at": updated_at}
+
+    def delete_view(self, conversation_id: UUID, turn_id: UUID, result_id: str, user_id: str) -> None:
+        conversation = self.get_owned(conversation_id, user_id, lock=True)
+        turn = self._owned_turn(conversation, turn_id)
+        if turn.views and result_id in turn.views:
+            turn.views = {key: value for key, value in turn.views.items() if key != result_id}
             self.session.flush()
 
     def get_owned(self, conversation_id: UUID, user_id: str, lock: bool = False) -> Conversation:
@@ -352,18 +395,30 @@ class ConversationService:
             "created_at": feedback.created_at, "updated_at": feedback.updated_at,
         }
 
+    @staticmethod
+    def _resume(turn: ConversationTurn) -> dict[str, Any]:
+        continuation = turn.continuation if turn.status in CONTINUABLE_STATUSES else None
+        resume_id = continuation.get("resume_id") if isinstance(continuation, dict) else None
+        try:
+            expires_at = datetime.fromisoformat(str(continuation["expires_at"])) if resume_id else None
+        except (KeyError, ValueError):
+            expires_at = None
+        if expires_at is None or expires_at.tzinfo is None or expires_at <= utc_now():
+            return {"resume_id": None, "resume_expires_at": None}
+        return {"resume_id": resume_id, "resume_expires_at": expires_at}
+
     def _turns(self, turns: list[ConversationTurn], user_id: str) -> list[dict[str, Any]]:
         feedbacks = self.repository.feedbacks([turn.id for turn in turns], user_id)
         return [{
             "id": turn.id, "conversation_id": turn.conversation_id, "sequence": turn.sequence,
             "question": turn.question, "rewritten_question": turn.rewritten_question, "answer": turn.answer,
-            "flow": turn.flow, "status": turn.status, "steps": turn.steps, "results": turn.results,
+            "flow": turn.flow, "status": turn.status, "steps": turn.steps, "results": normalize_results(turn.results),
             "rewrite": turn.rewrite, "assumptions": turn.assumptions, "pii": turn.pii,
             "dataset_id": turn.dataset_id, "retry_of": turn.retry_of, "continued_from": turn.continued_from,
             "clarification_question": turn.clarification_question,
-            "clarification_options": turn.clarification_options or [], "error_code": turn.error_code,
-            "error": FAILED_TURN_MESSAGE if turn.status == "error" else None,
+            "clarification_options": turn.clarification_options or [], **self._resume(turn),
+            "error_code": turn.error_code, "error": FAILED_TURN_MESSAGE if turn.status == "error" else None,
             "duration_ms": turn.duration_ms, "model": turn.model,
-            "feedback": self._feedback(feedbacks[turn.id]) if turn.id in feedbacks else None,
+            "feedback": self._feedback(feedbacks[turn.id]) if turn.id in feedbacks else None, "views": turn.views,
             "created_at": turn.created_at, "updated_at": turn.updated_at,
         } for turn in turns]

@@ -23,4 +23,14 @@ class ConversationConnectionNotFoundError(NotFoundError):
 
 class ConversationTurnNotContinuableError(ConflictError):
     code = "conversation_turn_not_continuable"
-    message = "Lượt hỏi đáp này không chờ chọn cách nối nên không tiếp tục được."
+    message = "Lượt hỏi đáp này không chờ người dùng trả lời nên không tiếp tục được."
+
+
+class ConversationResultNotFoundError(NotFoundError):
+    code = "conversation_result_not_found"
+    message = "Không tìm thấy kết quả này trong lượt hỏi đáp."
+
+
+class ConversationChartInvalidError(ValidationError):
+    code = "conversation_chart_invalid"
+    message = "Biểu đồ không hợp lệ."

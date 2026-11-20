@@ -11,7 +11,7 @@ from sqlalchemy import create_engine, event, inspect
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
-from backend.common.base_model import TECHNICAL_SCHEMA, Base
+from backend.common.base_model import TECHNICAL_SCHEMA, Base, utc_now
 from backend.main import app
 from backend.modules.conversation.dependencies import get_conversation_service
 from backend.modules.conversation.models import Conversation
@@ -214,11 +214,37 @@ class ConversationApiTests(unittest.TestCase):
         self.assertEqual(self.client.delete(f"{turns_url}/{first}", params=alice).status_code, 404)
         self.assertEqual(self.client.get(f"{BASE}/{created['id']}", params=alice).json()["turn_count"], 1)
 
+    def test_waiting_turn_exposes_resume_id_until_expiry(self) -> None:
+        created = self.create()
+        resume_id = uuid4()
+        now = utc_now()
+        with Session(self.engine, expire_on_commit=False) as session:
+            service = ConversationService(session)
+            conversation = service.get_owned(UUID(created["id"]), "alice")
+            for expires_at, status in ((now + timedelta(hours=1), "needs_clarification"),
+                                       (now - timedelta(minutes=1), "needs_clarification"),
+                                       (now + timedelta(hours=1), "answered")):
+                turn = service.begin_turn(conversation, "Số liệu tháng này")
+                service.complete_turn(
+                    turn, status=status, flow="none", answer="Bạn muốn xem chỉ số nào?",
+                    clarification_question="Bạn muốn xem chỉ số nào?",
+                    continuation={
+                        "kind": "text2sql_clarification", "resume_id": str(resume_id),
+                        "expires_at": expires_at.isoformat(),
+                    },
+                )
+            session.commit()
+        turns = self.client.get(f"{BASE}/{created['id']}/turns", params={"user_id": "alice"}).json()
+        self.assertEqual([turn["resume_id"] for turn in turns], [str(resume_id), None, None])
+        self.assertIsNotNone(turns[0]["resume_expires_at"])
+        self.assertTrue(all("continuation" not in turn for turn in turns))
+
     def test_migration_matches_models(self) -> None:
         package = "backend.migrations.versions.init_conversation_module"
         migrations = [
             import_module(f"{package}.a4c2e8f61b37_create_conversation"),
             import_module(f"{package}.c5e1d7a3b902_add_turn_continuation"),
+            import_module(f"{package}.f4b8d2a6c913_add_turn_views"),
         ]
         with self.engine.begin() as connection:
             for table in TABLES:
@@ -233,7 +259,11 @@ class ConversationApiTests(unittest.TestCase):
             self.assertTrue(set(TABLES) <= set(inspect(connection).get_table_names()))
             self.assertEqual(compare_metadata(context, Base.metadata), [])
             columns = {column["name"] for column in inspect(connection).get_columns("conversation_turns")}
-            self.assertTrue({"continued_from", "continuation", "clarification_options"} <= columns)
+            self.assertTrue({"continued_from", "continuation", "clarification_options", "views"} <= columns)
+            with Operations.context(context):
+                migrations[2].downgrade()
+            self.assertNotIn("views", {column["name"] for column in inspect(connection).get_columns(
+                "conversation_turns")})
             with Operations.context(context):
                 migrations[1].downgrade()
             columns = {column["name"] for column in inspect(connection).get_columns("conversation_turns")}
