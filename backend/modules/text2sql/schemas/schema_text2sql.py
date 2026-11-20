@@ -103,6 +103,8 @@ class ChatIn(BaseModel):
     resume_id: UUID | None = None
     question: str = Field(min_length=1, max_length=2000)
     chat_history: list[ChatHistoryTurnIn] = Field(default_factory=list, max_length=50)
+    # Wattprint copilot: limits the copilot_ro views to the home this token names.
+    scope_token: UUID | None = None
 
     @field_validator("question")
     @classmethod
