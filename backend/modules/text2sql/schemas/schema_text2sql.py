@@ -236,5 +236,8 @@ class ChatOut(BaseModel):
     resume_expires_at: datetime | None = None
     conversation_id: UUID | None = None
     turn_id: UUID | None = None
+    # Câu trả lời cho bước viết lại câu hỏi ở lượt sau: còn nhãn thay thế (bỏ số thứ tự) thay cho giá trị thật;
+    # None khi giống answer.
+    history_answer: str | None = None
     preprocess: PreprocessOut
     answers: list[QuestionAnswerOut]

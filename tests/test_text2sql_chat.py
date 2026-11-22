@@ -49,6 +49,7 @@ from backend.modules.text2sql.services.chat_service import (
     turn_outcome,
 )
 from backend.modules.text2sql.services.chat_stream import ChatStream
+from backend.modules.text2sql.services.pii_masker import PiiMasker
 from backend.modules.text2sql.services.retrieval_service import (
     MetricCandidate,
     RetrievalOutcome,
@@ -169,7 +170,7 @@ class FakeAgent:
 
     def start(self, connection_id):
         self.started.append(connection_id)
-        return SimpleNamespace(answer=self.answer, today=TODAY)
+        return SimpleNamespace(answer=self.answer, today=TODAY, masker=PiiMasker())
 
     def answer(self, preprocess, item, prior, pending=None, reply=None, emit=None):
         self.prior[item.position] = [answer.position for answer in prior]

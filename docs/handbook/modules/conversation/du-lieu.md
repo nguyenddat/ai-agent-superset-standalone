@@ -24,8 +24,8 @@ Index `ix_conversations_owner_recent` trên `(user_id, connection_id, last_messa
 | `flow` | `String(16)`, null | CHECK `ck_conversation_turns_flow_valid`: `metric`, `dataset`, `none`. |
 | `status` | `String(24)` | CHECK `ck_conversation_turns_status_valid`: `running`, `answered`, `needs_clarification`, `cannot_answer`, `join_ambiguous`, `join_not_declared`, `error`. `running` là lượt đang chạy hoặc bị ngắt giữa chừng. |
 | `steps` | JSON, null | Mỗi câu đơn và các bước công cụ của agent (không có dòng dữ liệu); xem [dữ liệu route chat lưu](ghi-luot-tu-pipeline.md#dữ-liệu-route-chat-lưu). Lượt cũ có dạng `{step, status, detail, reasoning}` của pipeline đã gỡ. |
-| `results` | JSON, null | Danh sách kết quả truy vấn (`kind`, `sql`, `columns`, `rows` như đã gửi client, `row_count`, `truncated`, …) cùng `stored_truncated`. Route chat hiện chưa che PII. |
-| `rewrite`, `assumptions`, `pii` | JSON, null | Kết quả tiền xử lý (câu viết lại, các câu đơn, loại câu hỏi, metric truy hồi), giả định, báo cáo che PII (route chat hiện để trống hai trường sau). |
+| `results` | JSON, null | Danh sách kết quả truy vấn (`kind`, `sql`, `columns`, `rows` như đã gửi client, `row_count`, `truncated`, …) cùng `stored_truncated`. Route chat chỉ che dữ liệu cá nhân khi gửi LLM, `rows` lưu là giá trị thật. |
+| `rewrite`, `assumptions`, `pii` | JSON, null | Kết quả tiền xử lý (câu viết lại, các câu đơn, loại câu hỏi, metric truy hồi), giả định, thông tin che PII. Route chat để trống `assumptions`; `pii` là `{"history_answer": ...}` khi câu trả lời có dữ liệu cá nhân (bản còn nhãn thay thế cho bước viết lại câu hỏi), ngược lại `null`. |
 | `dataset_id` | UUID, null | Tham chiếu mềm tới `technical.text2sql_query_datasets`; không đặt FK vì khác schema và test SQLite. |
 | `retry_of` | UUID, null | FK tự tham chiếu, `ON DELETE SET NULL`, có index. |
 | `error_code` | `String(64)`, null | Mã lỗi trả ra API. |

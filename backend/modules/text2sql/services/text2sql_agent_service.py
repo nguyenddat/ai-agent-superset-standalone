@@ -1,6 +1,6 @@
 import logging
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Any
 from uuid import UUID
@@ -33,6 +33,7 @@ from ..schemas import (
 from ..utils.exceptions import Text2SqlAgentUnavailable
 from .agent_catalog import AgentCatalog, load_catalog
 from .agent_tools import QueryCache, Text2SqlToolkit
+from .pii_masker import PiiMasker
 from .answer_stream import DeltaBuffer
 from .chat_events import (
     TOOL_STARTED,
@@ -168,6 +169,8 @@ class AgentRun:
     cache: QueryCache
     today: date
     model: BaseChatModel | None = None
+    # Dùng chung cho mọi câu của lượt để một giá trị luôn có cùng nhãn thay thế.
+    masker: PiiMasker = field(default_factory=PiiMasker)
 
     def answer(
         self, preprocess: PreprocessOut, item: PreprocessedQuestionOut, prior: Sequence[QuestionAnswerOut],
@@ -176,7 +179,7 @@ class AgentRun:
         max_rows = config.text2sql_agent_max_rows_to_llm
         toolkit = Text2SqlToolkit(
             self.catalog, self.cache, max_rows, replied_steps(pending, reply), position=item.position,
-            today=self.today, question_type=item.question_type,
+            today=self.today, question_type=item.question_type, masker=self.masker,
         )
         context = {
             "today": today_label(self.today),

@@ -29,6 +29,7 @@ from ..schemas import AgentStepOut, ExplanationOut, FieldOut
 from .agent_catalog import AgentCatalog, ColumnInfo, MetricInfo, TableInfo, normalized
 from .display_format import llm_fields, llm_rows, metric_fields, sql_fields, unique_columns
 from .explanations import DataRange, ValueMatch, metric_explanations, sql_explanations
+from .pii_masker import MaskColumn, PiiMasker, PiiReport
 from .sql_builder import FilterArg, QueryMetricArgs, build_metric_query, type_category
 from .sql_guard import DIALECT, validate_select
 
@@ -65,6 +66,37 @@ def json_cell(value: Any) -> Any:
     if value is None or isinstance(value, (str, int, float, bool, dict)):
         return value
     return str(value)
+
+
+# Chỉ gửi LLM: người dùng thấy giá trị thật nên không cần lời dặn này.
+PII_HINT = (
+    "Giá trị dạng <LOẠI_n> là dữ liệu cá nhân đã thay bằng nhãn: cùng nhãn là cùng giá trị; câu trả lời chép nguyên "
+    "nhãn ở chỗ cần nêu giá trị, hệ thống sẽ hiện giá trị thật. Không đoán giá trị thật và không dùng nhãn làm điều "
+    "kiện lọc."
+)
+
+
+def pii_note(report: PiiReport) -> str | None:
+    if not report:
+        return None
+    parts = []
+    if report.masked_columns:
+        parts.append(f"cột {', '.join(report.masked_columns)}")
+    if report.detected:
+        parts.append(", ".join(f"{count} {entity}" for entity, count in report.detected.items()))
+    return f"Đã che dữ liệu cá nhân trước khi gửi cho AI ({'; '.join(parts)})."
+
+
+def llm_notes(notes: list[str], report: PiiReport) -> list[str]:
+    return [*notes, PII_HINT] if report else notes
+
+
+def masked_field(item: FieldOut) -> FieldOut:
+    # Giá trị cột PII đã thành nhãn chữ nên không còn là số hay ngày.
+    return item.model_copy(update={
+        "type": "text", "role": "dimension", "unit": None, "decimals": None, "percent": False, "additive": None,
+        "format_hint": None, "time_unit": None,
+    })
 
 
 def extends(text: str, key: str) -> bool:
@@ -166,10 +198,11 @@ class Text2SqlToolkit:
     def __init__(
         self, catalog: AgentCatalog, cache: QueryCache, max_rows_to_llm: int, steps: list[AgentStepOut] | None = None,
         position: int = 1, today: date | None = None, question_type: str | None = None,
-        enabled: frozenset[str] | None = None,
+        enabled: frozenset[str] | None = None, masker: PiiMasker | None = None,
     ) -> None:
         self.catalog = catalog
         self.cache = cache
+        self.masker = masker or PiiMasker()
         self.max_rows_to_llm = max_rows_to_llm
         self.steps: list[AgentStepOut] = list(steps or [])
         self.position = position
@@ -429,6 +462,8 @@ class Text2SqlToolkit:
             raise
         rows = [[json_cell(value) for value in row] for row in result.rows]
         if describe is None:
+            rows, report = self.masker.mask([MaskColumn(name, name) for name in result.columns], rows)
+            notes = [*notes, masked] if (masked := pii_note(report)) else notes
             self._record(
                 tool, arguments, sql=sql, columns=result.columns, rows=rows, row_count=len(rows),
                 truncated=result.truncated, notes=notes,
@@ -439,7 +474,7 @@ class Text2SqlToolkit:
                 "truncated": result.truncated or len(shown) < len(rows),
             }
             if notes:
-                output["notes"] = notes
+                output["notes"] = llm_notes(notes, report)
             return output
         return self._data_result(tool, arguments, sql, notes, result, describe, chart, rows)
 
@@ -449,7 +484,11 @@ class Text2SqlToolkit:
     ) -> dict[str, Any]:
         columns, renamed = unique_columns(list(result.columns))
         fields, explanations, extra = describe(columns, [tuple(row) for row in result.rows], result.truncated)
+        rows, report = self.masker.mask([MaskColumn(item.label, item.name, item.pii) for item in fields], rows)
+        fields = [masked_field(item) if item.pii else item for item in fields]
         notes = [*notes, *renamed, *extra]
+        if masked := pii_note(report):
+            notes.append(masked)
         result_id = self._next_result_id()
         chart_fields = [ChartField.model_validate(_field_data(item)) for item in fields]
         complete = not result.truncated
@@ -479,7 +518,7 @@ class Text2SqlToolkit:
             "truncated": result.truncated or len(shown) < len(rows),
         }
         if notes:
-            output["notes"] = notes
+            output["notes"] = llm_notes(notes, report)
         output.update({"chart": spec_summary(spec), "chart_types": chart_types, "display": display})
         if chart_error:
             output["chart_error"] = chart_error
@@ -507,10 +546,14 @@ class Text2SqlToolkit:
         matches = [value for value in values if wanted in normalized(value)][:limit]
         note = f"Không có giá trị chứa đúng '{search.strip()}'; đã so khớp không phân biệt dấu."
         sql = self._distinct_query(table, column).limit(MAX_KNOWN_VALUES).sql(dialect=DIALECT)
-        rows = [[value] for value in matches]
+        rows, report = self.masker.mask([MaskColumn(column.label, column.name)], [[value] for value in matches])
+        notes = [note, masked] if (masked := pii_note(report)) else [note]
         self._record("get_column_values", arguments, sql=sql, columns=[column.name], rows=rows,
-                     row_count=len(rows), notes=[note])
-        return {"columns": [column.name], "rows": rows, "row_count": len(rows), "truncated": False, "notes": [note]}
+                     row_count=len(rows), notes=notes)
+        return {
+            "columns": [column.name], "rows": rows, "row_count": len(rows), "truncated": False,
+            "notes": llm_notes(notes, report),
+        }
 
     def _resolve_filter_values(
         self, args: QueryMetricArgs,
@@ -529,9 +572,8 @@ class Text2SqlToolkit:
             filters.append(self._resolved_filter(item, column, values, partial, notes, matches))
         return args.model_copy(update={"filters": filters}), notes, matches
 
-    @staticmethod
     def _resolved_filter(
-        item: FilterArg, column: ColumnInfo, values: list[str], partial: bool, notes: list[str],
+        self, item: FilterArg, column: ColumnInfo, values: list[str], partial: bool, notes: list[str],
         found: list[ValueMatch] | None = None,
     ) -> FilterArg:
         found = found if found is not None else []
@@ -566,7 +608,11 @@ class Text2SqlToolkit:
                 resolved.append(text)
                 continue
             similar = [item for item in values if normalized(text) in normalized(item)][:MAX_VALUE_HINTS]
-            hint = f" Giá trị gần giống: {similar}." if similar else f" Một số giá trị có: {values[:MAX_VALUE_HINTS]}."
+            shown, _ = self.masker.mask(
+                [MaskColumn(column.label, column.name)], [[value] for value in similar or values[:MAX_VALUE_HINTS]],
+            )
+            shown_values = [row[0] for row in shown]
+            hint = f" Giá trị gần giống: {shown_values}." if similar else f" Một số giá trị có: {shown_values}."
             raise ToolError(f"Cột {column.name} không có giá trị '{text}'.{hint}")
         return item.model_copy(update={"value": resolved if isinstance(item.value, list) else resolved[0]})
 

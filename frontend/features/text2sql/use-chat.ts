@@ -239,7 +239,11 @@ function chatHistory(turns: Turn[]): ChatHistoryTurn[] {
   return turns
     .filter((turn) => turn.outcome)
     .slice(-HISTORY_TURNS)
-    .map((turn) => ({ question: turn.request.question, answer: turn.outcome!.answer || null }))
+    .map((turn) => ({
+      question: turn.request.question,
+      // Personal data stays behind placeholders so the rewrite step never sees real values.
+      answer: turn.outcome!.history_answer || turn.outcome!.answer || null,
+    }))
 }
 
 export function useChat(connectionId: string, userId: string) {

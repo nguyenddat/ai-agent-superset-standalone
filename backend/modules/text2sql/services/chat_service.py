@@ -44,9 +44,10 @@ from ..utils.exceptions import (
     Text2SqlInvalidRequest,
 )
 from ..utils.topics import COLUMN, EXPERT_RULE, GLOSSARY, OWN_KNOWLEDGE, TABLE
-from .chat_events import Emit
+from .chat_events import Emit, UnmaskingEmit, unmasked_answer
 from .chat_graph import ChatGraphContext, ChatRun, TextCallback, never, run_chat_graph
 from .display_format import today_label
+from .pii_masker import PiiMasker, anonymous_placeholders
 from .retrieval_service import RetrievalService
 from .text2sql_agent_service import EMPTY_ANSWER, AgentRun, Text2SqlAgentService
 from .topic_search_service import TopicSearchService
@@ -82,6 +83,7 @@ class PausedRun:
     turn_id: UUID | None
     snapshot: bytes
     expires_at: datetime
+    masked_values: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -107,6 +109,13 @@ class TurnOutcome:
     answer: str
     clarification_question: str | None = None
     clarification_options: list[str] = field(default_factory=list)
+
+    def unmasked(self, masker: PiiMasker) -> "TurnOutcome":
+        return TurnOutcome(
+            self.status, masker.unmask(self.answer),
+            masker.unmask(self.clarification_question) if self.clarification_question else None,
+            [masker.unmask(option) for option in self.clarification_options],
+        )
 
 
 def turn_outcome(run: ChatRun) -> TurnOutcome:
@@ -240,6 +249,9 @@ class ChatService:
             self.conversations.recent_history(conversation.id, HISTORY_LIMIT) if conversation else []
         )
         agent_run = self.agent.start(connection_id)
+        if paused is not None and paused.masked_values:
+            # Lượt chạy tiếp dùng lại nhãn của lượt đang chờ để thay đúng nhãn đã có trong snapshot.
+            agent_run.masker = PiiMasker(values=paused.masked_values)
         record = self._begin_turn(connection_id, user, conversation, question, paused) if user else None
         if record is None and paused is not None:
             self.session.commit()
@@ -250,6 +262,9 @@ class ChatService:
     ) -> ChatOut:
         connection_id, user, paused, record = prepared.connection_id, prepared.user_id, prepared.paused, prepared.record
         thread_id = paused.id if paused is not None else uuid4()
+        masker: PiiMasker = prepared.agent_run.masker
+        # Graph và LLM chỉ thấy nhãn thay thế; chữ gửi người dùng được thay về giá trị thật.
+        shown_emit = UnmaskingEmit(emit, masker) if emit is not None else None
         try:
             if emit is not None and record is not None:
                 emit("turn", {
@@ -270,16 +285,22 @@ class ChatService:
                     should_stop=should_stop, streaming=emit is not None,
                 ),
                 str(thread_id), reply=prepared.question if paused is not None else None,
-                snapshot=paused.snapshot if paused is not None else None, on_event=emit,
+                snapshot=paused.snapshot if paused is not None else None, on_event=shown_emit,
             )
             state = result.state
-            answers = [state["answers"][position] for position in sorted(state.get("answers", {}))]
-            outcome = turn_outcome(result)
+            # State của graph giữ nhãn (gửi tiếp cho LLM); bản trả và bản lưu là giá trị thật.
+            answers = [
+                unmasked_answer(state["answers"][position], masker) for position in sorted(state.get("answers", {}))
+            ]
+            masked = turn_outcome(result)
+            outcome = masked.unmasked(masker)
+            hidden = anonymous_placeholders(masked.answer)
+            history_answer = hidden if hidden != outcome.answer else None
             pause = None
             if result.snapshot is not None:
-                pause = self._save_pause(thread_id, connection_id, user, record, result.snapshot)
+                pause = self._save_pause(thread_id, connection_id, user, record, result.snapshot, masker.values)
             if record is not None:
-                self._complete_turn(record, outcome, state["preprocess"], answers, pause)
+                self._complete_turn(record, outcome, state["preprocess"], answers, pause, history_answer)
             elif pause is not None:
                 self.session.commit()
         except Exception as error:
@@ -292,7 +313,7 @@ class ChatService:
             answer=outcome.answer, status=outcome.status, clarification_question=outcome.clarification_question,
             clarification_options=outcome.clarification_options,
             resume_id=pause.id if pause else None, resume_expires_at=pause.expires_at if pause else None,
-            preprocess=state["preprocess"], answers=answers,
+            preprocess=state["preprocess"], answers=answers, history_answer=history_answer,
             conversation_id=record.conversation.id if record else None, turn_id=record.turn.id if record else None,
         )
 
@@ -308,12 +329,14 @@ class ChatService:
         paused = PausedRun(
             id=row.id, connection_id=row.connection_id, user_id=row.user_id, conversation_id=row.conversation_id,
             turn_id=row.turn_id, snapshot=row.snapshot, expires_at=row.expires_at,
+            masked_values=dict(row.masked_values or {}),
         )
         self.checkpoints.remove(row)
         return paused
 
     def _save_pause(
         self, thread_id: UUID, connection_id: UUID, user_id: str | None, record: TurnRecord | None, snapshot: bytes,
+        masked_values: dict[str, str] | None = None,
     ) -> SavedPause:
         now = utc_now()
         expires_at = now + timedelta(minutes=config.text2sql_clarification_ttl_minutes)
@@ -321,7 +344,7 @@ class ChatService:
         self.checkpoints.add(ChatCheckpoint(
             id=thread_id, connection_id=connection_id, user_id=user_id,
             conversation_id=record.conversation.id if record else None, turn_id=record.turn.id if record else None,
-            snapshot=snapshot, expires_at=expires_at,
+            snapshot=snapshot, expires_at=expires_at, masked_values=masked_values or None,
         ))
         return SavedPause(thread_id, expires_at)
 
@@ -361,7 +384,7 @@ class ChatService:
 
     def _complete_turn(
         self, record: TurnRecord, outcome: TurnOutcome, preprocess: PreprocessOut, answers: list[QuestionAnswerOut],
-        pause: SavedPause | None = None,
+        pause: SavedPause | None = None, history_answer: str | None = None,
     ) -> None:
         results = stored_results(answers)
         continuation = {
@@ -373,6 +396,7 @@ class ChatService:
             rewrite=stored_rewrite(preprocess), duration_ms=self._elapsed(record),
             clarification_question=outcome.clarification_question,
             clarification_options=outcome.clarification_options, continuation=continuation,
+            pii={"history_answer": history_answer} if history_answer else None,
         )
         self.session.commit()
 

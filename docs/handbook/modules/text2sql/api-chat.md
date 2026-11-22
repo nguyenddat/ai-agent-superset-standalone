@@ -136,7 +136,28 @@ Truy vấn chạy bằng `run_read_only` trên database nguồn (chỉ PostgreSQ
 - **Kết nối:** connection riêng, không pool; transaction `REPEATABLE READ` chỉ đọc; `statement_timeout` bằng `TEXT2SQL_QUERY_TIMEOUT_SECONDS`, `lock_timeout` 3 giây; luôn rollback. Phiên đặt `TimeZone` bằng `TEXT2SQL_TIMEZONE` (không phải UTC), nên ngày so với cột `timestamptz` tính theo giờ địa phương và giá trị `timestamptz` trả về kèm độ lệch (ví dụ `+07:00`).
 - **Giới hạn dòng:** lấy tối đa `TEXT2SQL_QUERY_MAX_ROWS` dòng; có nhiều hơn thì `truncated = true`.
 - **Cache:** cùng một câu SQL trong một lượt chỉ chạy một lần (`QueryCache`, dùng chung giữa các câu con).
-- **Dòng gửi mô hình:** tối đa `TEXT2SQL_AGENT_MAX_ROWS_TO_LLM` dòng mỗi kết quả. Dòng gửi cho LLM **không** được che PII; agent chỉ được nhắc qua cờ `contains_pii` của cột.
+- **Dòng gửi mô hình:** tối đa `TEXT2SQL_AGENT_MAX_ROWS_TO_LLM` dòng mỗi kết quả, đã che dữ liệu cá nhân (mục dưới).
+
+### Che dữ liệu cá nhân
+
+`PiiMasker` (`services/pii_masker.py`, dùng `presidio-analyzer` và `presidio-anonymizer`) che dòng ngay sau khi chạy SQL, trước khi tạo bước, gợi ý biểu đồ và đầu ra cho LLM. Vì vậy mọi thứ LLM thấy (đầu ra công cụ, kết quả câu trước đưa cho câu sau, câu trả lời từng câu đưa cho bước tổng hợp) và state của graph (cả checkpoint chờ hỏi lại) đều là dữ liệu đã che; `QueryCache` vẫn giữ dòng thô để dùng lại trong lượt. Người dùng thấy giá trị thật: mọi chỗ gửi client và bản lưu được đổi nhãn về giá trị thật (mục dưới).
+
+- **Cột `contains_pii`:** mọi giá trị khác `None` (kể cả số, bool) bị thay. Giá trị nhận ra loại cụ thể thì dùng loại đó, còn lại là `<PII_n>`. Field của cột này chuyển thành `type: "text"`, `role: "dimension"`.
+- **Chuỗi ở cột khác:** quét theo giá trị: email, số điện thoại (mẫu Việt Nam và quốc tế), thẻ tín dụng, IBAN, IP; thay phần khớp trong chuỗi, ví dụ `gọi <VN_PHONE_NUMBER_1>`. Chuỗi số trần chỉ che khi tên hoặc nhãn cột gợi ý (không phân biệt dấu): CCCD/CMND, mã số thuế, số tài khoản. Số không thuộc cột PII không bị đụng tới.
+- **Nhãn thay thế:** dạng `<LOẠI_n>`; một `PiiMasker` cho mỗi lượt (`AgentRun`) nên cùng một giá trị có cùng nhãn ở mọi câu con và mọi kết quả của lượt (khóa luồng khi các câu chạy song song). Lượt khác đánh số lại.
+- **Ghi chú:** kết quả có che thì thêm vào `notes` của bước (hiện trong mục SQL của client) một ghi chú "Đã che dữ liệu cá nhân trước khi gửi cho AI" kèm cột PII và số giá trị mỗi loại. Riêng `notes` trong đầu ra gửi LLM có thêm `PII_HINT`: nhãn là gì, chép nguyên nhãn vào câu trả lời, không đoán giá trị thật, không lọc theo nhãn. Ghi chú không chứa giá trị thật.
+- **Phạm vi khác:** kết quả `get_column_values` và danh sách giá trị gợi ý trong lỗi lọc (`Giá trị gần giống`, `Một số giá trị có`) cũng được che. Ghi chú "đã đổi giá trị lọc" giữ giá trị khớp với chữ người dùng gõ.
+- **Nạp:** Presidio và spaCy nạp lười ở lần che đầu tiên, dùng pipeline spaCy rỗng (không tải mô hình ngôn ngữ); chỉ chạy recognizer theo mẫu. Backend nạp sẵn ở luồng nền khi khởi động (`warm_up_masker` trong `lifespan`), nên câu hỏi đầu tiên không phải chờ vài giây.
+
+#### Thay nhãn về giá trị thật cho người dùng
+
+LLM chỉ thấy nhãn, nên câu trả lời nó viết cũng dùng nhãn. Prompt agent (mục 10 của `# CÂU TRẢ LỜI`) và prompt tổng hợp yêu cầu chép nguyên nhãn vào đúng chỗ của giá trị, không bọc trong dấu `, không nói giá trị đã bị che. Hệ thống đổi nhãn về giá trị thật ở mọi chỗ gửi chữ cho người dùng, bằng bảng nhãn của `PiiMasker` trong lượt (`unmask`):
+
+- **Event stream:** `ChatService.execute` bọc `on_event` của graph bằng `UnmaskingEmit`. `answer_delta` giữ lại đuôi có thể là phần đầu của một nhãn bị cắt giữa hai đoạn (ví dụ `<PI`) cho tới đoạn sau (theo từng `position`, `round`; `answer_reset` bỏ phần đang giữ); `answer`, `question_answered`, `question_waiting` (câu hỏi lại và lựa chọn) được thay toàn bộ. Event `tool` được thay trong `rows`, `chart` (mọi chuỗi kể cả khóa, ví dụ tiêu đề, `colors.assign`, `colors.highlight`) và `explanations`; `sql`, `arguments` giữ nguyên vì là đúng thứ đã chạy.
+- **Response và bản lưu:** `ChatOut.answer`, `clarification_question`, `clarification_options`, `answers[]` (câu trả lời, `rows`, `chart`, `explanations` của từng bước; `unmasked_answer`) và các trường tương ứng lưu vào lượt hội thoại (`steps`, `results`) là giá trị thật. State của graph (gửi tiếp cho LLM) giữ nguyên nhãn.
+- **Nhận dạng nhãn:** nhãn có trong bảng của lượt mới được thay; chấp nhận cả dạng LLM thoát Markdown (`\<PII\_1\>`) và bọc trong cặp dấu `. Nhãn lạ (LLM tự đặt) và dấu `<` thường giữ nguyên.
+- **Lịch sử cho lượt sau:** `ChatOut.history_answer` (cũng có trong event `done`) là câu trả lời còn nhãn nhưng bỏ số thứ tự (`<PII>`), vì lượt sau đánh số lại từ đầu; `null` khi câu trả lời không có nhãn. Lượt hội thoại lưu nó vào `pii.history_answer` để `recent_history` đưa cho bước viết lại câu hỏi thay cho câu trả lời có giá trị thật; chế độ không lưu thì client gửi nó trong `chat_history`.
+- **Lượt chờ hỏi lại:** bảng nhãn được lưu cùng checkpoint (`masked_values`) và nạp lại khi chạy tiếp, nên nhãn trong snapshot vẫn thay được và giá trị mới đánh số tiếp (`<PII_2>`), không trùng nhãn cũ.
 
 ### Kết quả dữ liệu (`query_metric`, `run_sql`)
 
@@ -160,6 +181,7 @@ Output gửi mô hình: `{result_id, sql, columns, fields (gọn: bỏ giá tr�
   "resume_expires_at": null,
   "conversation_id": "uuid",
   "turn_id": "uuid",
+  "history_answer": null,
   "preprocess": {
     "rewritten_question": "Thành phố nào mưa nhiều nhất tuần qua, nhiệt độ ở đó hôm qua bao nhiêu?",
     "is_split": true,
@@ -228,7 +250,7 @@ Mỗi event có dạng `event: <tên>` + `data: <JSON một dòng>`. Khi hàng �
 | `synthesize_started` | Đầu nút `synthesize` khi thật sự gọi mô hình (câu đã tách) | `{}` |
 | `answer` | Xong `synthesize` (không có khi graph dừng để hỏi lại) | `answer` |
 | `clarification` | Graph dừng ở `clarify` và checkpoint đã lưu | `question`, `options`, `resume_id`, `expires_at` |
-| `done` | Cuối stream khi thành công | `status`, `answer`, `clarification_question`, `clarification_options`, `resume_id`, `resume_expires_at`, `conversation_id`, `turn_id` (cùng nghĩa các trường của `ChatOut`) |
+| `done` | Cuối stream khi thành công | `status`, `answer`, `clarification_question`, `clarification_options`, `resume_id`, `resume_expires_at`, `conversation_id`, `turn_id`, `history_answer` (cùng nghĩa các trường của `ChatOut`) |
 | `error` | Lỗi sau khi stream đã bắt đầu; stream đóng ngay sau event này, không có `done` | `code`, `message`. Lỗi ứng dụng giữ `code` và thông điệp của nó (ví dụ `text2sql_agent_unavailable`); lỗi bất ngờ là `internal_error` với thông điệp chung, chi tiết chỉ ở log |
 
 Thứ tự:

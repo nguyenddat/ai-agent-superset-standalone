@@ -43,17 +43,17 @@ Với `/chat/stream`, client ngắt kết nối giữa chừng thì lần ghi ev
 | `clarification_question`, `clarification_options` | Chỉ khi `status = needs_clarification`: câu hỏi lại (cũng là `answer`) và các lựa chọn agent đưa ra (tối đa 8). Nhiều câu đơn cùng hỏi lại thì gộp thành một câu hỏi đánh số, không có lựa chọn. |
 | `continuation` | Chỉ khi `status = needs_clarification`: `{"kind": "text2sql_clarification", "resume_id", "expires_at"}`. Bản thân checkpoint nằm ở `technical.text2sql_chat_checkpoints`, không ở cột này. |
 
-Lượt `needs_clarification` chỉ lưu `steps`, `results` của các câu đơn đã xong. Lượt chạy tiếp lưu đầy đủ mọi câu đơn. `pii`, `assumptions`, `model`, `dataset_id` để trống.
+Lượt `needs_clarification` chỉ lưu `steps`, `results` của các câu đơn đã xong. Lượt chạy tiếp lưu đầy đủ mọi câu đơn. `assumptions`, `model`, `dataset_id` để trống; `pii` chỉ có `history_answer` khi câu trả lời có dữ liệu cá nhân.
 
 ## Dữ liệu và PII
 
 Quy tắc chung: `results` lưu đúng dữ liệu đã gửi cho client, không hơn. Service chuẩn hóa JSON (giá trị không phải JSON như `Decimal`, ngày giờ thành chuỗi) và giữ tối đa `CONVERSATION_MAX_STORED_ROWS` dòng cho mỗi mục có `rows`, đặt `stored_truncated`. `metric_usage` của câu hỏi gợi ý đọc `results[].kind == "metric"` và `results[].metric.name`.
 
-Từ khi gỡ presidio (2026-11-19), route chat **không che PII**: dòng trong `ChatOut.answers[].steps[].rows` là dữ liệu thô của database nguồn, nên `results` lưu dòng thô (đã cắt số dòng). Cột chứa PII chỉ được đánh dấu `contains_pii` trong catalog để agent biết. Cần bổ sung che PII (trước cả response lẫn bản lưu) trước khi dùng với dữ liệu thật có PII.
+Route chat che dữ liệu cá nhân ngay sau khi chạy SQL (xem [che dữ liệu cá nhân](../text2sql/api-chat.md#che-dữ-liệu-cá-nhân)), chỉ phần gửi LLM là dữ liệu đã che. `ChatOut` và bản lưu (`answer`, `steps`, `results` với `rows`, `chart`) đã đổi nhãn về giá trị thật cho người dùng, nên lượt hội thoại chứa dữ liệu cá nhân thật (đã cắt số dòng). Ghi chú về việc che nằm ở `notes` của từng bước; câu trả lời còn nhãn cho bước viết lại câu hỏi nằm ở `pii.history_answer`.
 
 ## Lịch sử gần đây
 
-`recent_history` trả tối đa `limit` lượt gần nhất theo thứ tự thời gian, gồm lượt `answered`, `needs_clarification`, `cannot_answer`, `join_ambiguous`, `join_not_declared` (bỏ `running` và `error`); mỗi `HistoryTurn` chỉ có `question` và `answer` (câu trả lời cuối cùng, lượt `needs_clarification` là câu hỏi lại) cắt tối đa 500 ký tự (thêm `…`). Route chat đưa danh sách này (6 lượt) vào task `rewrite` thay cho `chat_history` client gửi.
+`recent_history` trả tối đa `limit` lượt gần nhất theo thứ tự thời gian, gồm lượt `answered`, `needs_clarification`, `cannot_answer`, `join_ambiguous`, `join_not_declared` (bỏ `running` và `error`); mỗi `HistoryTurn` chỉ có `question` và `answer` (câu trả lời cuối cùng, lượt `needs_clarification` là câu hỏi lại; có `pii.history_answer` thì dùng bản đó để giá trị thật không tới LLM) cắt tối đa 500 ký tự (thêm `…`). Route chat đưa danh sách này (6 lượt) vào task `rewrite` thay cho `chat_history` client gửi.
 
 ## Trạng thái tiếp tục
 
