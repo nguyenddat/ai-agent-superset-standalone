@@ -5,8 +5,15 @@ from fastapi import APIRouter, Depends, Response
 
 from ..dependencies import get_own_knowledge_service, require_admin_key, require_agent_key
 from ..schemas.schema_own_knowledge import (
-    AdminPromote, AdminReview, AnswerOut, ClarificationAnswer, ClarificationOut, ClarificationPush,
-    EntryOut, EntryUpdate, PromoteOut,
+    AdminPromote,
+    AdminReview,
+    AnswerOut,
+    ClarificationAnswer,
+    ClarificationOut,
+    ClarificationPush,
+    EntryOut,
+    EntryUpdate,
+    PromoteOut,
 )
 from ..services import OwnKnowledgeService
 

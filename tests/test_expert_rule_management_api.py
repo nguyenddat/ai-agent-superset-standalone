@@ -206,7 +206,9 @@ class ExpertRuleManagementApiTests(unittest.TestCase):
             for table in ("expert_rule_domains", *tables):
                 connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table}")
             context = MigrationContext.configure(connection, opts={
-                "include_object": lambda obj, name, type_, reflected, compare_to: getattr(obj, "schema", None) != TECHNICAL_SCHEMA
+                "include_object": lambda obj, name, type_, reflected, compare_to: (
+                    getattr(obj, "schema", None) != TECHNICAL_SCHEMA
+                )
             })
             with Operations.context(context):
                 migration.upgrade()

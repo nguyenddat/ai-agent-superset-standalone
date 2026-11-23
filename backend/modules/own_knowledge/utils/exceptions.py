@@ -1,5 +1,10 @@
 from backend.common.base_exceptions import (
-    ConflictError, NotAuthenticatedError, NotAuthorizedError, NotFoundError, ServiceUnavailableError, ValidationError,
+    ConflictError,
+    NotAuthenticatedError,
+    NotAuthorizedError,
+    NotFoundError,
+    ServiceUnavailableError,
+    ValidationError,
 )
 
 

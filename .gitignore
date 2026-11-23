@@ -17,3 +17,7 @@ wheels/
 # Airflow runtime logs
 /simulation/airflow/logs/*
 !/simulation/airflow/logs/.gitkeep
+
+# Machine-only sdlc and Claude Code settings
+.claude/sdlc.local.json
+.claude/settings.local.json

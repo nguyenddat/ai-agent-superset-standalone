@@ -5,11 +5,10 @@ from decimal import Decimal
 from types import SimpleNamespace
 from uuid import uuid4
 
-from backend.agent_package.tool_agent import ToolError
-from backend.modules.text2sql.repositories.source_query_repository import QueryRows
 from langchain_core.messages import HumanMessage
 
-from backend.agent_package.tool_agent import ToolAgentPause
+from backend.agent_package.tool_agent import ToolAgentPause, ToolError
+from backend.modules.text2sql.repositories.source_query_repository import QueryRows
 from backend.modules.text2sql.schemas import AgentStepOut, QuestionAnswerOut
 from backend.modules.text2sql.services.agent_tools import PII_HINT, QueryCache, Text2SqlToolkit
 from backend.modules.text2sql.services.chat_events import UnmaskingEmit
@@ -344,7 +343,10 @@ class PiiAgent(FakeAgent):
         label = rows[0][0]
         step = AgentStepOut(
             tool="run_sql", arguments={"sql": "SELECT khach_hang"}, sql="SELECT khach_hang", columns=["khach_hang"],
-            rows=rows, row_count=1, result_id=f"{item.position}-1", chart={"type": "table", "title": f"Đơn của {label}"},
+            rows=rows,
+            row_count=1,
+            result_id=f"{item.position}-1",
+            chart={"type": "table", "title": f"Đơn của {label}"},
         )
         return QuestionAnswerOut(
             position=item.position, question=item.question, answer=f"{label} mua nhiều nhất", steps=[step],

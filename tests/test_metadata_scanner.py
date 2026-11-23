@@ -13,15 +13,19 @@ class MetadataScannerTests(unittest.TestCase):
         connection.execute.return_value = [("public", "orders"), ("public", "order_view")]
         inspector = MagicMock()
         inspector.get_schema_names.return_value = ["public", "private"]
-        inspector.get_table_names.side_effect = lambda schema: ["orders", "secret"] if schema == "public" else ["hidden"]
+        inspector.get_table_names.side_effect = lambda schema: (
+            ["orders", "secret"] if schema == "public" else ["hidden"]
+        )
         inspector.get_view_names.side_effect = lambda schema: ["order_view"] if schema == "public" else []
         inspector.get_materialized_view_names.return_value = []
         inspector.get_pk_constraint.return_value = {"constrained_columns": ["id"]}
         inspector.get_columns.return_value = [{"name": "id", "type": "INTEGER"}]
         inspector.get_table_comment.return_value = {"text": None}
 
-        with patch("backend.modules.database_connection.services.metadata_service.create_engine", return_value=engine), \
-             patch("backend.modules.database_connection.services.metadata_service.inspect", return_value=inspector):
+        with (
+            patch("backend.modules.database_connection.services.metadata_service.create_engine", return_value=engine),
+            patch("backend.modules.database_connection.services.metadata_service.inspect", return_value=inspector),
+        ):
             schemas = scan_source_database(make_url("postgresql+psycopg://reader@example.test/source"))
 
         self.assertEqual([schema.name for schema in schemas], ["public"])
@@ -39,8 +43,10 @@ class MetadataScannerTests(unittest.TestCase):
         inspector = MagicMock()
         inspector.get_schema_names.return_value = ["public"]
 
-        with patch("backend.modules.database_connection.services.metadata_service.create_engine", return_value=engine), \
-             patch("backend.modules.database_connection.services.metadata_service.inspect", return_value=inspector):
+        with (
+            patch("backend.modules.database_connection.services.metadata_service.create_engine", return_value=engine),
+            patch("backend.modules.database_connection.services.metadata_service.inspect", return_value=inspector),
+        ):
             schemas = scan_source_database(make_url("postgresql+psycopg://reader@example.test/source"))
 
         self.assertEqual(schemas, [])

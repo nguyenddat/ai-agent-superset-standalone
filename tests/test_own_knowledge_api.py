@@ -268,7 +268,9 @@ class OwnKnowledgeApiTests(unittest.TestCase):
             for table in ("own_knowledge_entries", "own_knowledge_proposals", "own_knowledge_clarifications"):
                 connection.exec_driver_sql(f"DROP TABLE IF EXISTS {table}")
             context = MigrationContext.configure(connection, opts={
-                "include_object": lambda obj, name, type_, reflected, compare_to: getattr(obj, "schema", None) != TECHNICAL_SCHEMA
+                "include_object": lambda obj, name, type_, reflected, compare_to: (
+                    getattr(obj, "schema", None) != TECHNICAL_SCHEMA
+                )
             })
             with Operations.context(context):
                 migration.upgrade()

@@ -21,7 +21,7 @@ from ..utils.exceptions import (
     InvalidConnectionError,
     SourceDatabaseUnavailableError,
 )
-from .metadata_scope import MetadataScope, SCOPE_FIELDS, checked_patterns
+from .metadata_scope import SCOPE_FIELDS, MetadataScope, checked_patterns
 
 
 @dataclass(frozen=True)

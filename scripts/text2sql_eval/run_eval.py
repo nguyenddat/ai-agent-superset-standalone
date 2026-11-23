@@ -98,7 +98,8 @@ def gold_rows(remap: Any, connection_id: UUID, sqls: list[str], today: date) -> 
     for sql in sqls:
         rendered = sql.replace("{today}", f"DATE '{today.isoformat()}'")
         rows = run_read_only(url, rendered, 500, 60)
-        results.append({"sql": rendered, "columns": rows.columns, "rows": [[cell(v) for v in row] for row in rows.rows]})
+        rendered_rows = [[cell(v) for v in row] for row in rows.rows]
+        results.append({"sql": rendered, "columns": rows.columns, "rows": rendered_rows})
     return results
 
 

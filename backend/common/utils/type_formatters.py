@@ -3,27 +3,23 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 from uuid import UUID
 
-
 type Scalar = str | int | float | bool | Decimal | UUID | date | datetime | None
 type JsonScalar = str | int | float | bool | None
 
 
 def utc_datetime(value: datetime) -> datetime:
-    """Normalize an aware datetime to UTC for TIMESTAMP WITH TIME ZONE storage."""
     if value.tzinfo is None or value.utcoffset() is None:
         raise ValueError("datetime must include a timezone")
     return value.astimezone(UTC)
 
 
 def iso_datetime(value: datetime | None) -> str | None:
-    """Serialize an instant as ISO 8601 UTC with microseconds and a Z suffix."""
     if value is None:
         return None
     return utc_datetime(value).isoformat(timespec="microseconds").replace("+00:00", "Z")
 
 
 def parse_datetime(value: str) -> datetime:
-    """Parse an ISO 8601 timestamp and return an aware UTC datetime."""
     if not isinstance(value, str) or not value.strip():
         raise ValueError("timestamp must be a non-empty ISO 8601 string")
     try:
@@ -34,7 +30,6 @@ def parse_datetime(value: str) -> datetime:
 
 
 def iso_date(value: date | None) -> str | None:
-    """Serialize a calendar date as YYYY-MM-DD."""
     if value is None:
         return None
     if isinstance(value, datetime):
@@ -43,7 +38,6 @@ def iso_date(value: date | None) -> str | None:
 
 
 def format_scalar(value: Scalar) -> JsonScalar:
-    """Keep JSON primitive types and normalize precise or temporal values."""
     if value is None or isinstance(value, (str, int, bool)):
         return value
     if isinstance(value, float):

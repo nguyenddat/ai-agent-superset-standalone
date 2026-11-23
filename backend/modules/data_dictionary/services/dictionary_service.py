@@ -127,7 +127,9 @@ class DataDictionaryService:
     def get_connection_stats(self, connection_id: UUID, limit: int) -> dict[str, Any]:
         summary = self.get_connection_summary(connection_id)
         tables = [
-            {**table, "schema_name": schema["schema_name"]} for schema in summary["schemas"] for table in schema["tables"]
+            {**table, "schema_name": schema["schema_name"]}
+            for schema in summary["schemas"]
+            for table in schema["tables"]
         ]
         referencing = defaultdict(set)
         for source_id, target_id in self.column_dictionaries.read_table_references(
