@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Các dịch vụ của text2sql</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Serif:ital@0;1&family=Noto+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@400&family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper:#f5f5f5; --color-ink:#2d3142; --color-muted:#4f5d75; --color-accent:#bf4520;
+      --font-sans:'Geist', system-ui, sans-serif; --font-serif:'Instrument Serif','Noto Serif',serif; --font-mono:'Geist Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display:flex; align-items:center; justify-content:center; padding:3rem 2rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size:0.66rem; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; color: var(--color-muted); margin-bottom:0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight:400; letter-spacing:-0.02em; line-height:1.15; color: var(--color-ink); margin-bottom:1.5rem; }
+    svg { width: 100%; min-width: 960px; display:block; }
+    @media (max-width: 1024px) { svg { min-width: 0; } }
+    @media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · Diagram Design</p>
+    <h1>Các dịch vụ của text2sql</h1>
+    <div class="diagram-container">
+      <svg viewBox="0 0 960 560" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="text2sql-architecture-title text2sql-architecture-desc">
+        <title id="text2sql-architecture-title">Các dịch vụ của text2sql</title>
+        <desc id="text2sql-architecture-desc">Frontend và WattPrint gọi backend; backend dùng Postgres, Qdrant, OpenRouter và cơ sở dữ liệu nguồn; ingestion-worker nạp job và chỉ mục.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bf4520"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+<path d="M470,78 L555,78 Q563,78 563,86 L563,210" fill="none" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<rect x="484" y="60" width="65" height="12" rx="2" fill="#f5f5f5"/>
+<text x="516" y="69" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">REST + SSE</text>
+<path d="M770,78 L651,78 Q643,78 643,86 L643,210" fill="none" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<rect x="665" y="60" width="82" height="12" rx="2" fill="#f5f5f5"/>
+<text x="706" y="69" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">X-SERVICE-KEY</text>
+<path d="M200,246 L270,246" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="219" y="228" width="32" height="12" rx="2" fill="#f5f5f5"/>
+<text x="235" y="237" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">JOBS</text>
+<path d="M500,246 L430,246" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="438" y="228" width="54" height="12" rx="2" fill="#f5f5f5"/>
+<text x="465" y="237" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">METADATA</text>
+<path d="M115,282 L115,428 Q115,436 123,436 L270,436" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="173" y="418" width="38" height="12" rx="2" fill="#f5f5f5"/>
+<text x="192" y="427" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">INDEX</text>
+<path d="M595,282 L595,428 Q595,436 587,436 L430,436" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="485" y="418" width="54" height="12" rx="2" fill="#f5f5f5"/>
+<text x="512" y="427" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">RETRIEVE</text>
+<path d="M690,226 L722,226 Q730,226 730,218 L730,166 Q730,158 738,158 L770,158" fill="none" stroke="#2e5aa8" stroke-width="1.2" marker-end="url(#arrow-link)"/>
+<rect x="745" y="199" width="71" height="12" rx="2" fill="#f5f5f5"/>
+<text x="780" y="208" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">LLM + EMBED</text>
+<path d="M690,266 L722,266 Q730,266 730,274 L730,340 Q730,348 738,348 L770,348" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="741" y="298" width="71" height="12" rx="2" fill="#f5f5f5"/>
+<text x="776" y="307" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">SELECT ONLY</text>
+<rect x="330" y="50" width="140" height="56" rx="6" fill="#f5f5f5"/>
+<rect x="330" y="50" width="140" height="56" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<text x="400" y="75.5" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">frontend</text>
+<text x="400" y="90.5" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">Next.js :3000</text>
+<rect x="770" y="50" width="160" height="56" rx="6" fill="#f5f5f5"/>
+<rect x="770" y="50" width="160" height="56" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<text x="850" y="75.5" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">wattprint api</text>
+<text x="850" y="90.5" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">copilot, qua :11101</text>
+<rect x="30" y="210" width="170" height="72" rx="6" fill="#f5f5f5"/>
+<rect x="30" y="210" width="170" height="72" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="38" y="216" width="48" height="12" rx="2" fill="transparent" stroke="#2d3142" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="62" y="225" fill="#2d3142" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">WORKER</text>
+<text x="115" y="241" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">ingestion-worker</text>
+<text x="115" y="256" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">text2sql.worker</text>
+<text x="115" y="269" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">hàng đợi job, 3 nguồn</text>
+<rect x="270" y="210" width="160" height="72" rx="6" fill="#f5f5f5"/>
+<rect x="270" y="210" width="160" height="72" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+<rect x="278" y="216" width="42" height="12" rx="2" fill="transparent" stroke="#4f5d75" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="299" y="225" fill="#4f5d75" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">STORE</text>
+<text x="350" y="241" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">postgres</text>
+<text x="350" y="256" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">metadata :5432</text>
+<text x="350" y="269" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">technical.text2sql_*</text>
+<rect x="500" y="210" width="190" height="72" rx="6" fill="#f5f5f5"/>
+<rect x="500" y="210" width="190" height="72" rx="6" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/>
+<rect x="508" y="216" width="30" height="12" rx="2" fill="transparent" stroke="#bf4520" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="523" y="225" fill="#bf4520" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">API</text>
+<text x="595" y="241" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">backend</text>
+<text x="595" y="256" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">FastAPI :8000 · /api/v1</text>
+<text x="595" y="269" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">LangGraph + công cụ</text>
+<rect x="270" y="400" width="160" height="72" rx="6" fill="#f5f5f5"/>
+<rect x="270" y="400" width="160" height="72" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+<rect x="278" y="406" width="42" height="12" rx="2" fill="transparent" stroke="#4f5d75" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="299" y="415" fill="#4f5d75" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">STORE</text>
+<text x="350" y="431" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">qdrant</text>
+<text x="350" y="446" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">:6333</text>
+<text x="350" y="459" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">text2sql_semantics_v1</text>
+<rect x="770" y="130" width="160" height="56" rx="6" fill="#f5f5f5"/>
+<rect x="770" y="130" width="160" height="56" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<text x="850" y="155.5" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">OpenRouter</text>
+<text x="850" y="170.5" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">LLM + embedding</text>
+<rect x="770" y="320" width="160" height="56" rx="6" fill="#f5f5f5"/>
+<rect x="770" y="320" width="160" height="56" rx="6" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1"/>
+<text x="850" y="345.5" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">CSDL nguồn</text>
+<text x="850" y="360.5" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">SELECT do agent viết</text>
+<line x1="30" y1="512" x2="930" y2="512" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+<text x="30" y="528" fill="#5a6580" font-size="8" font-weight="400" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.14em">LEGEND</text>
+<rect x="100" y="519" width="22" height="12" rx="3" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/>
+<text x="128" y="528" fill="#5a6580" font-size="8" font-weight="400" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="start">dịch vụ chính</text>
+<line x1="223.60000000000002" y1="525" x2="251.60000000000002" y2="525" stroke="#2e5aa8" stroke-width="1.2"/>
+<text x="257.6" y="528" fill="#5a6580" font-size="8" font-weight="400" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="start">HTTP / LLM</text>
+<line x1="337.6" y1="525" x2="365.6" y2="525" stroke="#4f5d75" stroke-width="1.2"/>
+<text x="371.6" y="528" fill="#5a6580" font-size="8" font-weight="400" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="start">nội bộ</text>
+
+      </svg>
+    </div>
+  </div>
+</body>
+</html>
