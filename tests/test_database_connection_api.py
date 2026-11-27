@@ -211,7 +211,10 @@ class DatabaseConnectionApiTests(unittest.TestCase):
         synced = self.client.post(f"{BASE}/database-connections/{connection_id}/sync")
         self.assertEqual((synced.json()["schema_count"], synced.json()["table_count"]), (1, 1))
         self.assertEqual(
-            [schema["name"] for schema in self.client.get(f"{BASE}/database-connections/{connection_id}/schemas").json()],
+            [
+                schema["name"]
+                for schema in self.client.get(f"{BASE}/database-connections/{connection_id}/schemas").json()
+            ],
             ["public"],
         )
         self.assertEqual(
@@ -219,8 +222,10 @@ class DatabaseConnectionApiTests(unittest.TestCase):
         )
         with Session(self.engine) as session:
             self.assertIsNotNone(session.get(DatabaseTable, tmp_id))
-            self.assertEqual(session.query(TableDictionary).filter_by(table_id=tmp_id).one().display_name, "Bảng tạm cần giữ")
-            self.assertEqual(DataDictionaryService(session).get_connection_summary(UUID(connection_id))["table_count"], 1)
+            kept = session.query(TableDictionary).filter_by(table_id=tmp_id).one()
+            self.assertEqual(kept.display_name, "Bảng tạm cần giữ")
+            summary = DataDictionaryService(session).get_connection_summary(UUID(connection_id))
+            self.assertEqual(summary["table_count"], 1)
             self.assertEqual(len(BusinessModelService(session).get_model(UUID(connection_id))["tables"]), 1)
 
         self.client.patch(f"{BASE}/database-connections/{connection_id}", json={
@@ -229,7 +234,10 @@ class DatabaseConnectionApiTests(unittest.TestCase):
         restored = self.client.get(f"{BASE}/schemas/{public_id}/tables").json()
         self.assertEqual(next(table["id"] for table in restored if table["name"] == "tmp_orders"), str(tmp_id))
         self.assertEqual(
-            [schema["name"] for schema in self.client.get(f"{BASE}/database-connections/{connection_id}/schemas").json()],
+            [
+                schema["name"]
+                for schema in self.client.get(f"{BASE}/database-connections/{connection_id}/schemas").json()
+            ],
             ["public", "staging"],
         )
         self.client.patch(f"{BASE}/database-connections/{connection_id}", json={
@@ -239,7 +247,10 @@ class DatabaseConnectionApiTests(unittest.TestCase):
             [table["name"] for table in self.client.get(f"{BASE}/schemas/{public_id}/tables").json()], ["orders"],
         )
         self.assertEqual(
-            [schema["name"] for schema in self.client.get(f"{BASE}/database-connections/{connection_id}/schemas").json()],
+            [
+                schema["name"]
+                for schema in self.client.get(f"{BASE}/database-connections/{connection_id}/schemas").json()
+            ],
             ["public"],
         )
         self.assertEqual(self.client.patch(f"{BASE}/database-connections/{connection_id}", json={

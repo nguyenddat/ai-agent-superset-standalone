@@ -2,6 +2,29 @@
 
 Quy ước dự án nằm trong [AGENTS.md](AGENTS.md) và [docs/handbook](docs/handbook/README.md). Báo cáo theo từng đợt được lưu trong [docs/reports](docs/reports/README.md).
 
+## Kiến trúc
+
+Dịch vụ text2sql của WattPrint: trả lời câu hỏi bằng ngôn ngữ tự nhiên trên một cơ sở dữ liệu nguồn bằng agent gọi công cụ, kèm quản lý metric, từ điển dữ liệu, thuật ngữ và quy tắc chuyên gia. Trợ lý Wappi của [wattprint-backend](https://github.com/daFoggo/wattprint-backend) gọi dịch vụ này cho câu hỏi dữ liệu tự do.
+
+![Các dịch vụ](docs/diagrams/text2sql-architecture.svg)
+
+| Dịch vụ (`compose.yaml`) | Công nghệ | Cổng | Vai trò |
+|---|---|---|---|
+| `frontend` | Next.js (shadcn/ui) | 3000 | Quản lý kết nối, từ điển, metric, thuật ngữ, quy tắc, dòng dữ liệu, tab "Hỏi dữ liệu" |
+| `backend` | FastAPI, LangGraph | 8000 (và `BACKEND_DOCKER_PORT` cho project Compose khác: mặc định 8001, WattPrint dùng 11101) | API `/api/v1`; chạy `alembic upgrade head` khi khởi động |
+| `postgres` | PostgreSQL 17 | 5432 | Metadata của chính dịch vụ (schema `technical`) |
+| `qdrant` | Qdrant 1.20 | 6333 | Chỉ mục ngữ nghĩa, bộ sưu tập `text2sql_semantics_v1` |
+| `ingestion-worker` | `backend.modules.text2sql.worker` | không | Lấy job từ bảng `technical.text2sql_ingestion_jobs` (`FOR UPDATE SKIP LOCKED`), embedding qua OpenRouter, ghi Qdrant |
+| `warehouse-db`, `airflow` | Profile `simulation` | 15433, 18080 | Kho dữ liệu giả lập, chỉ chạy khi bật profile |
+
+### Một câu hỏi đi qua đâu
+
+![Đồ thị LangGraph](docs/diagrams/text2sql-chat.svg)
+
+`POST /api/v1/text2sql/chat` (JSON) và `/chat/stream` (SSE) chạy cùng một đồ thị LangGraph (`backend/modules/text2sql/services/chat_graph.py`): `preprocess` viết lại câu hỏi, tách câu phụ, phân loại ý định và truy hồi top 5 từ Qdrant (metric, bảng, cột, thuật ngữ, quy tắc, tri thức riêng); `dispatch` gửi từng câu đơn đã đủ câu phụ thuộc cho `answer_question`; agent trả lời bằng tám công cụ (`get_metric`, `get_table`, `get_expert_rule`, `get_column_values`, `query_metric`, `run_sql`, `make_chart`, `ask_user`); câu cần hỏi lại dừng ở `clarify` bằng `interrupt()` và checkpoint lưu ở `technical.text2sql_chat_checkpoints`; hết câu thì `synthesize` ghép câu trả lời. `run_sql` chỉ chạy một câu `SELECT` đã qua `validate_select`. Chi tiết và danh sách sự kiện SSE: [docs/handbook/modules/text2sql/api-chat.md](docs/handbook/modules/text2sql/api-chat.md).
+
+Mã nguồn backend: [backend/README.md](backend/README.md). Frontend: [frontend/README.md](frontend/README.md).
+
 ## Chạy bằng Docker Compose
 
 Sao chép `.env.example` thành `.env`, đổi `POSTGRES_PASSWORD` và tạo `CONNECTION_ENCRYPTION_KEY` theo lệnh ghi trong file. Sau đó chạy:
@@ -97,3 +120,24 @@ must contain an encrypted connection URI; the encryption and connection API
 will be added with the backend service. `DATABASE_URL` always points to the
 application metadata database, not to a registered source database. This
 setup does not migrate the Superset metadata database.
+
+## Tích hợp với WattPrint
+
+- **Gọi dịch vụ**: backend WattPrint gọi `/api/v1/text2sql/chat/stream` với header `X-Service-Key`. Đặt `TEXT2SQL_SERVICE_KEY` ở đây thì mọi route chat đòi header đó (để trống thì không kiểm); nếu sai hoặc thiếu trả 401.
+- **Phạm vi một nhà**: body chat có `scope_token` (UUID). Trước mỗi truy vấn, dịch vụ chạy `SELECT set_config('app.copilot_token', :t, true)`; các view `copilot_ro` của WattPrint đọc cài đặt này để chỉ hiện dữ liệu một nhà. Token sống 5 phút và do backend WattPrint tạo.
+- **Mạng**: để container của project Compose khác gọi tới, đặt `BACKEND_DOCKER_BIND` (ví dụ `172.17.0.1`) và `BACKEND_DOCKER_PORT` (ví dụ `11101`) trong `.env`; WattPrint truy cập qua `host.docker.internal:11101`.
+- **Kết nối nguồn**: đăng ký cơ sở dữ liệu nguồn qua API `database_connection`; từ container backend, URI phải dùng tên máy trong mạng Compose. Tài liệu repo chưa có quy trình riêng cho WattPrint (role `wattprint_copilot_ro`, id kết nối); id này là `TEXT2SQL_CONNECTION_ID` phía WattPrint.
+
+## Biến môi trường chính (`.env.example`)
+
+| Nhóm | Biến |
+|---|---|
+| Cơ sở dữ liệu | `DATABASE_URL`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` |
+| Bảo mật | `CONNECTION_ENCRYPTION_KEY` (khóa Fernet, bắt buộc), `TEXT2SQL_SERVICE_KEY`, `OWN_KNOWLEDGE_AGENT_KEY`, `OWN_KNOWLEDGE_ADMIN_KEY` |
+| LLM và embedding | `OPENROUTER_API_KEY`, `OPENROUTER_BASE_URL`, `OPENROUTER_MODEL`, `TEXT2SQL_EMBEDDING_MODEL` (mặc định `openai/text-embedding-3-small`, 1536 chiều) |
+| Qdrant | `QDRANT_URL`, `QDRANT_PORT`, `TEXT2SQL_COLLECTION` |
+| Agent | `TEXT2SQL_QUERY_TIMEOUT_SECONDS`, `TEXT2SQL_QUERY_MAX_ROWS`, `TEXT2SQL_AGENT_MAX_STEPS`, `TEXT2SQL_TIMEZONE` |
+| Worker | `TEXT2SQL_WORKER_CONCURRENCY`, `TEXT2SQL_WORKER_POLL_SECONDS`, `TEXT2SQL_JOB_*`, `TEXT2SQL_TOPIC_INTERVALS` |
+| Mạng | `BACKEND_DOCKER_BIND`, `BACKEND_DOCKER_PORT`, `FRONTEND_PORT`, `BACKEND_PORT`, `POSTGRES_PORT` |
+
+Kiểm tra: `scripts/verify.sh` (khoảng 80 giây, cần `uv` và Node 22+) và `npm run test:charts` trong `frontend/`. Chưa có CI.

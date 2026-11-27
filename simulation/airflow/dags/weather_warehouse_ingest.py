@@ -12,7 +12,6 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from psycopg2.extras import execute_values
 
-
 LOGGER = logging.getLogger(__name__)
 API_URL = os.getenv("WEATHER_API_URL", "https://api.open-meteo.com/v1/forecast")
 TIMEZONE = "Asia/Bangkok"

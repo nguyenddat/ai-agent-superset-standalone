@@ -33,7 +33,6 @@ from ..schemas import (
 from ..utils.exceptions import Text2SqlAgentUnavailable
 from .agent_catalog import AgentCatalog, load_catalog
 from .agent_tools import QueryCache, Text2SqlToolkit
-from .pii_masker import PiiMasker
 from .answer_stream import DeltaBuffer
 from .chat_events import (
     TOOL_STARTED,
@@ -50,6 +49,7 @@ from .display_format import (
     llm_rows,
     today_label,
 )
+from .pii_masker import PiiMasker
 
 logger = logging.getLogger("text2sql.agent")
 

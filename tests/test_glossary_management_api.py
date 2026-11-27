@@ -125,7 +125,8 @@ class GlossaryManagementApiTests(unittest.TestCase):
         body["links"] = []
         body["synonyms"] = ["Doanh thu"]
         self.assertEqual(self.client.post(BASE, json=body).status_code, 400)
-        self.assertEqual(self.client.post(BASE, json={**self.body(), "business_domain_ids": [str(uuid4())]}).status_code, 400)
+        response = self.client.post(BASE, json={**self.body(), "business_domain_ids": [str(uuid4())]})
+        self.assertEqual(response.status_code, 400)
         self.assertEqual(self.client.get(BASE, params={"connection_id": str(self.other_id)}).json(), [])
 
     def test_metric_can_be_shared_and_discovery_filters_inactive_link(self) -> None:
@@ -143,7 +144,9 @@ class GlossaryManagementApiTests(unittest.TestCase):
             "business_domain_ids": [str(self.sales_id), str(self.revenue_id), str(self.sales_id)],
         })
         self.assertEqual(no_change.json()["current"]["number"], 1)
-        self.assertEqual([domain["name"] for domain in no_change.json()["business_domains"]], ["Doanh số", "Kinh doanh"])
+        self.assertEqual(
+            [domain["name"] for domain in no_change.json()["business_domains"]], ["Doanh số", "Kinh doanh"]
+        )
         with Session(self.engine) as session:
             metric = session.get(Metric, self.metric_id)
             metric.is_active = False
@@ -196,7 +199,8 @@ class GlossaryManagementApiTests(unittest.TestCase):
             connection.exec_driver_sql("UPDATE glossary_terms SET group_name = ' kinh DOANH '")
             with Operations.context(context):
                 migration.upgrade()
-            self.assertNotIn("group_name", {column["name"] for column in inspect(connection).get_columns("glossary_terms")})
+            columns = {column["name"] for column in inspect(connection).get_columns("glossary_terms")}
+            self.assertNotIn("group_name", columns)
             connection.commit()
             connection.exec_driver_sql("PRAGMA foreign_keys=ON")
         domains = self.client.get(f"{BASE}/{term_id}").json()["business_domains"]

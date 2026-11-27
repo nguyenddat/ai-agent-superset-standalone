@@ -1,5 +1,9 @@
 from .expert_rule import (
-    ExpertRule, ExpertRuleGlossaryLink, ExpertRuleMetricLink, ExpertRuleRevision, expert_rule_domains,
+    ExpertRule,
+    ExpertRuleGlossaryLink,
+    ExpertRuleMetricLink,
+    ExpertRuleRevision,
+    expert_rule_domains,
 )
 
 __all__ = [

@@ -8,6 +8,7 @@ from typing import Any
 from backend.common.base_exceptions import AppError
 from backend.modules.database_connection.models import DatabaseConnection
 
+from ..repositories.source_query_repository import SCOPE_TOKEN
 from ..schemas import ChatIn
 from ..utils.exceptions import Text2SqlClientDisconnected, Text2SqlConnectionNotFound
 from .chat_events import clarification_event, done_event, sse
@@ -65,6 +66,8 @@ class ChatStream:
 
     def _work(self) -> None:
         ready = False
+        # A new thread starts with an empty context, so the token is set here, not in the route.
+        SCOPE_TOKEN.set(str(self.body.scope_token) if self.body.scope_token else None)
         try:
             with self.factory() as service:
                 body = self.body

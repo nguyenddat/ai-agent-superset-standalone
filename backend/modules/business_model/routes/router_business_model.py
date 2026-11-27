@@ -96,7 +96,9 @@ def get_business_model(connection_id: UUID, service: ServiceDep) -> BusinessMode
 
 
 @router.put("/connections/{connection_id}/canvases/{view}", response_model=CanvasOut)
-def save_canvas(connection_id: UUID, view: Literal["business", "lineage"], body: CanvasIn, service: ServiceDep) -> CanvasOut:
+def save_canvas(
+    connection_id: UUID, view: Literal["business", "lineage"], body: CanvasIn, service: ServiceDep
+) -> CanvasOut:
     response = CanvasOut.model_validate(service.save_canvas(connection_id, view, body.layout))
     service.session.commit()
     return response

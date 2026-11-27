@@ -933,5 +933,69 @@ class ChartFieldsTests(unittest.TestCase):
         self.assertEqual(output["result_id"], "1-2")
 
 
+
+class ScopeAgent(FakeAgent):
+    """Records the scope token the source query would see while each question is answered."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.tokens: list = []
+
+    def answer(self, preprocess, item, prior, pending=None, reply=None, emit=None):
+        from backend.modules.text2sql.repositories.source_query_repository import SCOPE_TOKEN
+
+        self.tokens.append(SCOPE_TOKEN.get())
+        return super().answer(preprocess, item, prior, pending, reply, emit)
+
+
+class ServiceCallTests(unittest.TestCase):
+    def setUp(self) -> None:
+        from backend.core.setting import config
+
+        self.config = config
+        session = SimpleNamespace(get=lambda model, key: object() if key == CONNECTION_ID else None)
+        app.dependency_overrides[get_database] = lambda: session
+        self.addCleanup(app.dependency_overrides.clear)
+        self.client = TestClient(app)
+
+    def post(self, path="/chat", headers=None, **extra):
+        return self.client.post(
+            f"/api/v1/text2sql{path}", json={"connection_id": str(CONNECTION_ID), "question": "kWh?", **extra},
+            headers=headers or {},
+        )
+
+    def test_scope_token_reaches_the_source_query_only_for_its_request(self) -> None:
+        scope = str(uuid4())
+        agent = ScopeAgent()
+        app.dependency_overrides[get_chat_service] = lambda: make_service(FakeCompletion(), agent=agent)
+        self.assertEqual(self.post(scope_token=scope).status_code, 200)
+        self.assertEqual(self.post().status_code, 200)
+        self.assertEqual(agent.tokens, [scope, scope, None, None])
+        self.assertEqual(self.post(scope_token="not-a-uuid").status_code, 422)
+
+    def test_stream_sets_the_scope_token_in_its_worker_thread(self) -> None:
+        scope = str(uuid4())
+        agent = ScopeAgent()
+        service, *_ = stream_service(FakeCompletion(), agent)
+        app.dependency_overrides[get_chat_service_factory] = lambda: (lambda: nullcontext(service))
+        self.assertEqual(self.post("/chat/stream", scope_token=scope).status_code, 200)
+        self.assertEqual(agent.tokens, [scope, scope])
+
+    def test_service_key_is_required_once_set(self) -> None:
+        from pydantic import SecretStr
+
+        app.dependency_overrides[get_chat_service] = lambda: make_service(FakeCompletion())
+        self.assertEqual(self.post().status_code, 200)  # unset: open, as for the frontend
+        original = self.config.text2sql_service_key
+        self.addCleanup(setattr, self.config, "text2sql_service_key", original)
+        self.config.text2sql_service_key = SecretStr("k" * 40)
+        self.assertEqual(self.post().status_code, 401)
+        self.assertEqual(self.post("/chat/stream").status_code, 401)
+        self.assertEqual(self.post(headers={"X-Service-Key": "wrong"}).status_code, 401)
+        self.assertEqual(self.post(headers={"X-Service-Key": "k" * 40}).status_code, 200)
+        self.config.text2sql_service_key = SecretStr("")  # compose passes "" when unset
+        self.assertEqual(self.post().status_code, 200)
+
+
 if __name__ == "__main__":
     unittest.main()

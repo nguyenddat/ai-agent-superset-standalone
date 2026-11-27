@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 
 from .base_model import Base
 
-
 ModelType = TypeVar("ModelType", bound=Base)
 EntityId = UUID | int
 

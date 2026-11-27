@@ -1,5 +1,3 @@
-"""Import SQLAlchemy models here so Alembic autogenerate can discover them."""
-
 from .column_aggregation import ColumnAggregation
 from .column_dictionary import ColumnDictionary
 from .column_synonym import ColumnSynonym

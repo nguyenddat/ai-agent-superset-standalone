@@ -23,6 +23,8 @@ class Config(BaseSettings):
     superset_password: SecretStr | None = Field(default=None, validation_alias="SUPERSET_PASSWORD")
     own_knowledge_agent_key: SecretStr | None = Field(default=None, validation_alias="OWN_KNOWLEDGE_AGENT_KEY")
     own_knowledge_admin_key: SecretStr | None = Field(default=None, validation_alias="OWN_KNOWLEDGE_ADMIN_KEY")
+    # Set: /text2sql/chat* needs the header X-Service-Key with this value (server-to-server callers).
+    text2sql_service_key: SecretStr | None = Field(default=None, validation_alias="TEXT2SQL_SERVICE_KEY")
     frontend_origin: str = Field(
         default="http://localhost:3000,http://127.0.0.1:3000", validation_alias="FRONTEND_ORIGIN"
     )

@@ -134,7 +134,9 @@ class BusinessModelService:
         if self.domains.read_by_name(name):
             raise BusinessModelConflictError()
         dictionary_ids = self._dictionary_ids(values.get("table_ids", []))
-        domain = BusinessDomain(name=name, description=_description(values.get("description")), color=_color(values.get("color")))
+        domain = BusinessDomain(
+            name=name, description=_description(values.get("description")), color=_color(values.get("color"))
+        )
         try:
             self.domains.create(domain)
         except IntegrityError:
@@ -151,7 +153,9 @@ class BusinessModelService:
         dictionary_ids = self._dictionary_ids(values.get("table_ids", []))
         try:
             self.domains.update(domain, {
-                "name": name, "description": _description(values.get("description")), "color": _color(values.get("color")),
+                "name": name,
+                "description": _description(values.get("description")),
+                "color": _color(values.get("color")),
             })
         except IntegrityError:
             raise BusinessModelConflictError() from None
@@ -274,7 +278,10 @@ class BusinessModelService:
                 inferred[key].update(id=edge.id, label=edge.label, color=edge.color)
             elif edge.is_manual:
                 inferred[key] = self._edge_out(edge, source_id, target_id, "manual")
-        return sorted(inferred.values(), key=lambda item: (str(item["source_table_id"]), str(item["target_table_id"]), item["kind"]))
+        return sorted(
+            inferred.values(),
+            key=lambda item: (str(item["source_table_id"]), str(item["target_table_id"]), item["kind"]),
+        )
 
     @staticmethod
     def _edge_out(edge: LineageEdge, source_table_id: UUID, target_table_id: UUID, origin: str) -> dict[str, Any]:
@@ -296,7 +303,9 @@ class BusinessModelService:
         tables = self.tables.read_by_ids(table_ids)
         if len(tables) != len(table_ids):
             raise BusinessModelNotFoundError("Không tìm thấy bảng đã đồng bộ.")
-        dictionaries = {dictionary.table_id: dictionary for dictionary in self.dictionaries.read_by_table_ids(table_ids)}
+        dictionaries = {
+            dictionary.table_id: dictionary for dictionary in self.dictionaries.read_by_table_ids(table_ids)
+        }
         missing = [TableDictionary(
             table_id=table.id, display_name=table.name, description=table.description, layout="wide",
         ) for table in tables if table.id not in dictionaries]

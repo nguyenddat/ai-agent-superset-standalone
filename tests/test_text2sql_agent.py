@@ -507,7 +507,9 @@ class ChatGraphInterruptTests(unittest.TestCase):
         resumed = run_chat_graph(graph.context(), "t-1", reply="Huế", snapshot=paused.snapshot)
         self.assertIsNone(resumed.clarification)
         self.assertEqual(graph.preprocessed, 1)
-        self.assertEqual(graph.calls, [(1, None), (2, None), (2, "Huế"), (3, None)])
+        # Questions 1 and 2 run in parallel, so their first calls may land in either order.
+        self.assertCountEqual(graph.calls[:2], [(1, None), (2, None)])
+        self.assertEqual(graph.calls[2:], [(2, "Huế"), (3, None)])
         self.assertEqual(resumed.state["answer"], "đáp án 1 / đáp án 2 (Huế) / đáp án 3")
         restored = graph.received[2]
         self.assertIsInstance(restored.pause, ToolAgentPause)

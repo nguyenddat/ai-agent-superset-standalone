@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đồ thị LangGraph của một câu hỏi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Serif:ital@0;1&family=Noto+Sans+KR:wght@400;500;600&family=Noto+Serif+KR:wght@400&family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color-paper:#f5f5f5; --color-ink:#2d3142; --color-muted:#4f5d75; --color-accent:#bf4520;
+      --font-sans:'Geist', system-ui, sans-serif; --font-serif:'Instrument Serif','Noto Serif',serif; --font-mono:'Geist Mono', ui-monospace, monospace; }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display:flex; align-items:center; justify-content:center; padding:3rem 2rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size:0.66rem; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; color: var(--color-muted); margin-bottom:0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight:400; letter-spacing:-0.02em; line-height:1.15; color: var(--color-ink); margin-bottom:1.5rem; }
+    svg { width: 100%; min-width: 960px; display:block; }
+    @media (max-width: 1024px) { svg { min-width: 0; } }
+    @media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Flow · Diagram Design</p>
+    <h1>Đồ thị LangGraph của một câu hỏi</h1>
+    <div class="diagram-container">
+      <svg viewBox="0 0 960 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="text2sql-chat-title text2sql-chat-desc">
+        <title id="text2sql-chat-title">Đồ thị LangGraph của một câu hỏi</title>
+        <desc id="text2sql-chat-desc">preprocess tách và truy hồi, dispatch gửi từng câu đơn cho agent, câu cần hỏi lại dừng ở clarify, hết câu thì synthesize ghép câu trả lời.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#bf4520"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/></marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#f5f5f5"/>
+<path d="M115,210 L115,116" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+<rect x="129" y="157" width="38" height="12" rx="2" fill="#f5f5f5"/>
+<text x="148" y="166" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">TOP 5</text>
+<path d="M200,242 L270,242" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M440,230 L520,230" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="464" y="210" width="32" height="12" rx="2" fill="#f5f5f5"/>
+<text x="480" y="219" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">SEND</text>
+<path d="M520,254 L440,254" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+<rect x="464" y="266" width="32" height="12" rx="2" fill="#f5f5f5"/>
+<text x="480" y="275" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">XONG</text>
+<path d="M615,274 L615,390" fill="none" stroke="#4f5d75" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="636" y="326" width="65" height="12" rx="2" fill="#f5f5f5"/>
+<text x="668" y="335" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">TOOL CALLS</text>
+<path d="M355,210 L355,178 Q355,170 363,170 L847,170 Q855,170 855,178 L855,210" fill="none" stroke="#bf4520" stroke-width="1.2" marker-end="url(#arrow-accent)"/>
+<rect x="581" y="152" width="49" height="12" rx="2" fill="#f5f5f5"/>
+<text x="605" y="161" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">HẾT CÂU</text>
+<path d="M327,274 L327,390" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+<rect x="253" y="326" width="60" height="12" rx="2" fill="#f5f5f5"/>
+<text x="283" y="335" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">INTERRUPT</text>
+<path d="M383,390 L383,274" fill="none" stroke="#4f5d75" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+<rect x="399" y="326" width="43" height="12" rx="2" fill="#f5f5f5"/>
+<text x="420" y="335" fill="#5a6580" font-size="8" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">RESUME</text>
+<rect x="30" y="60" width="170" height="56" rx="6" fill="#f5f5f5"/>
+<rect x="30" y="60" width="170" height="56" rx="6" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1"/>
+<text x="115" y="85.5" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">Qdrant</text>
+<text x="115" y="100.5" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">top 5 mỗi chủ đề</text>
+<rect x="30" y="210" width="170" height="64" rx="6" fill="#f5f5f5"/>
+<rect x="30" y="210" width="170" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="38" y="216" width="36" height="12" rx="2" fill="transparent" stroke="#2d3142" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="56" y="225" fill="#2d3142" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">NODE</text>
+<text x="115" y="237" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">preprocess</text>
+<text x="115" y="252" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">viết lại, tách câu phụ</text>
+<text x="115" y="265" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">intent + truy hồi</text>
+<rect x="270" y="210" width="170" height="64" rx="6" fill="#f5f5f5"/>
+<rect x="270" y="210" width="170" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="278" y="216" width="36" height="12" rx="2" fill="transparent" stroke="#2d3142" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="296" y="225" fill="#2d3142" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">NODE</text>
+<text x="355" y="237" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">dispatch</text>
+<text x="355" y="252" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">Send mỗi câu đã đủ</text>
+<text x="355" y="265" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">câu phụ thuộc</text>
+<rect x="520" y="210" width="190" height="64" rx="6" fill="#f5f5f5"/>
+<rect x="520" y="210" width="190" height="64" rx="6" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/>
+<rect x="528" y="216" width="36" height="12" rx="2" fill="transparent" stroke="#bf4520" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="546" y="225" fill="#bf4520" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">NODE</text>
+<text x="615" y="237" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">answer_question</text>
+<text x="615" y="252" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">agent trả lời một câu đơn</text>
+<text x="615" y="265" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">song song theo tầng</text>
+<rect x="530" y="390" width="170" height="64" rx="6" fill="#f5f5f5"/>
+<rect x="530" y="390" width="170" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="538" y="396" width="42" height="12" rx="2" fill="transparent" stroke="#2d3142" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="559" y="405" fill="#2d3142" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">TOOLS</text>
+<text x="615" y="417" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">8 công cụ</text>
+<text x="615" y="432" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">metric · bảng · quy tắc</text>
+<text x="615" y="445" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">giá trị cột · SQL · biểu đồ</text>
+<rect x="270" y="390" width="170" height="64" rx="6" fill="#f5f5f5"/>
+<rect x="270" y="390" width="170" height="64" rx="6" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+<rect x="278" y="396" width="36" height="12" rx="2" fill="transparent" stroke="rgba(45,49,66,0.20)" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="296" y="405" fill="rgba(45,49,66,0.20)" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">NODE</text>
+<text x="355" y="417" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">clarify</text>
+<text x="355" y="432" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">dừng bằng interrupt()</text>
+<text x="355" y="445" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">checkpoint trong Postgres</text>
+<rect x="770" y="210" width="170" height="64" rx="6" fill="#f5f5f5"/>
+<rect x="770" y="210" width="170" height="64" rx="6" fill="#ffffff" stroke="#2d3142" stroke-width="1"/>
+<rect x="778" y="216" width="36" height="12" rx="2" fill="transparent" stroke="#2d3142" stroke-opacity="0.4" stroke-width="0.8"/>
+<text x="796" y="225" fill="#2d3142" font-size="7" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">NODE</text>
+<text x="855" y="237" fill="#2d3142" font-size="12" font-weight="600" font-family="'Geist', system-ui, sans-serif" text-anchor="middle">synthesize</text>
+<text x="855" y="252" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">ghép câu trả lời con</text>
+<text x="855" y="265" fill="#4f5d75" font-size="9" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="middle">answer_delta → answer</text>
+<line x1="30" y1="492" x2="930" y2="492" stroke="rgba(45,49,66,0.10)" stroke-width="0.8"/>
+<text x="30" y="508" fill="#5a6580" font-size="8" font-weight="400" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="start" letter-spacing="0.14em">LEGEND</text>
+<rect x="100" y="499" width="22" height="12" rx="3" fill="rgba(191,69,32,0.08)" stroke="#bf4520" stroke-width="1"/>
+<text x="128" y="508" fill="#5a6580" font-size="8" font-weight="400" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="start">agent</text>
+<line x1="182" y1="505" x2="210" y2="505" stroke="#bf4520" stroke-width="1.2"/>
+<text x="216" y="508" fill="#5a6580" font-size="8" font-weight="400" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="start">đã trả lời hết</text>
+<line x1="316.8" y1="505" x2="344.8" y2="505" stroke="#4f5d75" stroke-width="1.2" stroke-dasharray="4,3"/>
+<text x="350.8" y="508" fill="#5a6580" font-size="8" font-weight="400" font-family="'Geist Mono', ui-monospace, monospace" text-anchor="start">hỏi lại / vòng lặp</text>
+
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

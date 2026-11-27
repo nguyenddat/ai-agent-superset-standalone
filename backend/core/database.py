@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from .setting import config
 
+
 @lru_cache(maxsize=1)
 def get_engine() -> Engine:
     return create_engine(config.require_database_url(), pool_pre_ping=True)

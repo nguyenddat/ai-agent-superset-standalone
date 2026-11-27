@@ -38,3 +38,13 @@ module-root = ""
 dev = [
     "httpx>=0.28.1",
 ]
+
+[tool.ruff]
+line-length = 120
+force-exclude = true
+# Released Alembic revisions are never edited (docs/handbook/du-lieu-va-migration.md).
+extend-exclude = ["backend/migrations/versions"]
+
+[tool.ruff.lint]
+# docs/handbook/quy-uoc-code.md: 120-character lines, sorted imports with relative imports last.
+select = ["E501", "I"]
