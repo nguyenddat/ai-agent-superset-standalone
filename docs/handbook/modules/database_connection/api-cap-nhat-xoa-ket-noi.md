@@ -10,4 +10,4 @@ Route kiểm tra ID UUID; service sửa `name`, `is_active`, `uri` và các danh
 
 Xóa thành công trả 204, không có body. Theo FK hiện tại, xóa connection sẽ xóa schema, table và column con bằng cascade. Xóa ID không tồn tại trả 404. Khi có dataset hoặc hợp đồng nghiệp vụ tham chiếu metadata này, cần xem lại chính sách xóa.
 
-`is_active` cho phép vô hiệu hóa connection mà vẫn giữ metadata. Route hiện chưa có xác thực/phân quyền.
+`is_active` cho phép vô hiệu hóa connection mà vẫn giữ metadata. Route đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.

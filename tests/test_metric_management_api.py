@@ -29,6 +29,7 @@ from backend.modules.metric_management.utils.exceptions import (
     InvalidMetricError,
     SupersetUnavailableError,
 )
+from tests.service_key import use_service_key
 
 BASE = "/api/v1/metrics"
 
@@ -67,7 +68,7 @@ class MetricManagementApiTests(unittest.TestCase):
                 yield MetricService(session)
 
         app.dependency_overrides[get_metric_service] = service_dependency
-        self.client = TestClient(app)
+        self.client = TestClient(app, headers=use_service_key(self))
 
     def tearDown(self) -> None:
         self.client.close()

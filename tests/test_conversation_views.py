@@ -13,6 +13,7 @@ from backend.modules.conversation.dependencies import get_conversation_service
 from backend.modules.conversation.repositories.conversation_repository import ConversationRepository
 from backend.modules.conversation.services import ConversationService, normalize_results
 from backend.modules.database_connection.models import DatabaseConnection
+from tests.service_key import use_service_key
 
 BASE = "/api/v1/conversations"
 FIELDS = [
@@ -45,7 +46,7 @@ class ConversationViewTests(unittest.TestCase):
                 yield ConversationService(session)
 
         app.dependency_overrides[get_conversation_service] = service_dependency
-        self.client = TestClient(app)
+        self.client = TestClient(app, headers=use_service_key(self))
         created = self.client.post(BASE, json={"connection_id": str(self.connection_id), "user_id": "alice"})
         self.conversation_id = created.json()["id"]
 

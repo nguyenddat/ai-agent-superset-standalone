@@ -1,6 +1,6 @@
 # Expert Rule Management
 
-**Trạng thái:** backend, migration và tab `Quy tắc` đã triển khai. API chưa có xác thực/phân quyền.
+**Trạng thái:** backend, migration và tab `Quy tắc` đã triển khai. API đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 
 Module lưu quy tắc chuyên gia theo một bảng metadata của database connection. Rule có tên ổn định và thuộc một hoặc nhiều [miền nghiệp vụ](../business_model/api-mien-nghiep-vu.md) của semantic model (có thể chưa thuộc miền nào); mỗi revision lưu mô tả, điều kiện có cấu trúc, ngoại lệ, ví dụ, liên kết tới glossary và metric. Bản nháp mới không thay bản đã duyệt đang được discovery trả về. Thu hồi tạo revision `revoked` và dừng công bố rule.
 

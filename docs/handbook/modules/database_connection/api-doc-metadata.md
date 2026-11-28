@@ -14,7 +14,7 @@ Kết nối gồm ID, tên, dialect/driver, trạng thái và thời gian tạo/
 
 ## Luồng xử lý hiện tại
 
-1. Route kiểm tra ID UUID; chưa có xác thực/phân quyền.
+1. Route kiểm tra ID UUID; đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 2. Service xác nhận bản ghi cha tồn tại trước khi đọc danh sách con.
 3. Repository chỉ truy vấn metadata database; Pydantic serialize response.
 4. Trả 404 khi ID cha không tồn tại.

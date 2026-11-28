@@ -1,6 +1,6 @@
 # Glossary Management
 
-**Trạng thái:** backend, migration và tab `Thuật ngữ` đã triển khai. API chưa có xác thực/phân quyền.
+**Trạng thái:** backend, migration và tab `Thuật ngữ` đã triển khai. API đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 
 Module lưu thuật ngữ nghiệp vụ theo database connection, định nghĩa và từ đồng nghĩa theo revision, cùng liên kết tới bảng, cột và metric của connection đó. Bản nháp mới không thay bản đã duyệt đang được discovery trả về. Thu hồi tạo một revision `revoked` để chặn discovery; có thể soạn và duyệt lại sau đó.
 

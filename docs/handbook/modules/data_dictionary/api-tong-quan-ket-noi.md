@@ -8,7 +8,7 @@ Liệt kê mọi bảng và view đã đồng bộ của một kết nối kèm 
 
 ## Luồng xử lý hiện tại
 
-1. Đọc kết nối theo `connection_id`; không có thì trả 404 `Không tìm thấy kết nối database được yêu cầu.`. Route chưa có xác thực/phân quyền.
+1. Đọc kết nối theo `connection_id`; không có thì trả 404 `Không tìm thấy kết nối database được yêu cầu.`. Route đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 2. Đọc schema của kết nối, rồi đọc toàn bộ bảng của các schema đó, sắp theo tên, trong một truy vấn.
 3. Đọc từ điển mức bảng theo danh sách bảng, cặp `(id cột, id bảng)` của mọi cột và danh sách cột đã có từ điển. Mỗi loại một truy vấn, không truy vấn theo từng bảng.
 4. Không ghi gì vào database.

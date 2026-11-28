@@ -6,7 +6,7 @@ Module ghi một phép biến đổi từ nhiều bảng nguồn vào một bả
 
 Module không thực thi SQL đã nhập. API xem trước phân tích cú pháp PostgreSQL cho một câu `SELECT` có bảng trực tiếp trong `FROM`/`JOIN`; phần không xác định chắc được đưa vào `warnings` và người dùng có thể khai báo tay. Với view/materialized view, API đọc SQL định nghĩa bằng role của kết nối nguồn. Không tự đọc SQL của ETL/job bên ngoài.
 
-Nguồn và đích hiện phải thuộc cùng một kết nối và đang nằm trong phạm vi metadata của kết nối. API chưa có xác thực người gọi; chỉ nên dùng trong môi trường phát triển tin cậy cho đến khi có chính sách truy cập.
+Nguồn và đích hiện phải thuộc cùng một kết nối và đang nằm trong phạm vi metadata của kết nối. API đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 
 ## Tài liệu
 

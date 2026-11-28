@@ -8,14 +8,14 @@ JSON đầu vào gồm `dialect` (`postgresql`), `driver` tùy chọn (`psycopg`
 
 ## Luồng xử lý hiện tại
 
-1. Route kiểm tra cấu trúc dữ liệu vào; chưa có xác thực người gọi.
+1. Route kiểm tra cấu trúc dữ liệu vào; đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 2. Service tạo SQLAlchemy URL theo dialect/driver được hỗ trợ, đặt timeout và thử mở một connection.
 3. Đóng connection và engine sau phép thử, kể cả khi lỗi.
 4. Trả trạng thái thành công; lỗi driver/kết nối được chuyển thành thông điệp an toàn, không trả stack trace hoặc secret.
 
 ## Điều kiện lỗi
 
-Dữ liệu sai trả 422; database nguồn không truy cập được trả 503, dạng `{"detail":"..."}`. Route hiện chưa có xác thực và chính sách giới hạn host/cổng; cần bổ sung trước khi mở backend ra mạng không tin cậy.
+Dữ liệu sai trả 422; database nguồn không truy cập được trả 503, dạng `{"detail":"..."}`. Route đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng và chưa giới hạn host/cổng; cần bổ sung trước khi mở backend ra mạng không tin cậy.
 
 ## Chưa quyết định
 

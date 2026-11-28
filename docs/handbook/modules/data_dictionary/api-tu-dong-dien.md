@@ -18,7 +18,7 @@ Dùng mô hình ngôn ngữ đề xuất tên hiển thị, mô tả, thuật ng
 
 ## Luồng xử lý hiện tại
 
-1. **Trước khi stream** (lỗi trả JSON thông thường): đọc bảng (404 nếu không có), kiểm tra bảng có cột (422) và không quá 300 cột (422), kiểm tra đã cấu hình API key (503), và bảng không đang được tự động điền ở request khác (409). Sau đó kết thúc transaction đọc để không giữ kết nối trong lúc chờ mô hình. Route chưa có xác thực/phân quyền.
+1. **Trước khi stream** (lỗi trả JSON thông thường): đọc bảng (404 nếu không có), kiểm tra bảng có cột (422) và không quá 300 cột (422), kiểm tra đã cấu hình API key (503), và bảng không đang được tự động điền ở request khác (409). Sau đó kết thúc transaction đọc để không giữ kết nối trong lúc chờ mô hình. Route đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 2. Chia cột thành lô 8 cột, gửi tối đa 4 lô đồng thời. Mỗi lô gồm schema, tên bảng, loại bảng, mô tả bảng và tên, kiểu dữ liệu, nullable, khóa chính, comment của cột.
 3. Lô nào xong trước xử lý trước: bỏ gợi ý cho tên cột không thuộc lô, gợi ý trùng hoặc `display_name` rỗng; ghi gợi ý hợp lệ; route commit rồi gửi sự kiện `columns`. Lô lỗi được tính vào `failed_columns` và bỏ qua, trừ lỗi API key bị từ chối (401/403) hoặc hết hạn mức (402) thì dừng cả luồng.
 4. Gợi ý mức bảng dùng thêm tên hiển thị và mô tả cột vừa được gợi ý; ghi rồi gửi sự kiện `table`. Lỗi ở bước này không làm mất các lô cột đã lưu.

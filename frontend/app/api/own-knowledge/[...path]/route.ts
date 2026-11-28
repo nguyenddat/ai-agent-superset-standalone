@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { timingSafeEqual } from "node:crypto"
 
+import { BACKEND_URL } from "@/lib/backend-proxy"
+
 // The admin key never reaches the browser: this route adds it on the server and forwards only the review routes.
-const BACKEND_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 const ALLOWED = /^admin\/entries(\/[0-9a-f-]{36}(\/(review|promote))?)?$/
 
 type Context = { params: Promise<{ path: string[] }> }

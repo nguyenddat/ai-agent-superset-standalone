@@ -68,10 +68,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     environment:
       API_URL: http://backend:8000
+      TEXT2SQL_SERVICE_KEY: ${TEXT2SQL_SERVICE_KEY:-}
       OWN_KNOWLEDGE_ADMIN_KEY: ${OWN_KNOWLEDGE_ADMIN_KEY:-}
       OWN_KNOWLEDGE_REVIEW_PASSWORD: ${OWN_KNOWLEDGE_REVIEW_PASSWORD:-}
     ports:

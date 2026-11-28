@@ -15,6 +15,7 @@ from backend.modules.data_dictionary.models import TableDictionary
 from backend.modules.data_lineage.dependencies import get_data_lineage_service
 from backend.modules.data_lineage.services import DataLineageService
 from backend.modules.database_connection.models import DatabaseColumn, DatabaseConnection, DatabaseSchema, DatabaseTable
+from tests.service_key import use_service_key
 
 BASE = "/api/v1/data-lineage"
 
@@ -68,7 +69,7 @@ class DataLineageApiTests(unittest.TestCase):
                 yield DataLineageService(session)
 
         app.dependency_overrides[get_data_lineage_service] = lineage_dependency
-        self.client = TestClient(app, raise_server_exceptions=True)
+        self.client = TestClient(app, headers=use_service_key(self), raise_server_exceptions=True)
 
     def tearDown(self) -> None:
         self.client.close()

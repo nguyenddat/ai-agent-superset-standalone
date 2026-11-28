@@ -63,7 +63,7 @@ uv run alembic upgrade head
 uv run uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-API ở `http://127.0.0.1:8000/api/v1`; OpenAPI ở `/docs`. CORS cho phép các origin trong `FRONTEND_ORIGIN` (mặc định `http://localhost:3000` và `http://127.0.0.1:3000`). Hiện API chưa có xác thực, nên chỉ dùng trong môi trường phát triển tin cậy.
+API ở `http://127.0.0.1:8000/api/v1`; OpenAPI ở `/docs`. CORS cho phép các origin trong `FRONTEND_ORIGIN` (mặc định `http://localhost:3000` và `http://127.0.0.1:3000`). Mọi route `/api/v1/*` trừ `own-knowledge` đòi header `X-Service-Key` (xem mục Tích hợp với WattPrint); API không kiểm danh tính người dùng cuối.
 
 Run `uv` and Alembic commands from the repository root. The root
 `pyproject.toml` packages `backend/`, so `uv add <package>` installs
@@ -123,7 +123,7 @@ setup does not migrate the Superset metadata database.
 
 ## Tích hợp với WattPrint
 
-- **Gọi dịch vụ**: backend WattPrint gọi `/api/v1/text2sql/chat/stream` với header `X-Service-Key`. Đặt `TEXT2SQL_SERVICE_KEY` ở đây thì mọi route chat đòi header đó (để trống thì không kiểm); nếu sai hoặc thiếu trả 401.
+- **Gọi dịch vụ**: backend WattPrint gọi `/api/v1/text2sql/chat/stream` với header `X-Service-Key`. Mọi route `/api/v1/*` (trừ `/api/v1/own-knowledge`, vốn có khóa agent/admin riêng) đòi header này khớp `TEXT2SQL_SERVICE_KEY`: thiếu hoặc sai trả 401; chưa đặt khóa trả 503 (đóng mặc định, không bao giờ mở). Frontend gọi qua proxy cùng nguồn `/api/v1/*` của Next.js, khóa chỉ nằm phía server.
 - **Phạm vi một nhà**: body chat có `scope_token` (UUID). Trước mỗi truy vấn, dịch vụ chạy `SELECT set_config('app.copilot_token', :t, true)`; các view `copilot_ro` của WattPrint đọc cài đặt này để chỉ hiện dữ liệu một nhà. Token sống 5 phút và do backend WattPrint tạo.
 - **Mạng**: để container của project Compose khác gọi tới, đặt `BACKEND_DOCKER_BIND` (ví dụ `172.17.0.1`) và `BACKEND_DOCKER_PORT` (ví dụ `11101`) trong `.env`; WattPrint truy cập qua `host.docker.internal:11101`.
 - **Kết nối nguồn**: đăng ký cơ sở dữ liệu nguồn qua API `database_connection`; từ container backend, URI phải dùng tên máy trong mạng Compose. Tài liệu repo chưa có quy trình riêng cho WattPrint (role `wattprint_copilot_ro`, id kết nối); id này là `TEXT2SQL_CONNECTION_ID` phía WattPrint.
@@ -140,4 +140,4 @@ setup does not migrate the Superset metadata database.
 | Worker | `TEXT2SQL_WORKER_CONCURRENCY`, `TEXT2SQL_WORKER_POLL_SECONDS`, `TEXT2SQL_JOB_*`, `TEXT2SQL_TOPIC_INTERVALS` |
 | Mạng | `BACKEND_DOCKER_BIND`, `BACKEND_DOCKER_PORT`, `FRONTEND_PORT`, `BACKEND_PORT`, `POSTGRES_PORT` |
 
-Kiểm tra: `scripts/verify.sh` (khoảng 80 giây, cần `uv` và Node 22+) và `npm run test:charts` trong `frontend/`. Chưa có CI.
+Kiểm tra: `scripts/verify.sh` (khoảng 80 giây, cần `uv` và Node 22+) và `npm run test` trong `frontend/`. Chưa có CI.

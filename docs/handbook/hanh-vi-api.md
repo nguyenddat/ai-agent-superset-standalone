@@ -1,6 +1,6 @@
 # Hành vi chung của API
 
-**Trạng thái:** API FastAPI của `database_connection`, `data_dictionary`, `business_model`, `data_lineage`, `metric_management`, `glossary_management`, `expert_rule_management`, `own_knowledge`, `text2sql` (ingestion, retrieve, chat) và `conversation` đã triển khai tại `/api/v1`. Các module trước chưa có xác thực/phân quyền; `own_knowledge` dùng khóa dịch vụ Agent và admin riêng. `conversation` phân tách dữ liệu theo `user_id` do client gửi (chưa xác thực) và trả 404 cho hội thoại của người khác; xem [module conversation](modules/conversation/README.md).
+**Trạng thái:** API FastAPI của `database_connection`, `data_dictionary`, `business_model`, `data_lineage`, `metric_management`, `glossary_management`, `expert_rule_management`, `own_knowledge`, `text2sql` (ingestion, retrieve, chat) và `conversation` đã triển khai tại `/api/v1`. Mọi module trừ `own_knowledge` đòi `X-Service-Key` (mục cuối trang); `own_knowledge` dùng khóa dịch vụ Agent và admin riêng. Chưa module nào phân quyền theo người dùng cuối. `conversation` phân tách dữ liệu theo `user_id` do client gửi (chưa xác thực) và trả 404 cho hội thoại của người khác; xem [module conversation](modules/conversation/README.md).
 
 ## Luồng xử lý
 
@@ -25,7 +25,7 @@ Route sở hữu session của request qua `get_database()`. Service và reposit
 | Quá nhiều yêu cầu | 429 |
 | Dịch vụ phụ thuộc không sẵn sàng | 503 |
 
-FastAPI cung cấp route và schema JSON. CORS cho phép các origin trong `FRONTEND_ORIGIN`, phân tách bằng dấu phẩy; mặc định là `http://localhost:3000,http://127.0.0.1:3000`. CORS không thay thế xác thực. Backend hiện chưa kiểm tra danh tính và quyền của người gọi, nên chỉ chạy trên môi trường phát triển tin cậy cho đến khi bổ sung chính sách truy cập.
+FastAPI cung cấp route và schema JSON. CORS cho phép các origin trong `FRONTEND_ORIGIN`, phân tách bằng dấu phẩy; mặc định là `http://localhost:3000,http://127.0.0.1:3000`. CORS không thay thế xác thực. Mọi route `/api/v1/*` trừ `/api/v1/own-knowledge` đòi header `X-Service-Key` khớp `TEXT2SQL_SERVICE_KEY` (`backend/core/security.py`): thiếu hoặc sai trả 401, backend chưa đặt khóa trả 503. Khóa chỉ dành cho dịch vụ gọi dịch vụ (backend WattPrint, proxy server-side của frontend), không bao giờ gửi tới trình duyệt. `/openapi.json` và `/docs` vẫn mở. Backend không kiểm danh tính người dùng cuối; việc đó thuộc bên gọi.
 
 ## Định dạng response
 

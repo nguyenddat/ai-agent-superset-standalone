@@ -8,7 +8,7 @@ Trả về toàn bộ từ điển của một bảng đã đồng bộ: phần 
 
 ## Luồng xử lý hiện tại
 
-1. Đọc `database_tables` theo `table_id`; không có thì trả 404 `Không tìm thấy bảng được yêu cầu.`. Route chưa có xác thực/phân quyền.
+1. Đọc `database_tables` theo `table_id`; không có thì trả 404 `Không tìm thấy bảng được yêu cầu.`. Route đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 2. Đọc schema để lấy `connection_id`, `schema_name`; đọc các cột của bảng theo `ordinal_position`.
 3. Đọc `table_dictionaries` theo `table_id` và các bản ghi con theo `table_dictionary_id`; đọc `column_dictionaries` theo danh sách cột cùng aggregation, synonym của chúng. Mỗi loại bản ghi đọc một truy vấn, không truy vấn theo từng cột.
 4. Ghép kết quả: trường đã lưu lấy từ bản ghi từ điển, trường chưa lưu lấy mặc định ở dưới. `is_saved` cho biết bảng hoặc cột đã có bản ghi.

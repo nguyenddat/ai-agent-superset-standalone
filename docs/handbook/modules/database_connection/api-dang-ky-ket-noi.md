@@ -8,7 +8,7 @@ JSON đầu vào gồm `name`, `dialect` (`postgresql`), `driver` tùy chọn (`
 
 ## Luồng xử lý hiện tại
 
-1. Kiểm tra cấu trúc JSON, tên hợp lệ và loại database được hỗ trợ. Route hiện chưa xác thực người gọi.
+1. Kiểm tra cấu trúc JSON, tên hợp lệ và loại database được hỗ trợ. Route đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 2. Kiểm tra kết nối bằng logic service dùng chung với luồng kiểm tra kết nối.
 3. Mã hóa URI bằng khóa do backend quản lý rồi tạo `database_connections`; không bao giờ lưu URI rõ vào `uri_ciphertext`.
 4. Repository flush để nhận ID và phát hiện tên trùng; caller commit một lần.

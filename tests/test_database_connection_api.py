@@ -12,6 +12,7 @@ from backend.main import app
 from backend.modules.database_connection.dependencies import get_connection_service, get_metadata_service
 from backend.modules.database_connection.services import ConnectionService, MetadataService
 from backend.modules.database_connection.services.metadata_service import SourceColumn, SourceSchema, SourceTable
+from tests.service_key import use_service_key
 
 BASE = "/api/v1"
 URI = "postgresql+psycopg://reader:secret@db.example.test:5432/source"
@@ -43,7 +44,7 @@ class DatabaseConnectionApiTests(unittest.TestCase):
 
         app.dependency_overrides[get_connection_service] = connection_dependency
         app.dependency_overrides[get_metadata_service] = metadata_dependency
-        self.client = TestClient(app, raise_server_exceptions=True)
+        self.client = TestClient(app, headers=use_service_key(self), raise_server_exceptions=True)
 
     def tearDown(self) -> None:
         self.client.close()

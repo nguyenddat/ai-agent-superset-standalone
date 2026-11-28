@@ -2,12 +2,13 @@ import threading
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from backend.common.base_exceptions import AppError
+from backend.core.security import require_service_key
 from backend.core.setting import config
 from backend.modules.business_model.routes.router_business_model import (
     router as business_model_router,
@@ -59,17 +60,18 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Content-Type"],
 )
-app.include_router(database_connection_router)
-app.include_router(database_metadata_router)
-app.include_router(data_dictionary_router)
-app.include_router(business_model_router)
-app.include_router(data_lineage_router)
-app.include_router(metric_router)
-app.include_router(glossary_router)
-app.include_router(expert_rule_router)
+SERVICE_ONLY = [Depends(require_service_key)]  # own-knowledge keeps its own agent/admin keys
+app.include_router(database_connection_router, dependencies=SERVICE_ONLY)
+app.include_router(database_metadata_router, dependencies=SERVICE_ONLY)
+app.include_router(data_dictionary_router, dependencies=SERVICE_ONLY)
+app.include_router(business_model_router, dependencies=SERVICE_ONLY)
+app.include_router(data_lineage_router, dependencies=SERVICE_ONLY)
+app.include_router(metric_router, dependencies=SERVICE_ONLY)
+app.include_router(glossary_router, dependencies=SERVICE_ONLY)
+app.include_router(expert_rule_router, dependencies=SERVICE_ONLY)
 app.include_router(own_knowledge_router)
-app.include_router(text2sql_router)
-app.include_router(conversation_router)
+app.include_router(text2sql_router, dependencies=SERVICE_ONLY)
+app.include_router(conversation_router, dependencies=SERVICE_ONLY)
 
 
 @app.exception_handler(AppError)

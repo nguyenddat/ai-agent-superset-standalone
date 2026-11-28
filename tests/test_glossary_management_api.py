@@ -16,6 +16,7 @@ from backend.modules.database_connection.models import DatabaseColumn, DatabaseC
 from backend.modules.glossary_management.dependencies import get_glossary_service
 from backend.modules.glossary_management.services import GlossaryService
 from backend.modules.metric_management.models import Metric
+from tests.service_key import use_service_key
 
 BASE = "/api/v1/glossary"
 
@@ -59,7 +60,7 @@ class GlossaryManagementApiTests(unittest.TestCase):
                 yield GlossaryService(session)
 
         app.dependency_overrides[get_glossary_service] = service_dependency
-        self.client = TestClient(app)
+        self.client = TestClient(app, headers=use_service_key(self))
 
     def tearDown(self) -> None:
         self.client.close()

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Every fast check, from the repository root. Needs uv and Node 22+ (test:charts uses node --test type stripping).
+# Every fast check, from the repository root. Needs uv and Node 22+ (test uses node --test type stripping).
 # Tests never touch the running stack: DATABASE_URL, Qdrant and the LLM key from .env are overridden.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -14,4 +14,4 @@ cd frontend
 [ -d node_modules ] || npm ci --no-audit --no-fund
 npm run -s lint
 npm run -s typecheck
-npm run -s test:charts | tail -n 8
+npm run -s test | tail -n 8

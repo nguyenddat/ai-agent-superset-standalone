@@ -17,6 +17,7 @@ from backend.modules.conversation.dependencies import get_conversation_service
 from backend.modules.conversation.models import Conversation
 from backend.modules.conversation.services import ConversationService
 from backend.modules.database_connection.models import DatabaseConnection
+from tests.service_key import use_service_key
 
 BASE = "/api/v1/conversations"
 TABLES = ("conversation_turn_feedback", "conversation_turns", "conversations")
@@ -43,7 +44,7 @@ class ConversationApiTests(unittest.TestCase):
                 yield ConversationService(session)
 
         app.dependency_overrides[get_conversation_service] = service_dependency
-        self.client = TestClient(app)
+        self.client = TestClient(app, headers=use_service_key(self))
 
     def tearDown(self) -> None:
         self.client.close()

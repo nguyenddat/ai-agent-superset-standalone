@@ -39,14 +39,14 @@ Giữ type hints và tên hàm đủ rõ nghĩa. Viết tài liệu Markdown b�
 
 Repository theo quy trình sdlc (`.claude/sdlc.json`, rule card trong `.claude/rules/`, review theo `REVIEW.md`): gọi skill `sdlc` trước mỗi thay đổi code.
 
-Trước khi hoàn tất, chạy `scripts/verify.sh` (khoảng 80 giây, cần `uv` và Node 22+): `git diff --check`, ruff (dòng 120 ký tự, thứ tự import), `scripts/check_conventions.py` (không docstring, không `os.getenv` ngoài `setting.py`, `agent_package` không import `backend.modules`, link nội bộ, thư mục handbook của module), 374 test backend với database, Qdrant và khóa LLM bị ghi đè nên không chạm stack đang chạy, rồi `lint`, `typecheck`, `test:charts` của frontend. Kết quả tốt:
+Trước khi hoàn tất, chạy `scripts/verify.sh` (khoảng 80 giây, cần `uv` và Node 22+): `git diff --check`, ruff (dòng 120 ký tự, thứ tự import), `scripts/check_conventions.py` (không docstring, không `os.getenv` ngoài `setting.py`, `agent_package` không import `backend.modules`, link nội bộ, thư mục handbook của module), 380 test backend với database, Qdrant và khóa LLM bị ghi đè nên không chạm stack đang chạy, rồi `lint`, `typecheck`, `test` của frontend. Kết quả tốt:
 
 ```text
 All checks passed!
-conventions ok (380 files)
-Ran 374 tests in 24s
+conventions ok (384 files)
+Ran 380 tests in 24s
 OK (skipped=7)
-# pass 82
+# pass 87
 ```
 
 Chưa có CI. Chỉ chạy bằng tay: `npx next build`, test Qdrant (`QDRANT_TEST_URL`), Alembic upgrade/check/downgrade trên database tạm và bộ đánh giá thật `scripts/text2sql_eval`.

@@ -24,7 +24,7 @@ Trường không khai báo trong schema bị từ chối. Request là bản đ�
 
 ## Luồng xử lý hiện tại
 
-1. Đọc bảng theo `table_id`; không có thì trả 404. Route chưa có xác thực/phân quyền.
+1. Đọc bảng theo `table_id`; không có thì trả 404. Route đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 2. Kiểm tra `column_roles` theo `layout`:
    - `wide` cho phép `time`, `created_at`, `row_kind`.
    - `indicator_values` cho phép thêm `indicator_key` và `value`, bắt buộc có cả hai.

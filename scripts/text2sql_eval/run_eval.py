@@ -284,7 +284,9 @@ def json_output(response: httpx.Response) -> dict[str, Any]:
 
 class Client:
     def __init__(self, base_url: str, endpoint: str) -> None:
-        self.http = httpx.Client(base_url=base_url, timeout=TIMEOUT)
+        key = config.text2sql_service_key
+        headers = {"X-Service-Key": key.get_secret_value()} if key else {}  # unset: the API answers 503
+        self.http = httpx.Client(base_url=base_url, timeout=TIMEOUT, headers=headers)
         self.endpoint = endpoint
 
     def chat(self, body: dict[str, Any]) -> dict[str, Any]:

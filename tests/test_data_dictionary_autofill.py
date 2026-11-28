@@ -29,6 +29,7 @@ from backend.modules.database_connection.models import (
     DatabaseSchema,
     DatabaseTable,
 )
+from tests.service_key import use_service_key
 
 BASE = "/api/v1"
 
@@ -133,7 +134,7 @@ class DataDictionaryAutofillTests(unittest.TestCase):
 
         app.dependency_overrides[get_data_dictionary_service] = dictionary_dependency
         app.dependency_overrides[get_data_dictionary_autofill_service] = autofill_dependency
-        self.client = TestClient(app, raise_server_exceptions=True)
+        self.client = TestClient(app, headers=use_service_key(self), raise_server_exceptions=True)
 
     def tearDown(self) -> None:
         self.client.close()

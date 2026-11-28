@@ -11,6 +11,6 @@
 
 Sync lặp lại dùng `(source_url, source_id)` cho user/database và `(source_url, source_metric_id)` cho metric, không nhân bản. Metric không còn ở Superset được đánh dấu inactive. Đối với dataset vật lý, khi database đã liên kết, backend tìm bảng có cùng schema/tên trong metadata standalone và gắn `table_id` nếu có. Dataset ảo giữ SQL nguồn và không tự gắn bảng. Superset không bị ghi thay đổi.
 
-Backend chỉ kết nối Superset qua REST API có bearer token; không lưu mật khẩu Superset vào metadata database. Địa chỉ Superset từ trong container có thể khác địa chỉ trình duyệt, ví dụ `http://host.docker.internal:8089` khi chạy Superset trên Docker Desktop. Vì API standalone hiện chưa có xác thực, endpoint sync cần được đặt sau lớp truy cập tin cậy khi triển khai ngoài máy phát triển.
+Backend chỉ kết nối Superset qua REST API có bearer token; không lưu mật khẩu Superset vào metadata database. Địa chỉ Superset từ trong container có thể khác địa chỉ trình duyệt, ví dụ `http://host.docker.internal:8089` khi chạy Superset trên Docker Desktop. API đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng; khi triển khai ngoài máy phát triển vẫn nên đặt endpoint sync sau lớp truy cập tin cậy.
 
 Tham chiếu API chính thức: [Superset REST API](https://superset.apache.org/docs/rest-api/), [Superset dataset API](https://superset.apache.org/docs/api/).

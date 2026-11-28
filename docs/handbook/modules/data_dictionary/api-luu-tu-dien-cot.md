@@ -28,7 +28,7 @@ Mỗi phần tử là bản đầy đủ của cột đó: trường bỏ trốn
 
 ## Luồng xử lý hiện tại
 
-1. Đọc bảng theo `table_id`; không có thì trả 404. Route chưa có xác thực/phân quyền.
+1. Đọc bảng theo `table_id`; không có thì trả 404. Route đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 2. Đọc cột của bảng, vai trò `row_kind` đã lưu ở mức bảng và từ điển đã có của các cột.
 3. Đọc mọi `referenced_column_id` trong request bằng một truy vấn; mỗi cột được tham chiếu phải tồn tại và thuộc cùng kết nối database (có thể khác schema).
 4. Kiểm tra từng phần tử trước khi ghi:

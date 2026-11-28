@@ -8,7 +8,7 @@ npm install
 npm run dev
 ```
 
-Mở `http://localhost:3000`. Frontend gọi backend tại `NEXT_PUBLIC_API_URL` (mặc định `http://localhost:8000`, xem `.env.example`). Hiện chưa có trang đăng nhập hoặc middleware xác thực.
+Mở `http://localhost:3000`. Trình duyệt chỉ gọi `/api/v1/*` của chính frontend; route `app/api/v1/[...path]` chuyển tiếp tới backend tại `API_URL` (mặc định `http://localhost:8000`) và gắn `X-Service-Key` từ `TEXT2SQL_SERVICE_KEY` phía server (xem `.env.example`). Hiện chưa có trang đăng nhập hoặc middleware xác thực.
 
 Form thêm/sửa kết nối cho phép nhập từng thành phần hoặc dán URI đầy đủ. Mật khẩu và URI không được đọc lại từ backend sau khi lưu.
 
@@ -26,7 +26,7 @@ components/, lib/
 | Lệnh | Việc làm |
 |---|---|
 | `npm run dev` | Dev server cổng 3000 |
-| `npm run test:charts` | Test phần biểu đồ |
+| `npm run test` | Test biểu đồ và proxy backend |
 | `npx next build` | Build production (chạy tay, không nằm trong `scripts/verify.sh`) |
 
-Biến môi trường: `NEXT_PUBLIC_API_URL` (build arg trong `compose.yaml`, mặc định `http://localhost:8000`) cho trình duyệt và `API_URL` (trong compose: `http://backend:8000`) cho phía server. Cả stack: [README gốc](../README.md).
+Biến môi trường (chỉ phía server): `API_URL` (trong compose: `http://backend:8000`) và `TEXT2SQL_SERVICE_KEY` (phải trùng khóa của backend; thiếu thì proxy trả 503). Cả stack: [README gốc](../README.md).

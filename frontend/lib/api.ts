@@ -1,4 +1,5 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000"
+// Same origin: app/api/v1/[...path] forwards to the backend and adds the service key on the server.
+export const API_URL = ""
 
 export class ApiError extends Error {
   constructor(

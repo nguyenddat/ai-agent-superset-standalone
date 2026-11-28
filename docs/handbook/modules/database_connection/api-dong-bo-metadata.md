@@ -8,7 +8,7 @@ Lấy metadata từ database nguồn đã đăng ký và cập nhật snapshot `
 
 ## Luồng xử lý hiện tại
 
-1. Kiểm tra connection tồn tại và đang hoạt động, rồi giải mã URI trong service; route chưa có xác thực/phân quyền.
+1. Kiểm tra connection tồn tại và đang hoạt động, rồi giải mã URI trong service; route đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 2. Mở kết nối nguồn, đọc schema, table/view và column bằng dialect/driver tương ứng; đóng tài nguyên nguồn sau khi đọc.
 3. Áp dụng [phạm vi metadata](api-pham-vi-metadata.md) của kết nối. Đối chiếu phần được chọn theo khóa tự nhiên `(connection_id, schema_name)`, `(schema_id, table_name)`, `(table_id, column_name)` để cập nhật bản ghi hiện có và thêm bản ghi mới. Giữ ID của bản ghi còn tồn tại. Metadata bị loại bởi bộ lọc vẫn được giữ; mục được chọn nhưng không còn ở nguồn bị xóa theo chính sách hiện tại.
 4. Cập nhật `last_synced_at` của schema và table đã quan sát. Caller commit metadata một lần khi toàn bộ snapshot hợp lệ; lỗi thì rollback.

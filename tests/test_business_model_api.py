@@ -17,6 +17,7 @@ from backend.modules.database_connection.models import (
     DatabaseSchema,
     DatabaseTable,
 )
+from tests.service_key import use_service_key
 
 BASE = "/api/v1/business-model"
 
@@ -66,7 +67,7 @@ class BusinessModelApiTests(unittest.TestCase):
                 yield BusinessModelService(session)
 
         app.dependency_overrides[get_business_model_service] = business_model_dependency
-        self.client = TestClient(app, raise_server_exceptions=True)
+        self.client = TestClient(app, headers=use_service_key(self), raise_server_exceptions=True)
 
     def tearDown(self) -> None:
         self.client.close()

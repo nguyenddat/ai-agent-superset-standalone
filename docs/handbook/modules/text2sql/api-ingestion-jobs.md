@@ -1,6 +1,6 @@
 # API job ingestion của Text2SQL
 
-**Trạng thái: đã triển khai ở backend.** Các API này chỉ ghi và đọc hàng đợi nên không cần Qdrant hay OpenRouter; việc embed do [worker](worker-ingestion.md) làm. Như các module khác, API chưa có xác thực.
+**Trạng thái: đã triển khai ở backend.** Các API này chỉ ghi và đọc hàng đợi nên không cần Qdrant hay OpenRouter; việc embed do [worker](worker-ingestion.md) làm. Như các module khác, API đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 
 ## Xếp job ingest lại
 

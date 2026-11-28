@@ -1,12 +1,10 @@
-import hmac
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from backend.core.database import get_database
-from backend.core.setting import config
 from backend.modules.database_connection.models import DatabaseConnection
 
 from ..dependencies import get_chat_service, get_chat_service_factory
@@ -16,16 +14,7 @@ from ..services import ChatService
 from ..services.chat_stream import ChatServiceFactory, ChatStream
 from ..utils.exceptions import Text2SqlConnectionNotFound
 
-
-def require_service_key(x_service_key: Annotated[str | None, Header()] = None) -> None:
-    expected = config.text2sql_service_key
-    if expected is None or not expected.get_secret_value():  # unset (compose passes "")
-        return
-    if x_service_key is None or not hmac.compare_digest(x_service_key, expected.get_secret_value()):
-        raise HTTPException(status_code=401, detail="Thiếu hoặc sai X-Service-Key.")
-
-
-router = APIRouter(dependencies=[Depends(require_service_key)])
+router = APIRouter()
 
 SSE_HEADERS = {"Cache-Control": "no-cache", "X-Accel-Buffering": "no"}
 

@@ -5,6 +5,7 @@ from fastapi.testclient import TestClient
 
 from backend.core.setting import config
 from backend.main import app
+from tests.service_key import use_service_key
 
 BASE = "/api/v1/text2sql"
 FIELDS = [
@@ -17,7 +18,7 @@ BAR = {"type": "bar", "encoding": {"x": {"field": "thanh_pho"}, "y": [{"field": 
 
 class ChartApiTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.client = TestClient(app)
+        self.client = TestClient(app, headers=use_service_key(self))
 
     def tearDown(self) -> None:
         self.client.close()

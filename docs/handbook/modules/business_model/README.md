@@ -6,7 +6,7 @@ Module tổ chức các bảng đã mô tả thành tầng dữ liệu và miề
 
 **Giao diện:** tab `Mô hình` của trang kết nối hiển thị bảng và miền nghiệp vụ dạng vùng Venn, xem [handbook frontend](../../frontend/README.md#mô-hình-nghiệp-vụ). Chưa có giao diện quản lý tầng và lineage.
 
-**Dự kiến:** giao diện tầng dữ liệu và lineage, kiểm tra sâu cấu trúc và tọa độ trong `layout`, phân tích dữ liệu nguồn để xác nhận quan hệ. API hiện suy quan hệ tham chiếu từ cột được khai báo trong từ điển và có thể lưu cạnh thủ công hoặc ẩn cạnh suy ra. Dòng dữ liệu từ SQL được quản lý bởi [module Data Lineage](../data_lineage/README.md). Các API chưa có xác thực/phân quyền.
+**Dự kiến:** giao diện tầng dữ liệu và lineage, kiểm tra sâu cấu trúc và tọa độ trong `layout`, phân tích dữ liệu nguồn để xác nhận quan hệ. API hiện suy quan hệ tham chiếu từ cột được khai báo trong từ điển và có thể lưu cạnh thủ công hoặc ẩn cạnh suy ra. Dòng dữ liệu từ SQL được quản lý bởi [module Data Lineage](../data_lineage/README.md). Các API đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 
 Thuật ngữ, quy tắc chuyên gia và metric được gom theo miền nghiệp vụ. Mỗi module giữ bảng ghép riêng tới `business_domains`; `services/domain_assignment.py` (`DomainAssignment`) dùng chung để kiểm tra ID miền, đọc miền theo lô và thay toàn bộ miền của một đối tượng. Xóa miền sẽ gỡ miền đó khỏi các đối tượng này.
 

@@ -14,7 +14,7 @@ Cung cấp số liệu cho tab `Tổng quan` của kết nối: mức độ mô 
 
 ## Luồng xử lý hiện tại
 
-1. Dùng lại dữ liệu của [API tổng quan](api-tong-quan-ket-noi.md); kết nối không tồn tại trả 404. Route chưa có xác thực/phân quyền.
+1. Dùng lại dữ liệu của [API tổng quan](api-tong-quan-ket-noi.md); kết nối không tồn tại trả 404. Route đòi `X-Service-Key` (xem [hành vi API](../../hanh-vi-api.md)), chưa phân quyền theo người dùng.
 2. Đọc các cặp (bảng có cột tham chiếu, bảng được tham chiếu) từ `column_dictionaries.referenced_column_id` trong một truy vấn, chỉ giữ cặp mà cả hai bảng thuộc kết nối và khác nhau.
 3. Xếp hạng theo giá trị giảm dần, rồi theo tên schema và tên bảng; bỏ bảng có giá trị 0.
 4. Không ghi gì vào database.

@@ -16,6 +16,7 @@ from backend.modules.database_connection.models import (
     DatabaseSchema,
     DatabaseTable,
 )
+from tests.service_key import use_service_key
 
 BASE = "/api/v1"
 
@@ -79,7 +80,7 @@ class DataDictionaryApiTests(unittest.TestCase):
                 yield DataDictionaryService(session)
 
         app.dependency_overrides[get_data_dictionary_service] = dictionary_dependency
-        self.client = TestClient(app, raise_server_exceptions=True)
+        self.client = TestClient(app, headers=use_service_key(self), raise_server_exceptions=True)
 
     def tearDown(self) -> None:
         self.client.close()

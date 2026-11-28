@@ -57,6 +57,7 @@ from backend.modules.text2sql.utils.exceptions import (
     Text2SqlAgentUnavailable,
     Text2SqlClientDisconnected,
 )
+from tests.service_key import use_service_key
 
 TODAY = date(2026, 11, 20)
 SINGLE_QUESTION = SINGLE_REWRITE["rewritten_question"]
@@ -418,7 +419,7 @@ def by_position(events: list[tuple[str, dict]], position: int) -> list[str]:
 
 class StreamRouteTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.client = TestClient(app)
+        self.client = TestClient(app, headers=use_service_key(self))
 
     def tearDown(self) -> None:
         app.dependency_overrides.clear()

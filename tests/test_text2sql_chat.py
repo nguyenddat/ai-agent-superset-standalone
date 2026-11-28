@@ -64,6 +64,7 @@ from backend.modules.text2sql.utils.exceptions import (
     Text2SqlClientDisconnected,
     Text2SqlInvalidRequest,
 )
+from tests.service_key import use_service_key
 
 CONNECTION_ID = uuid4()
 TODAY = date(2026, 11, 20)
@@ -630,7 +631,7 @@ class ChatRouteTests(unittest.TestCase):
     def setUp(self) -> None:
         self.session = SimpleNamespace(get=lambda model, key: object() if key == CONNECTION_ID else None)
         app.dependency_overrides[get_database] = lambda: self.session
-        self.client = TestClient(app)
+        self.client = TestClient(app, headers=use_service_key(self))
 
     def tearDown(self) -> None:
         app.dependency_overrides.clear()
@@ -740,7 +741,7 @@ def read_events(text: str) -> list[tuple[str, dict]]:
 
 class ChatStreamRouteTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.client = TestClient(app)
+        self.client = TestClient(app, headers=use_service_key(self))
 
     def tearDown(self) -> None:
         app.dependency_overrides.clear()
@@ -896,7 +897,7 @@ class ChartFieldsTests(unittest.TestCase):
         app.dependency_overrides[get_database] = lambda: session
         app.dependency_overrides[get_chat_service] = lambda: make_service(FakeCompletion(), agent=ChartAgent())
         try:
-            with TestClient(app) as client:
+            with TestClient(app, headers=use_service_key(self)) as client:
                 response = client.post(
                     "/api/v1/text2sql/chat", json={"connection_id": str(CONNECTION_ID), "question": "câu hỏi"},
                 )
@@ -956,7 +957,7 @@ class ServiceCallTests(unittest.TestCase):
         session = SimpleNamespace(get=lambda model, key: object() if key == CONNECTION_ID else None)
         app.dependency_overrides[get_database] = lambda: session
         self.addCleanup(app.dependency_overrides.clear)
-        self.client = TestClient(app)
+        self.client = TestClient(app, headers=use_service_key(self))
 
     def post(self, path="/chat", headers=None, **extra):
         return self.client.post(
@@ -981,20 +982,15 @@ class ServiceCallTests(unittest.TestCase):
         self.assertEqual(self.post("/chat/stream", scope_token=scope).status_code, 200)
         self.assertEqual(agent.tokens, [scope, scope])
 
-    def test_service_key_is_required_once_set(self) -> None:
+    def test_chat_routes_need_the_service_key(self) -> None:
         from pydantic import SecretStr
 
         app.dependency_overrides[get_chat_service] = lambda: make_service(FakeCompletion())
-        self.assertEqual(self.post().status_code, 200)  # unset: open, as for the frontend
-        original = self.config.text2sql_service_key
-        self.addCleanup(setattr, self.config, "text2sql_service_key", original)
-        self.config.text2sql_service_key = SecretStr("k" * 40)
-        self.assertEqual(self.post().status_code, 401)
-        self.assertEqual(self.post("/chat/stream").status_code, 401)
+        self.assertEqual(self.post().status_code, 200)  # the client sends the right key
         self.assertEqual(self.post(headers={"X-Service-Key": "wrong"}).status_code, 401)
-        self.assertEqual(self.post(headers={"X-Service-Key": "k" * 40}).status_code, 200)
-        self.config.text2sql_service_key = SecretStr("")  # compose passes "" when unset
-        self.assertEqual(self.post().status_code, 200)
+        self.assertEqual(self.post("/chat/stream", headers={"X-Service-Key": "wrong"}).status_code, 401)
+        self.config.text2sql_service_key = SecretStr("")  # compose passes "" when unset: fail closed
+        self.assertEqual(self.post().status_code, 503)
 
 
 if __name__ == "__main__":

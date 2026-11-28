@@ -21,6 +21,7 @@ from backend.modules.glossary_management.dependencies import get_glossary_servic
 from backend.modules.glossary_management.services import GlossaryService
 from backend.modules.own_knowledge.dependencies import get_own_knowledge_service
 from backend.modules.own_knowledge.services import OwnKnowledgeService
+from tests.service_key import use_service_key
 
 BASE = "/api/v1/own-knowledge"
 GLOSSARY = "/api/v1/glossary"
@@ -74,7 +75,7 @@ class OwnKnowledgeApiTests(unittest.TestCase):
         app.dependency_overrides[get_own_knowledge_service] = service_dependency
         app.dependency_overrides[get_glossary_service] = glossary_dependency
         app.dependency_overrides[get_expert_rule_service] = expert_dependency
-        self.client = TestClient(app)
+        self.client = TestClient(app, headers=use_service_key(self))
 
     def tearDown(self) -> None:
         self.client.close()

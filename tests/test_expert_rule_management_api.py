@@ -19,6 +19,7 @@ from backend.modules.expert_rule_management.services import ExpertRuleService
 from backend.modules.glossary_management.dependencies import get_glossary_service
 from backend.modules.glossary_management.services import GlossaryService
 from backend.modules.metric_management.models import Metric
+from tests.service_key import use_service_key
 
 BASE = "/api/v1/expert-rules"
 GLOSSARY = "/api/v1/glossary"
@@ -71,7 +72,7 @@ class ExpertRuleManagementApiTests(unittest.TestCase):
 
         app.dependency_overrides[get_expert_rule_service] = expert_dependency
         app.dependency_overrides[get_glossary_service] = glossary_dependency
-        self.client = TestClient(app)
+        self.client = TestClient(app, headers=use_service_key(self))
 
     def tearDown(self) -> None:
         self.client.close()
