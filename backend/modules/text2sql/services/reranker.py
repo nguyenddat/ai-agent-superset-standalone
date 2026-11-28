@@ -4,6 +4,7 @@ from typing import Protocol
 
 import httpx
 
+from backend.agent_package.get_chat_models import OPENROUTER_PRIVACY
 from backend.core.setting import config
 
 from ..utils.exceptions import Text2SqlRerankUnavailable
@@ -74,6 +75,7 @@ class JevReranker:
         noun, criteria = SUBJECTS[subject]
         body = {
             "model": self.model,
+            "provider": OPENROUTER_PRIVACY,
             "state": {"cau_hoi": question, "loai": noun, "noi_dung": passage},
             "questions": {QUESTION_NAME: {
                 "type": "score", "instructions": INSTRUCTIONS.format(noun=noun), "criteria": criteria,

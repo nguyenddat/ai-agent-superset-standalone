@@ -2,6 +2,7 @@ from collections.abc import Sequence
 
 import httpx
 
+from backend.agent_package.get_chat_models import OPENROUTER_PRIVACY
 from backend.common.base_exceptions import ServiceUnavailableError
 from backend.core.setting import config
 
@@ -29,7 +30,12 @@ class OpenRouterEmbedding:
             response = self.client.post(
                 f"{config.openrouter_base_url.rstrip('/')}/embeddings",
                 headers={"Authorization": f"Bearer {config.openrouter_api_key.get_secret_value()}"},
-                json={"model": self.model, "input": list(texts), "dimensions": self.dimensions},
+                json={
+                    "model": self.model,
+                    "input": list(texts),
+                    "dimensions": self.dimensions,
+                    "provider": OPENROUTER_PRIVACY,
+                },
             )
             response.raise_for_status()
             data = response.json()["data"]

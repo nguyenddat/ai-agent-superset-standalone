@@ -49,6 +49,7 @@ class JevRerankerTests(unittest.TestCase):
         self.assertEqual(request.headers["authorization"], "Bearer test-key")
         body = json.loads(request.content)
         self.assertEqual(body["model"], "typesafe/jev-1.14")
+        self.assertEqual(body["provider"], {"zdr": True, "data_collection": "deny"})
         self.assertEqual(body["state"]["cau_hoi"], "doanh thu?")
         self.assertEqual(body["state"]["loai"], SUBJECTS["metric"][0])
         question = body["questions"]["relevance"]

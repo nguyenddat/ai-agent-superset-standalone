@@ -1,9 +1,11 @@
+import json
 import unittest
 from types import SimpleNamespace
 from unittest.mock import patch
 from uuid import uuid4
 
 import httpx
+from pydantic import SecretStr
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
@@ -53,6 +55,16 @@ class EmbeddingTests(unittest.TestCase):
         self.assertEqual([vector[0] for vector in vectors], [1.0, 2.0])
         self.assertEqual(requests[0].url.path, "/api/v1/embeddings")
         self.assertIn(b"openai/text-embedding-3-small", requests[0].content)
+        self.assertEqual(json.loads(requests[0].content)["provider"], {"zdr": True, "data_collection": "deny"})
+
+    def test_chat_model_asks_openrouter_to_keep_nothing(self) -> None:
+        from backend.agent_package.get_chat_models import get_chat_model
+
+        get_chat_model.cache_clear()
+        self.addCleanup(get_chat_model.cache_clear)
+        with patch.object(config, "openrouter_api_key", SecretStr("test-key")):
+            model = get_chat_model()
+        self.assertEqual(model.extra_body, {"provider": {"zdr": True, "data_collection": "deny"}})
 
 
 class CatalogTests(unittest.TestCase):

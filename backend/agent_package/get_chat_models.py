@@ -9,6 +9,8 @@ from pydantic import BaseModel
 from backend.core.setting import config
 
 Output = TypeVar("Output", bound=BaseModel)
+# Sent on every OpenRouter call: only providers that keep nothing and train on nothing.
+OPENROUTER_PRIVACY = {"zdr": True, "data_collection": "deny"}
 
 
 @lru_cache(maxsize=1)
@@ -21,6 +23,7 @@ def get_chat_model() -> ChatOpenAI:
         max_retries=2,
         api_key=config.require_openrouter_api_key(),
         base_url=config.openrouter_base_url,
+        extra_body={"provider": OPENROUTER_PRIVACY},
     )
 
 
